@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "MarinCheck",
+    "slug": "marincheck",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B1D33",
+    "primaryColor": "#C9A227",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kosko.marincheck",
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true
+      }
+    },
+    "android": {
+      "package": "com.kosko.marincheck",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B1D33",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "userTrackingUsageDescription": "Reklamları size daha uygun hale getirmek için kullanılır."
+        }
+      ]
+    ]
+  }
+}
