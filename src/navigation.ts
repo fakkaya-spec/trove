@@ -1,6 +1,10 @@
 export type RootStackParamList = {
-  /** Yeni ana ekran: inspection akışı */
-  Home: undefined;
+  /** Alt sekmeler (Home / Trips / Boats / Library / Profile) */
+  Tabs: undefined;
+  TripWizard: undefined;
+  TripDetail: { tripId: string };
+  Provisioning: { tripId: string };
+  /** Bağımsız hızlı charter check-in girişi */
   NewInspection: undefined;
   Inspect: { inspectionId: string };
   InspectionSummary: { inspectionId: string };
@@ -9,4 +13,12 @@ export type RootStackParamList = {
   Checklist: { vesselId: string };
   Guide: undefined;
   Premium: undefined;
+};
+
+export type TabParamList = {
+  HomeTab: undefined;
+  TripsTab: undefined;
+  BoatsTab: undefined;
+  LibraryTab: undefined;
+  ProfileTab: undefined;
 };

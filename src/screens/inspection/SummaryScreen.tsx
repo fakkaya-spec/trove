@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView, Alert } from "react-native";
-import { useFocusEffect, useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useFocusEffect, useRoute, RouteProp } from "@react-navigation/native";
 import {
   completeInspection,
   getInspection,
@@ -21,7 +20,6 @@ import { INSPECTION_STRINGS } from "../../i18n/inspection";
 import type { RootStackParamList } from "../../navigation";
 
 type Route = RouteProp<RootStackParamList, "InspectionSummary">;
-type Nav = NativeStackNavigationProp<RootStackParamList, "InspectionSummary">;
 
 const SEV_COLOR: Record<string, string> = {
   low: colors.fog,
@@ -32,7 +30,6 @@ const SEV_COLOR: Record<string, string> = {
 
 export default function SummaryScreen() {
   const route = useRoute<Route>();
-  const navigation = useNavigation<Nav>();
   const { locale } = useLocale();
   const s = INSPECTION_STRINGS[locale];
 
@@ -55,11 +52,11 @@ export default function SummaryScreen() {
 
   const template = useMemo(
     () => (inspection ? getTemplateById(inspection.templateId) : null),
-    [inspection?.templateId]
+    [inspection]
   );
   const resultMap = useMemo(
     () => (inspection ? toResultMap(getItemResults(inspection.id)) : new Map()),
-    [inspection, resultsVersion]
+    [inspection, resultsVersion] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   if (!inspection || !template) return null;

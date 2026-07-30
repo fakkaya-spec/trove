@@ -38,7 +38,7 @@ export default function ChecklistScreen() {
         Object.values(s).filter(Boolean).length === totalItems(vessel);
       setLoaded(true);
     });
-  }, [vessel?.id, locale]);
+  }, [vessel?.id, locale]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sections = useMemo(
     () =>

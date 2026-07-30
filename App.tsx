@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from "react";
+import { Text } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { DarkTheme, NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import InspectionHomeScreen from "./src/screens/inspection/InspectionHomeScreen";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import TripHomeScreen from "./src/screens/trip/TripHomeScreen";
+import TripsScreen from "./src/screens/trip/TripsScreen";
+import TripWizardScreen from "./src/screens/trip/TripWizardScreen";
+import TripDetailScreen from "./src/screens/trip/TripDetailScreen";
+import ProvisioningScreen from "./src/screens/trip/ProvisioningScreen";
+import BoatsScreen from "./src/screens/boats/BoatsScreen";
+import LibraryScreen from "./src/screens/LibraryScreen";
+import ProfileScreen from "./src/screens/ProfileScreen";
 import NewInspectionScreen from "./src/screens/inspection/NewInspectionScreen";
 import InspectScreen from "./src/screens/inspection/InspectScreen";
 import SummaryScreen from "./src/screens/inspection/SummaryScreen";
@@ -14,13 +23,15 @@ import { colors, fonts } from "./src/theme";
 import { initAds } from "./src/ads";
 import { LocaleProvider, useLocale } from "./src/i18n";
 import { INSPECTION_STRINGS } from "./src/i18n/inspection";
+import { TRIP_STRINGS } from "./src/i18n/trip";
 import { PremiumProvider } from "./src/premium";
 import { initDb } from "./src/db/client";
 import { markDbReady } from "./src/db/state";
 import { features } from "./src/config/features";
-import type { RootStackParamList } from "./src/navigation";
+import type { RootStackParamList, TabParamList } from "./src/navigation";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<TabParamList>();
 
 const theme = {
   ...DarkTheme,
@@ -34,9 +45,56 @@ const theme = {
   },
 };
 
+function Tabs() {
+  const { locale } = useLocale();
+  const s = TRIP_STRINGS[locale];
+  const icon =
+    (glyph: string) =>
+    ({ color }: { color: string }) =>
+      <Text style={{ fontSize: 20, color }}>{glyph}</Text>;
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: { backgroundColor: colors.nightDeep, borderTopColor: colors.line },
+        tabBarActiveTintColor: colors.brass,
+        tabBarInactiveTintColor: colors.fog,
+        tabBarLabelStyle: { fontFamily: fonts.body, fontSize: 11 },
+      }}
+    >
+      <Tab.Screen
+        name="HomeTab"
+        component={TripHomeScreen}
+        options={{ title: s.tabHome, tabBarIcon: icon("☸") }}
+      />
+      <Tab.Screen
+        name="TripsTab"
+        component={TripsScreen}
+        options={{ title: s.tabTrips, tabBarIcon: icon("🧭") }}
+      />
+      <Tab.Screen
+        name="BoatsTab"
+        component={BoatsScreen}
+        options={{ title: s.tabBoats, tabBarIcon: icon("⛵") }}
+      />
+      <Tab.Screen
+        name="LibraryTab"
+        component={LibraryScreen}
+        options={{ title: s.tabLibrary, tabBarIcon: icon("📚") }}
+      />
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileScreen}
+        options={{ title: s.tabProfile, tabBarIcon: icon("👤") }}
+      />
+    </Tab.Navigator>
+  );
+}
+
 function Root() {
   const { locale, t } = useLocale();
   const si = INSPECTION_STRINGS[locale];
+  const s = TRIP_STRINGS[locale];
   return (
     <NavigationContainer theme={theme}>
       <StatusBar style="light" />
@@ -52,8 +110,14 @@ function Root() {
           headerBackTitle: t.back,
         }}
       >
-        {/* Yeni inspection akışı (reklamsız) */}
-        <Stack.Screen name="Home" component={InspectionHomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
+        <Stack.Screen name="TripWizard" component={TripWizardScreen} options={{ title: s.newTrip }} />
+        <Stack.Screen name="TripDetail" component={TripDetailScreen} options={{ title: "" }} />
+        <Stack.Screen
+          name="Provisioning"
+          component={ProvisioningScreen}
+          options={{ title: `🛒 ${s.provisioning}` }}
+        />
         <Stack.Screen
           name="NewInspection"
           component={NewInspectionScreen}
@@ -96,7 +160,7 @@ export default function App() {
       initDb();
       markDbReady(true);
     } catch (e) {
-      console.warn("DB init failed; inspection flow disabled:", e);
+      console.warn("DB init failed; trip/inspection flows disabled:", e);
       markDbReady(false);
     }
     return null;

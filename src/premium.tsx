@@ -59,7 +59,7 @@ const Ctx = createContext<PremiumCtx>({
   devToggle: () => {},
 });
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 function extractPrice(product: any): string | undefined {
   return (

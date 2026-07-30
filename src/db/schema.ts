@@ -30,7 +30,107 @@ export const vessels = sqliteTable("vessels", {
   model: text("model"),
   hullNumber: text("hull_number"),
   photoUri: text("photo_uri"),
+  ownershipType: text("ownership_type").notNull().default("owned"),
+  manufacturer: text("manufacturer"),
+  modelYear: integer("model_year"),
+  lengthM: real("length_m"),
+  beamM: real("beam_m"),
+  registrationNumber: text("registration_number"),
+  hullIdentificationNumber: text("hull_identification_number"),
+  homeMarina: text("home_marina"),
+  fuelCapacityL: real("fuel_capacity_l"),
+  freshWaterCapacityL: real("fresh_water_capacity_l"),
+  blackWaterCapacityL: real("black_water_capacity_l"),
+  engineCount: integer("engine_count"),
+  engineType: text("engine_type"),
+  refrigeratorAvailable: integer("refrigerator_available").notNull().default(1),
+  freezerAvailable: integer("freezer_available").notNull().default(0),
+  watermakerAvailable: integer("watermaker_available").notNull().default(0),
+  generatorAvailable: integer("generator_available").notNull().default(0),
+  dinghyAvailable: integer("dinghy_available").notNull().default(0),
+  outboardAvailable: integer("outboard_available").notNull().default(0),
+  notes: text("notes"),
   ...common,
+});
+
+export const trips = sqliteTable("trips", {
+  id: text("id").primaryKey(),
+  boatId: text("boat_id"),
+  name: text("name").notNull(),
+  tripType: text("trip_type").notNull().default("weekend"),
+  ownershipContext: text("ownership_context").notNull().default("undecided"),
+  status: text("status").notNull().default("planning"),
+  startAt: text("start_at"),
+  endAt: text("end_at"),
+  departureLocation: text("departure_location"),
+  destination: text("destination"),
+  nights: integer("nights").notNull().default(0),
+  adults: integer("adults").notNull().default(2),
+  children: integer("children").notNull().default(0),
+  infants: integer("infants").notNull().default(0),
+  pets: integer("pets").notNull().default(0),
+  skipperName: text("skipper_name"),
+  crewNamesJson: text("crew_names_json").notNull().default("[]"),
+  profileJson: text("profile_json").notNull().default("{}"),
+  ...common,
+});
+
+export const provisionRules = sqliteTable("provision_rules", {
+  id: text("id").primaryKey(),
+  ruleKey: text("rule_key").notNull(),
+  category: text("category").notNull(),
+  nameJson: text("name_json").notNull(),
+  unit: text("unit").notNull(),
+  mode: text("mode").notNull(),
+  baseQty: real("base_qty").notNull(),
+  adultFactor: real("adult_factor").notNull().default(1),
+  childFactor: real("child_factor").notNull().default(0.6),
+  meal: text("meal"),
+  hotClimateFactor: real("hot_climate_factor").notNull().default(1),
+  anchorFactor: real("anchor_factor").notNull().default(1),
+  styleFactorsJson: text("style_factors_json")
+    .notNull()
+    .default('{"essential":1,"balanced":1,"comfortable":1}'),
+  reservePct: real("reserve_pct").notNull().default(0),
+  minQty: real("min_qty").notNull().default(0),
+  roundTo: real("round_to").notNull().default(1),
+  requiresJson: text("requires_json").notNull().default("{}"),
+  sort: integer("sort").notNull().default(0),
+  active: integer("active").notNull().default(1),
+  version: integer("version").notNull().default(1),
+  ...common,
+});
+
+export const provisionPlans = sqliteTable("provision_plans", {
+  id: text("id").primaryKey(),
+  tripId: text("trip_id").notNull(),
+  rulesVersion: integer("rules_version").notNull().default(1),
+  inputsJson: text("inputs_json").notNull().default("{}"),
+  ...common,
+});
+
+export const provisionItems = sqliteTable("provision_items", {
+  id: text("id").primaryKey(),
+  planId: text("plan_id").notNull(),
+  ruleId: text("rule_id"),
+  category: text("category").notNull(),
+  name: text("name").notNull(),
+  unit: text("unit").notNull(),
+  calculatedQty: real("calculated_qty"),
+  finalQty: real("final_qty").notNull().default(0),
+  onboardQty: real("onboard_qty").notNull().default(0),
+  purchasedQty: real("purchased_qty"),
+  state: text("state").notNull().default("suggested"),
+  note: text("note"),
+  explanationJson: text("explanation_json"),
+  sort: integer("sort").notNull().default(0),
+  ...common,
+});
+
+export const seedVersions = sqliteTable("seed_versions", {
+  seedKey: text("seed_key").primaryKey(),
+  version: integer("version").notNull(),
+  appliedAt: text("applied_at").notNull(),
 });
 
 export const inspectionTemplates = sqliteTable("inspection_templates", {
@@ -40,6 +140,7 @@ export const inspectionTemplates = sqliteTable("inspection_templates", {
   nameJson: text("name_json").notNull(),
   version: integer("version").notNull().default(1),
   isActive: integer("is_active").notNull().default(1),
+  kind: text("kind").notNull().default("charter_check_in"),
   ...common,
 });
 
@@ -79,6 +180,7 @@ export const handoverSessions = sqliteTable("handover_sessions", {
   checkinInspectionId: text("checkin_inspection_id"),
   checkoutInspectionId: text("checkout_inspection_id"),
   status: text("status").notNull().default("open"),
+  tripId: text("trip_id"),
   ...common,
 });
 
@@ -96,6 +198,7 @@ export const inspections = sqliteTable("inspections", {
   durationS: integer("duration_s"),
   lat: real("lat"),
   lng: real("lng"),
+  tripId: text("trip_id"),
   ...common,
 });
 
@@ -121,6 +224,8 @@ export const issues = sqliteTable("issues", {
   reportedToCompany: integer("reported_to_company").notNull().default(0),
   companyResponse: text("company_response"),
   resolved: integer("resolved").notNull().default(0),
+  tripId: text("trip_id"),
+  sourceType: text("source_type").notNull().default("inspection"),
   ...common,
 });
 
@@ -148,6 +253,9 @@ export const meterReadings = sqliteTable("meter_readings", {
   ocrValue: real("ocr_value"),
   ocrConfidence: real("ocr_confidence"),
   confirmed: integer("confirmed").notNull().default(1),
+  tripId: text("trip_id"),
+  boatId: text("boat_id"),
+  readingStage: text("reading_stage").notNull().default("ad_hoc"),
   ...common,
 });
 

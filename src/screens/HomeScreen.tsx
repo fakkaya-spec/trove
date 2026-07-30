@@ -20,7 +20,7 @@ import { usePremium } from "../premium";
 import { PRODUCT_NAME } from "../config/product";
 import type { RootStackParamList } from "../navigation";
 
-type Nav = NativeStackNavigationProp<RootStackParamList, "Home">;
+type Nav = NativeStackNavigationProp<RootStackParamList, "Checklists">;
 
 export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
@@ -44,7 +44,7 @@ export default function HomeScreen() {
       return () => {
         active = false;
       };
-    }, [locale])
+    }, [locale]) // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   function renderCard(v: Vessel, idx: number) {

@@ -14,7 +14,7 @@ export default function GuideScreen() {
 
   useEffect(() => {
     navigation.setOptions({ title: t.guideScreenTitle });
-  }, [locale]);
+  }, [locale]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <SafeAreaView style={styles.safe}>

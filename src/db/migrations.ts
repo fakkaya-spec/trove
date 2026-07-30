@@ -128,6 +128,123 @@ CREATE INDEX idx_sections_template ON template_sections(template_id);
 CREATE INDEX idx_items_section ON template_items(section_id);
 `,
   },
+  {
+    // Faz 1-2: Trip merkezli model + ikmal (provisioning) + tekne genişletmesi.
+    id: 2,
+    sql: `
+CREATE TABLE trips (
+  id TEXT PRIMARY KEY,
+  boat_id TEXT REFERENCES vessels(id),
+  name TEXT NOT NULL,
+  trip_type TEXT NOT NULL DEFAULT 'weekend',
+  ownership_context TEXT NOT NULL DEFAULT 'undecided',
+  status TEXT NOT NULL DEFAULT 'planning',
+  start_at TEXT, end_at TEXT,
+  departure_location TEXT, destination TEXT,
+  nights INTEGER NOT NULL DEFAULT 0,
+  adults INTEGER NOT NULL DEFAULT 2,
+  children INTEGER NOT NULL DEFAULT 0,
+  infants INTEGER NOT NULL DEFAULT 0,
+  pets INTEGER NOT NULL DEFAULT 0,
+  skipper_name TEXT,
+  crew_names_json TEXT NOT NULL DEFAULT '[]',
+  profile_json TEXT NOT NULL DEFAULT '{}',
+  ${COMMON}
+);
+CREATE INDEX idx_trips_status ON trips(status);
+
+CREATE TABLE provision_rules (
+  id TEXT PRIMARY KEY,
+  rule_key TEXT NOT NULL UNIQUE,
+  category TEXT NOT NULL,
+  name_json TEXT NOT NULL,
+  unit TEXT NOT NULL,
+  mode TEXT NOT NULL,
+  base_qty REAL NOT NULL,
+  adult_factor REAL NOT NULL DEFAULT 1,
+  child_factor REAL NOT NULL DEFAULT 0.6,
+  meal TEXT,
+  hot_climate_factor REAL NOT NULL DEFAULT 1,
+  anchor_factor REAL NOT NULL DEFAULT 1,
+  style_factors_json TEXT NOT NULL DEFAULT '{"essential":1,"balanced":1,"comfortable":1}',
+  reserve_pct REAL NOT NULL DEFAULT 0,
+  min_qty REAL NOT NULL DEFAULT 0,
+  round_to REAL NOT NULL DEFAULT 1,
+  requires_json TEXT NOT NULL DEFAULT '{}',
+  sort INTEGER NOT NULL DEFAULT 0,
+  active INTEGER NOT NULL DEFAULT 1,
+  version INTEGER NOT NULL DEFAULT 1,
+  ${COMMON}
+);
+
+CREATE TABLE provision_plans (
+  id TEXT PRIMARY KEY,
+  trip_id TEXT NOT NULL REFERENCES trips(id),
+  rules_version INTEGER NOT NULL DEFAULT 1,
+  inputs_json TEXT NOT NULL DEFAULT '{}',
+  ${COMMON}
+);
+CREATE INDEX idx_provision_plans_trip ON provision_plans(trip_id);
+
+CREATE TABLE provision_items (
+  id TEXT PRIMARY KEY,
+  plan_id TEXT NOT NULL REFERENCES provision_plans(id),
+  rule_id TEXT,
+  category TEXT NOT NULL,
+  name TEXT NOT NULL,
+  unit TEXT NOT NULL,
+  calculated_qty REAL,
+  final_qty REAL NOT NULL DEFAULT 0,
+  onboard_qty REAL NOT NULL DEFAULT 0,
+  purchased_qty REAL,
+  state TEXT NOT NULL DEFAULT 'suggested',
+  note TEXT,
+  explanation_json TEXT,
+  sort INTEGER NOT NULL DEFAULT 0,
+  ${COMMON}
+);
+CREATE INDEX idx_provision_items_plan ON provision_items(plan_id);
+
+CREATE TABLE seed_versions (
+  seed_key TEXT PRIMARY KEY,
+  version INTEGER NOT NULL,
+  applied_at TEXT NOT NULL
+);
+
+ALTER TABLE inspection_templates ADD COLUMN kind TEXT NOT NULL DEFAULT 'charter_check_in';
+
+ALTER TABLE vessels ADD COLUMN ownership_type TEXT NOT NULL DEFAULT 'owned';
+ALTER TABLE vessels ADD COLUMN manufacturer TEXT;
+ALTER TABLE vessels ADD COLUMN model_year INTEGER;
+ALTER TABLE vessels ADD COLUMN length_m REAL;
+ALTER TABLE vessels ADD COLUMN beam_m REAL;
+ALTER TABLE vessels ADD COLUMN registration_number TEXT;
+ALTER TABLE vessels ADD COLUMN hull_identification_number TEXT;
+ALTER TABLE vessels ADD COLUMN home_marina TEXT;
+ALTER TABLE vessels ADD COLUMN fuel_capacity_l REAL;
+ALTER TABLE vessels ADD COLUMN fresh_water_capacity_l REAL;
+ALTER TABLE vessels ADD COLUMN black_water_capacity_l REAL;
+ALTER TABLE vessels ADD COLUMN engine_count INTEGER;
+ALTER TABLE vessels ADD COLUMN engine_type TEXT;
+ALTER TABLE vessels ADD COLUMN refrigerator_available INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE vessels ADD COLUMN freezer_available INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE vessels ADD COLUMN watermaker_available INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE vessels ADD COLUMN generator_available INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE vessels ADD COLUMN dinghy_available INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE vessels ADD COLUMN outboard_available INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE vessels ADD COLUMN notes TEXT;
+
+ALTER TABLE inspections ADD COLUMN trip_id TEXT REFERENCES trips(id);
+ALTER TABLE handover_sessions ADD COLUMN trip_id TEXT REFERENCES trips(id);
+ALTER TABLE issues ADD COLUMN trip_id TEXT;
+ALTER TABLE issues ADD COLUMN source_type TEXT NOT NULL DEFAULT 'inspection';
+ALTER TABLE meter_readings ADD COLUMN trip_id TEXT;
+ALTER TABLE meter_readings ADD COLUMN boat_id TEXT;
+ALTER TABLE meter_readings ADD COLUMN reading_stage TEXT NOT NULL DEFAULT 'ad_hoc';
+CREATE INDEX idx_inspections_trip ON inspections(trip_id);
+CREATE INDEX idx_meters_trip ON meter_readings(trip_id);
+`,
+  },
 ];
 
 export function migrate(db: SQLiteDatabase): void {

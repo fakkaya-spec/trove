@@ -25,7 +25,16 @@ export interface InventoryItemDef {
   expectedCount: number;
 }
 
-export function getActiveTemplate(boatType: string): TemplateDef | null {
+export type TemplateKind =
+  | "charter_check_in"
+  | "charter_check_out"
+  | "pre_departure"
+  | "return_secure";
+
+export function getActiveTemplate(
+  boatType: string,
+  kind: TemplateKind = "charter_check_in"
+): TemplateDef | null {
   const db = getDb();
   const [tpl] = db
     .select()
@@ -33,6 +42,7 @@ export function getActiveTemplate(boatType: string): TemplateDef | null {
     .where(
       and(
         eq(inspectionTemplates.boatType, boatType),
+        eq(inspectionTemplates.kind, kind),
         eq(inspectionTemplates.isActive, 1),
         isNull(inspectionTemplates.deletedAt)
       )
@@ -41,6 +51,46 @@ export function getActiveTemplate(boatType: string): TemplateDef | null {
     .all();
   if (!tpl) return null;
   return getTemplateById(tpl.id);
+}
+
+/**
+ * Tekne tipine en uygun şablon: birebir eşleşme yoksa aynı türden (kind)
+ * yelkenli şablonuna düşer (Faz 1'de her tip için şablon yok — bilinçli).
+ */
+export function getBestTemplate(boatType: string, kind: TemplateKind): TemplateDef | null {
+  return getActiveTemplate(boatType, kind) ?? getActiveTemplate("sailing", kind);
+}
+
+export interface TemplateListRow {
+  id: string;
+  kind: TemplateKind;
+  boatType: string;
+  name: LocalizedText;
+  itemCount: number;
+}
+
+export function listTemplates(): TemplateListRow[] {
+  const db = getDb();
+  const rows = db
+    .select()
+    .from(inspectionTemplates)
+    .where(and(eq(inspectionTemplates.isActive, 1), isNull(inspectionTemplates.deletedAt)))
+    .all();
+  return rows.map((r) => {
+    const def = getTemplateById(r.id);
+    const itemCount =
+      def?.sections.reduce(
+        (n, s) => n + s.items.filter((i) => i.inputKind === "status").length,
+        0
+      ) ?? 0;
+    return {
+      id: r.id,
+      kind: r.kind as TemplateKind,
+      boatType: r.boatType,
+      name: parseLt(r.nameJson) ?? {},
+      itemCount,
+    };
+  });
 }
 
 export function getTemplateById(id: string): TemplateDef | null {

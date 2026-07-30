@@ -23,7 +23,7 @@ export default function PremiumScreen() {
 
   useEffect(() => {
     navigation.setOptions({ title: t.premiumScreenTitle });
-  }, [t]);
+  }, [t]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function buy(sku: string) {
     const started = await purchase(sku);

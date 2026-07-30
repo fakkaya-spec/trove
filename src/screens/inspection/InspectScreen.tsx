@@ -74,23 +74,28 @@ export default function InspectScreen() {
   const { locale } = useLocale();
   const s = INSPECTION_STRINGS[locale];
 
-  const [inspection, setInspection] = useState<InspectionRow | null>(null);
-  const [results, setResults] = useState<ItemResult[]>([]);
+  // Veri senkron SQLite'tan okunur; state yerine sürüm sayacı + memo kullanılır
+  // (effect içinde senkron setState kaskadını önler).
+  const [version, setVersion] = useState(0);
   const [tabIndex, setTabIndex] = useState(0);
   const [sheetItem, setSheetItem] = useState<TemplateItemDef | null>(null);
   const [issueItem, setIssueItem] = useState<{ item: TemplateItemDef; status: ItemStatus } | null>(
     null
   );
 
-  useEffect(() => {
-    const insp = getInspection(route.params.inspectionId);
-    setInspection(insp);
-    if (insp) setResults(getItemResults(insp.id));
-  }, [route.params.inspectionId]);
+  const inspection = useMemo(
+    () => getInspection(route.params.inspectionId),
+    // 'version' bilinçli: refresh() sürümü artırarak DB'den yeniden okutur
+    [route.params.inspectionId, version] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const results = useMemo<ItemResult[]>(
+    () => (inspection ? getItemResults(inspection.id) : []),
+    [inspection]
+  );
 
   const template = useMemo(
     () => (inspection ? getTemplateById(inspection.templateId) : null),
-    [inspection?.templateId]
+    [inspection]
   );
 
   const tabs: Tab[] = useMemo(() => {
@@ -103,15 +108,13 @@ export default function InspectScreen() {
 
   const resultMap = useMemo(() => toResultMap(results), [results]);
 
-  const refresh = useCallback(() => {
-    if (inspection) setResults(getItemResults(inspection.id));
-  }, [inspection]);
+  const refresh = useCallback(() => setVersion((v) => v + 1), []);
 
   useEffect(() => {
     if (template && inspection) {
       navigation.setOptions({ title: lt(template.name, locale) });
     }
-  }, [template, locale]);
+  }, [template, inspection, locale, navigation]);
 
   if (!inspection || !template || tabs.length === 0) return null;
 
