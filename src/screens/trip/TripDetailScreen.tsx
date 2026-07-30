@@ -23,8 +23,9 @@ import { getVesselById, listVessels } from "../../repositories/vessels";
 import { generatePlan, getPlanForTrip, planProgress } from "../../repositories/provisioning";
 import { nextAction, tripProgress, NextAction, TripModuleStates, isDone } from "../../domain/trip";
 import { InspectionStatus } from "../../domain/types";
-import { colors, fonts, spacing } from "../../theme";
-import { ProgressGauge, RopeDivider } from "../../components/ui";
+import { colors, fonts, spacing, radius, touch } from "../../theme";
+import { ProgressGauge, RopeDivider, Button } from "../../components/ui";
+import { Icon, type IconName } from "../../components/Icon";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
 import type { RootStackParamList } from "../../navigation";
@@ -92,16 +93,17 @@ export default function TripDetailScreen() {
     navigation.navigate("Provisioning", { tripId: trip.id });
   }
 
-  function statusLabel(st: InspectionStatus | null): string {
-    if (st === null) return "○";
-    if (isDone(st)) return "✓";
-    return "…";
+  // Modül durumu: renk + ikon birlikte (yalnız renge güvenilmez).
+  function statusIcon(st: InspectionStatus | null) {
+    if (st === null) return <Icon name="ellipse-outline" size={20} color={colors.textSecondary} />;
+    if (isDone(st)) return <Icon name="checkmark-circle" size={22} color={colors.success} />;
+    return <Icon name="time-outline" size={22} color={colors.warning} />;
   }
 
   function moduleCard(
-    icon: string,
+    icon: IconName,
     title: string,
-    status: string,
+    status: React.ReactNode,
     onPress: () => void,
     extra?: string
   ) {
@@ -112,12 +114,12 @@ export default function TripDetailScreen() {
         accessibilityLabel={title}
         style={({ pressed }) => [styles.module, pressed && { opacity: 0.85 }]}
       >
-        <Text style={styles.moduleIcon}>{icon}</Text>
+        <Icon name={icon} size={24} color={colors.text} />
         <View style={{ flex: 1 }}>
           <Text style={styles.moduleTitle}>{title}</Text>
           {extra ? <Text style={styles.moduleExtra}>{extra}</Text> : null}
         </View>
-        <Text style={styles.moduleStatus}>{status}</Text>
+        {status}
       </Pressable>
     );
   }
@@ -141,6 +143,7 @@ export default function TripDetailScreen() {
                   updateTripStatus(trip.id, o.key);
                   refresh();
                 }}
+                accessibilityRole="button"
                 style={[styles.chip, trip.status === o.key && styles.chipActive]}
               >
                 <Text style={[styles.chipText, trip.status === o.key && styles.chipTextActive]}>
@@ -149,18 +152,26 @@ export default function TripDetailScreen() {
               </Pressable>
             ))}
           </View>
-          <Text style={styles.meta}>
-            ⛵ {boat ? boat.name : s.boatMissing} · 👤 {trip.adults + trip.children} · 🌙{" "}
-            {trip.nights}
-          </Text>
+          <View style={styles.metaRow}>
+            <Icon name="boat-outline" size={15} color={colors.textSecondary} />
+            <Text style={styles.meta}>{boat ? boat.name : s.boatMissing}</Text>
+            <Icon name="person-outline" size={15} color={colors.textSecondary} />
+            <Text style={styles.meta}>{trip.adults + trip.children}</Text>
+            <Icon name="time-outline" size={15} color={colors.textSecondary} />
+            <Text style={styles.meta}>{trip.nights}</Text>
+          </View>
           <ProgressGauge done={progress.modulesDone} total={progress.modulesTotal} />
           {states.openCriticalIssues > 0 && (
-            <Text style={styles.critical}>
-              ● {states.openCriticalIssues} {s.criticalOpen}
-            </Text>
+            <View style={styles.criticalRow}>
+              <Icon name="warning-outline" size={16} color={colors.danger} />
+              <Text style={styles.critical}>
+                {states.openCriticalIssues} {s.criticalOpen}
+              </Text>
+            </View>
           )}
           <View style={styles.nextBox}>
-            <Text style={styles.nextText}>→ {s[NA_KEY[action]]}</Text>
+            <Text style={styles.nextText}>{s[NA_KEY[action]]}</Text>
+            <Icon name="arrow-forward" size={18} color={colors.onGold} />
           </View>
         </View>
 
@@ -177,9 +188,10 @@ export default function TripDetailScreen() {
                     setShowBoatPicker(false);
                     refresh();
                   }}
+                  accessibilityRole="button"
                   style={styles.chip}
                 >
-                  <Text style={styles.chipText}>⛵ {v.name}</Text>
+                  <Text style={styles.chipText}>{v.name}</Text>
                 </Pressable>
               ))}
             </View>
@@ -189,32 +201,44 @@ export default function TripDetailScreen() {
         <RopeDivider />
 
         {isCharter &&
-          moduleCard("📋", s.checkIn, statusLabel(states.checkIn), () => openChecklist("check_in"))}
-        {moduleCard("🌤️", s.preDeparture, statusLabel(states.preDeparture), () =>
+          moduleCard("clipboard-outline", s.checkIn, statusIcon(states.checkIn), () =>
+            openChecklist("check_in")
+          )}
+        {moduleCard("partly-sunny-outline", s.preDeparture, statusIcon(states.preDeparture), () =>
           openChecklist("pre_departure")
         )}
         {moduleCard(
-          "🛒",
+          "cart-outline",
           s.provisioning,
-          provisionPct === null ? "○" : `${provisionPct}%`,
+          provisionPct === null ? (
+            <Icon name="ellipse-outline" size={20} color={colors.textSecondary} />
+          ) : (
+            <Text style={styles.modulePct}>{provisionPct}%</Text>
+          ),
           openProvisioning
         )}
         {isCharter &&
-          moduleCard("🔁", s.checkOut, statusLabel(states.checkOut), () =>
+          moduleCard("swap-horizontal-outline", s.checkOut, statusIcon(states.checkOut), () =>
             openChecklist("check_out")
           )}
         {isCharter &&
           states.checkIn !== null &&
-          moduleCard("🆚", s.handoverReview, "›", () =>
-            navigation.navigate("HandoverReview", { tripId: trip.id })
+          moduleCard(
+            "git-compare-outline",
+            s.handoverReview,
+            <Icon name="chevron-forward" size={18} color={colors.textSecondary} />,
+            () => navigation.navigate("HandoverReview", { tripId: trip.id })
           )}
-        {moduleCard("🔒", s.returnCheck, statusLabel(states.returnCheck), () =>
+        {moduleCard("lock-closed-outline", s.returnCheck, statusIcon(states.returnCheck), () =>
           openChecklist("return_secure")
         )}
 
         <RopeDivider />
 
-        <Pressable
+        <Button
+          label={s.deleteTrip}
+          variant="danger"
+          icon="close"
           onPress={() =>
             Alert.alert(s.deleteTrip, s.deleteTripConfirm, [
               { text: s.cancel, style: "cancel" },
@@ -228,59 +252,79 @@ export default function TripDetailScreen() {
               },
             ])
           }
-          accessibilityRole="button"
-          style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.7 }]}
-        >
-          <Text style={styles.deleteText}>🗑 {s.deleteTrip}</Text>
-        </Pressable>
+        />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.night },
+  safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
-  summaryCard: { backgroundColor: colors.paper, borderRadius: 10, padding: spacing.m, gap: 10 },
+  summaryCard: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.card,
+    padding: spacing.m,
+    gap: 10,
+  },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
+    minHeight: 44,
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: radius.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
-  chipActive: { backgroundColor: colors.brassDark, borderColor: colors.brassDark },
-  chipText: { fontFamily: fonts.body, fontSize: 13, color: colors.inkFaded },
-  chipTextActive: { color: colors.paper, fontWeight: "700" },
-  meta: { fontFamily: fonts.body, fontSize: 13, color: colors.inkFaded },
-  critical: { fontFamily: fonts.body, fontSize: 13, color: colors.signal, fontWeight: "700" },
-  nextBox: { backgroundColor: "rgba(201,162,39,0.15)", borderRadius: 8, padding: 10 },
-  nextText: { fontFamily: fonts.body, fontSize: 14, color: colors.ink },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipText: { fontFamily: fonts.body, fontSize: 13, color: colors.text },
+  chipTextActive: { color: colors.onPrimary, fontWeight: "600" },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 4, flexWrap: "wrap" },
+  meta: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, marginRight: 8 },
+  criticalRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  critical: { fontFamily: fonts.body, fontSize: 14, color: colors.danger, fontWeight: "600" },
+  nextBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: colors.gold,
+    borderRadius: radius.control,
+    padding: 12,
+    minHeight: touch.min,
+  },
+  nextText: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 15,
+    fontWeight: "600",
+    color: colors.onGold,
+  },
   boatPicker: { marginTop: spacing.m },
   fieldLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    color: colors.brass,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   module: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: colors.nightDeep,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 10,
+    borderColor: colors.border,
+    borderRadius: radius.card,
     padding: spacing.m,
     marginBottom: spacing.s,
     minHeight: 64,
   },
-  moduleIcon: { fontSize: 24 },
-  moduleTitle: { fontFamily: fonts.display, fontSize: 16, fontWeight: "700", color: colors.paper },
-  moduleExtra: { fontFamily: fonts.body, fontSize: 12, color: colors.fog, marginTop: 2 },
-  moduleStatus: { fontFamily: fonts.mono, fontSize: 16, color: colors.brass },
-  deleteBtn: { alignItems: "center", paddingVertical: 12 },
-  deleteText: { fontFamily: fonts.body, fontSize: 14, color: colors.signal },
+  moduleTitle: { fontFamily: fonts.body, fontSize: 17, fontWeight: "600", color: colors.text },
+  moduleExtra: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, marginTop: 2 },
+  modulePct: { fontFamily: fonts.mono, fontSize: 15, color: colors.text, fontWeight: "600" },
 });

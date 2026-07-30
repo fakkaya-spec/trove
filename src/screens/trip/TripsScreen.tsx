@@ -4,8 +4,9 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { listTrips, TripRow } from "../../repositories/trips";
 import { isDbReady } from "../../db/state";
-import { colors, fonts, spacing } from "../../theme";
-import { RopeDivider } from "../../components/ui";
+import { colors, fonts, spacing, radius, touch } from "../../theme";
+import { RopeDivider, Button, EmptyState } from "../../components/ui";
+import { Icon } from "../../components/Icon";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS } from "../../i18n/trip";
 import type { RootStackParamList } from "../../navigation";
@@ -36,14 +37,18 @@ export default function TripsScreen() {
             accessibilityRole="button"
             style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
           >
-            <Text style={styles.cardIcon}>⛵</Text>
+            <Icon name="boat-outline" size={22} color={colors.text} />
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>{t.name}</Text>
-              <Text style={styles.cardSub}>
-                {t.startAt ?? "—"} · 👤 {t.adults + t.children} · 🌙 {t.nights}
-              </Text>
+              <View style={styles.subRow}>
+                <Text style={styles.cardSub}>{t.startAt ?? "—"}</Text>
+                <Icon name="person-outline" size={13} color={colors.textSecondary} />
+                <Text style={styles.cardSub}>{t.adults + t.children}</Text>
+                <Icon name="time-outline" size={13} color={colors.textSecondary} />
+                <Text style={styles.cardSub}>{t.nights}</Text>
+              </View>
             </View>
-            <Text style={styles.chevron}>›</Text>
+            <Icon name="chevron-forward" size={18} color={colors.textSecondary} />
           </Pressable>
         ))}
       </View>
@@ -53,51 +58,54 @@ export default function TripsScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Pressable
-          onPress={() => navigation.navigate("TripWizard")}
-          accessibilityRole="button"
-          style={({ pressed }) => [styles.primary, pressed && { opacity: 0.85 }]}
-        >
-          <Text style={styles.primaryText}>＋ {s.startTrip}</Text>
-        </Pressable>
         {group(s.active, trips.filter((t) => t.status === "active"))}
         {group(s.planning, trips.filter((t) => t.status === "planning"))}
         {group(s.completedTrip, trips.filter((t) => t.status === "completed"))}
-        {trips.length === 0 && <Text style={styles.empty}>{s.noTripYet}</Text>}
+        {trips.length === 0 && (
+          <EmptyState
+            icon="compass-outline"
+            title={s.noTripYet}
+            actionLabel={s.startTrip}
+            onAction={() => navigation.navigate("TripWizard", {})}
+          />
+        )}
       </ScrollView>
+      {/* Uzun listede birincil aksiyon sabit alt çubukta kalır */}
+      {trips.length > 0 && (
+        <View style={styles.bottomBar}>
+          <Button
+            label={s.startTrip}
+            icon="add"
+            onPress={() => navigation.navigate("TripWizard", {})}
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.night },
+  safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
-  primary: {
-    backgroundColor: colors.brass,
-    borderRadius: 10,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  primaryText: { fontFamily: fonts.display, fontSize: 16, fontWeight: "700", color: colors.night },
   card: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: colors.paper,
-    borderRadius: 8,
+    minHeight: touch.row,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.card,
     padding: spacing.m,
     marginBottom: spacing.s,
   },
-  cardIcon: { fontSize: 22 },
-  cardTitle: { fontFamily: fonts.display, fontSize: 16, fontWeight: "700", color: colors.ink },
-  cardSub: { fontFamily: fonts.body, fontSize: 12, color: colors.inkFaded, marginTop: 2 },
-  chevron: { fontSize: 24, color: colors.brassDark },
-  empty: {
-    fontFamily: fonts.body,
-    fontStyle: "italic",
-    fontSize: 13,
-    color: colors.fog,
-    textAlign: "center",
-    marginTop: spacing.xl,
+  cardTitle: { fontFamily: fonts.body, fontSize: 17, fontWeight: "600", color: colors.text },
+  subRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 3 },
+  cardSub: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, marginRight: 6 },
+  bottomBar: {
+    padding: spacing.m,
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
 });

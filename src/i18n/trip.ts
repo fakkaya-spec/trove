@@ -103,6 +103,7 @@ export interface TripStrings {
   quantity: string;
   unit: string;
   deleteItemConfirm: string;
+  deleteShort: string;
   shareList: string;
   whyThis: string;
   reserve: string;
@@ -271,6 +272,7 @@ const en: TripStrings = {
   quantity: "Quantity",
   unit: "Unit",
   deleteItemConfirm: "Delete this item?",
+  deleteShort: "Delete",
   shareList: "Share list",
   whyThis: "Why this amount?",
   reserve: "reserve",
@@ -432,6 +434,7 @@ const tr: TripStrings = {
   quantity: "Miktar",
   unit: "Birim",
   deleteItemConfirm: "Bu kalem silinsin mi?",
+  deleteShort: "Sil",
   shareList: "Listeyi paylaş",
   whyThis: "Bu miktar neden?",
   reserve: "rezerv",
@@ -593,6 +596,7 @@ const de: TripStrings = {
   quantity: "Menge",
   unit: "Einheit",
   deleteItemConfirm: "Diesen Artikel löschen?",
+  deleteShort: "Löschen",
   shareList: "Liste teilen",
   whyThis: "Warum diese Menge?",
   reserve: "Reserve",
@@ -754,6 +758,7 @@ const ru: TripStrings = {
   quantity: "Количество",
   unit: "Ед.",
   deleteItemConfirm: "Удалить позицию?",
+  deleteShort: "Удалить",
   shareList: "Поделиться списком",
   whyThis: "Почему столько?",
   reserve: "резерв",
@@ -915,6 +920,7 @@ const es: TripStrings = {
   quantity: "Cantidad",
   unit: "Unidad",
   deleteItemConfirm: "¿Eliminar este artículo?",
+  deleteShort: "Eliminar",
   shareList: "Compartir lista",
   whyThis: "¿Por qué esta cantidad?",
   reserve: "reserva",
@@ -1075,6 +1081,7 @@ const hr: TripStrings = {
   quantity: "Količina",
   unit: "Jedinica",
   deleteItemConfirm: "Izbrisati ovu stavku?",
+  deleteShort: "Izbriši",
   shareList: "Podijeli popis",
   whyThis: "Zašto ova količina?",
   reserve: "rezerva",
@@ -1235,6 +1242,7 @@ const it: TripStrings = {
   quantity: "Quantità",
   unit: "Unità",
   deleteItemConfirm: "Eliminare questa voce?",
+  deleteShort: "Elimina",
   shareList: "Condividi la lista",
   whyThis: "Perché questa quantità?",
   reserve: "riserva",
@@ -1395,6 +1403,7 @@ const el: TripStrings = {
   quantity: "Ποσότητα",
   unit: "Μονάδα",
   deleteItemConfirm: "Να διαγραφεί αυτό το είδος;",
+  deleteShort: "Διαγραφή",
   shareList: "Κοινοποίηση λίστας",
   whyThis: "Γιατί αυτή η ποσότητα;",
   reserve: "απόθεμα",
@@ -1555,6 +1564,7 @@ const fr: TripStrings = {
   quantity: "Quantité",
   unit: "Unité",
   deleteItemConfirm: "Supprimer cet article ?",
+  deleteShort: "Supprimer",
   shareList: "Partager la liste",
   whyThis: "Pourquoi cette quantité ?",
   reserve: "réserve",

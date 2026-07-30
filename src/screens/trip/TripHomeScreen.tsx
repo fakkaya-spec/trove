@@ -7,8 +7,9 @@ import { isDbReady } from "../../db/state";
 import { listTrips, getTripModuleStates, TripRow } from "../../repositories/trips";
 import { listInspections } from "../../repositories/inspections";
 import { nextAction, tripProgress, NextAction, TripModuleStates } from "../../domain/trip";
-import { colors, fonts, spacing } from "../../theme";
-import { ProgressGauge } from "../../components/ui";
+import { colors, fonts, spacing, radius, touch } from "../../theme";
+import { ProgressGauge, EmptyState } from "../../components/ui";
+import { Icon, type IconName } from "../../components/Icon";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
 import { INSPECTION_STRINGS } from "../../i18n/inspection";
@@ -61,17 +62,27 @@ export default function TripHomeScreen() {
   const progress = states && trip ? tripProgress(states, isCharter) : null;
   const action = states && trip ? nextAction(states, isCharter) : null;
 
-  function quick(label: string, icon: string, onPress: () => void, disabled = false) {
+  function quick(
+    label: string,
+    icon: IconName,
+    onPress: () => void,
+    opts: { disabled?: boolean; accent?: boolean } = {}
+  ) {
     return (
       <Pressable
         key={label}
         onPress={onPress}
-        disabled={disabled}
+        disabled={opts.disabled}
         accessibilityRole="button"
         accessibilityLabel={label}
-        style={({ pressed }) => [styles.quick, pressed && { opacity: 0.8 }, disabled && { opacity: 0.4 }]}
+        style={({ pressed }) => [
+          styles.quick,
+          opts.accent && styles.quickAccent,
+          pressed && { opacity: 0.85 },
+          opts.disabled && { opacity: 0.4 },
+        ]}
       >
-        <Text style={styles.quickIcon}>{icon}</Text>
+        <Icon name={icon} size={26} color={colors.text} />
         <Text style={styles.quickText}>{label}</Text>
       </Pressable>
     );
@@ -80,13 +91,12 @@ export default function TripHomeScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.header}>
-          <Text style={styles.compass}>☸</Text>
-          <Text style={styles.title}>{PRODUCT_NAME}</Text>
-        </View>
+        {/* Üst yarı: yalnız bilgi */}
+        <Text style={styles.wordmark}>{PRODUCT_NAME}</Text>
 
         {!dbReady && (
           <View style={styles.notice}>
+            <Icon name="alert-circle-outline" size={20} color={colors.warning} />
             <Text style={styles.noticeText}>{si.notAvailable}</Text>
           </View>
         )}
@@ -97,51 +107,77 @@ export default function TripHomeScreen() {
             accessibilityRole="button"
             style={({ pressed }) => [styles.tripCard, pressed && { opacity: 0.9 }]}
           >
-            <Text style={styles.tripName}>⛵ {trip.name}</Text>
-            <Text style={styles.tripMeta}>
-              {trip.adults + trip.children} 👤 · {trip.nights} 🌙 ·{" "}
-              {s[
-                (`tt_${trip.tripType}`) as keyof TripStrings
-              ]}
-            </Text>
+            <View style={styles.tripNameRow}>
+              <Icon name="boat-outline" size={22} color={colors.text} />
+              <Text style={styles.tripName} numberOfLines={1}>
+                {trip.name}
+              </Text>
+              <Icon name="chevron-forward" size={18} color={colors.textSecondary} />
+            </View>
+            <View style={styles.metaRow}>
+              <Icon name="person-outline" size={15} color={colors.textSecondary} />
+              <Text style={styles.tripMeta}>{trip.adults + trip.children}</Text>
+              <Icon name="time-outline" size={15} color={colors.textSecondary} />
+              <Text style={styles.tripMeta}>{trip.nights}</Text>
+              <Text style={styles.tripMeta}>
+                · {s[(`tt_${trip.tripType}`) as keyof TripStrings]}
+              </Text>
+            </View>
             <ProgressGauge done={progress.modulesDone} total={progress.modulesTotal} />
             {states.openCriticalIssues > 0 && (
-              <Text style={styles.critical}>
-                ● {states.openCriticalIssues} {s.criticalOpen}
-              </Text>
+              <View style={styles.criticalRow}>
+                <Icon name="warning-outline" size={16} color={colors.danger} />
+                <Text style={styles.critical}>
+                  {states.openCriticalIssues} {s.criticalOpen}
+                </Text>
+              </View>
             )}
             <View style={styles.nextBox}>
-              <Text style={styles.nextLabel}>{s.nextStep}</Text>
-              <Text style={styles.nextText}>→ {s[NA_KEY[action]]}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.nextLabel}>{s.nextStep.toUpperCase()}</Text>
+                <Text style={styles.nextText}>{s[NA_KEY[action]]}</Text>
+              </View>
+              <Icon name="arrow-forward" size={20} color={colors.onGold} />
             </View>
           </Pressable>
         )}
 
         {dbReady && !trip && (
-          <View style={styles.notice}>
-            <Text style={styles.noticeText}>{s.noTripYet}</Text>
-          </View>
+          <EmptyState
+            icon="boat-outline"
+            title={s.noTripYet}
+            actionLabel={s.startTrip}
+            onAction={() => navigation.navigate("TripWizard", {})}
+          />
         )}
 
+        {/* Boşluk: aksiyonları alt yarıya iter (başparmak bölgesi) */}
+        <View style={styles.spacer} />
+
         <View style={styles.quickGrid}>
-          {quick(s.startTrip, "🧭", () => navigation.navigate("TripWizard", {}), !dbReady)}
+          {draftInspectionId
+            ? quick(
+                s.resumeDraft,
+                "play",
+                () => navigation.navigate("Inspect", { inspectionId: draftInspectionId }),
+                { accent: true }
+              )
+            : null}
+          {quick(s.startTrip, "navigate-outline", () => navigation.navigate("TripWizard", {}), {
+            disabled: !dbReady,
+          })}
           {quick(
             s.inspectCharter,
-            "📋",
+            "clipboard-outline",
             () => navigation.navigate("TripWizard", { ownership: "charter" }),
-            !dbReady
+            { disabled: !dbReady }
           )}
           {quick(
             s.prepareOwnBoat,
-            "⚙️",
+            "construct-outline",
             () => navigation.navigate("TripWizard", { ownership: "own" }),
-            !dbReady
+            { disabled: !dbReady }
           )}
-          {draftInspectionId
-            ? quick(s.resumeDraft, "▶️", () =>
-                navigation.navigate("Inspect", { inspectionId: draftInspectionId })
-              )
-            : null}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -149,55 +185,80 @@ export default function TripHomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.night },
-  scroll: { padding: spacing.m, paddingBottom: spacing.xl },
-  header: { alignItems: "center", marginVertical: spacing.m },
-  compass: { fontSize: 36, color: colors.brass, marginBottom: 2 },
-  title: { fontFamily: fonts.display, fontSize: 30, color: colors.paper, fontWeight: "700" },
+  safe: { flex: 1, backgroundColor: colors.bg },
+  scroll: { padding: spacing.m, paddingBottom: spacing.l, flexGrow: 1 },
+  wordmark: {
+    fontFamily: fonts.logo,
+    fontSize: 22,
+    color: colors.text,
+    fontWeight: "700",
+    textAlign: "center",
+    marginVertical: spacing.s,
+  },
   notice: {
-    borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: colors.warningBg,
+    borderRadius: radius.card,
     padding: spacing.m,
     marginBottom: spacing.m,
   },
-  noticeText: { fontFamily: fonts.body, fontSize: 13, color: colors.fog, textAlign: "center" },
+  noticeText: { flex: 1, fontFamily: fonts.body, fontSize: 14, lineHeight: 20, color: colors.warning },
   tripCard: {
-    backgroundColor: colors.paper,
-    borderRadius: 10,
+    backgroundColor: colors.surface,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: spacing.m,
-    gap: 8,
-    marginBottom: spacing.m,
+    gap: 10,
   },
-  tripName: { fontFamily: fonts.display, fontSize: 20, fontWeight: "700", color: colors.ink },
-  tripMeta: { fontFamily: fonts.body, fontSize: 13, color: colors.inkFaded },
-  critical: { fontFamily: fonts.body, fontSize: 13, color: colors.signal, fontWeight: "700" },
+  tripNameRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  tripName: {
+    flex: 1,
+    fontFamily: fonts.display,
+    fontSize: 20,
+    fontWeight: "600",
+    color: colors.text,
+  },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+  tripMeta: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, marginRight: 8 },
+  criticalRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  critical: { fontFamily: fonts.body, fontSize: 14, color: colors.danger, fontWeight: "600" },
   nextBox: {
-    backgroundColor: "rgba(201,162,39,0.15)",
-    borderRadius: 8,
-    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: colors.gold,
+    borderRadius: radius.control,
+    padding: 12,
+    minHeight: touch.min,
     marginTop: 2,
   },
-  nextLabel: { fontFamily: fonts.mono, fontSize: 10, letterSpacing: 1, color: colors.brassDark },
-  nextText: { fontFamily: fonts.body, fontSize: 14, color: colors.ink, marginTop: 2 },
-  quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  nextLabel: { fontFamily: fonts.body, fontSize: 10, letterSpacing: 1, color: colors.onGold, opacity: 0.7 },
+  nextText: { fontFamily: fonts.body, fontSize: 15, fontWeight: "600", color: colors.onGold, marginTop: 1 },
+  spacer: { flexGrow: 1, minHeight: spacing.l },
+  quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   quick: {
     flexBasis: "47%",
     flexGrow: 1,
-    backgroundColor: colors.nightDeep,
+    minHeight: touch.min,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 10,
-    paddingVertical: 18,
+    borderColor: colors.border,
+    borderRadius: radius.card,
+    paddingVertical: spacing.m,
+    paddingHorizontal: spacing.s,
     alignItems: "center",
-    gap: 6,
+    gap: 8,
   },
-  quickIcon: { fontSize: 26 },
+  quickAccent: { backgroundColor: colors.gold, borderColor: colors.gold },
   quickText: {
     fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.paper,
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.text,
     textAlign: "center",
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
   },
 });

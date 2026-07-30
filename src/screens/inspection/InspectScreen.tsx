@@ -47,7 +47,9 @@ import type {
   TemplateSectionDef,
 } from "../../domain/types";
 import { capturePhoto } from "../../media/photos";
-import { colors, fonts, spacing } from "../../theme";
+import { colors, fonts, spacing, radius, touch } from "../../theme";
+import { Icon, type IconName } from "../../components/Icon";
+import { Tag } from "../../components/ui";
 import { useLocale } from "../../i18n";
 import { INSPECTION_STRINGS, InspectionStrings } from "../../i18n/inspection";
 import type { RootStackParamList } from "../../navigation";
@@ -55,15 +57,16 @@ import type { RootStackParamList } from "../../navigation";
 type Route = RouteProp<RootStackParamList, "Inspect">;
 type Nav = NativeStackNavigationProp<RootStackParamList, "Inspect">;
 
+// Durum: renk + ikon birlikte (yalnız renge güvenilmez — güneşte/renk körlüğünde ayırt edilir).
 const STATUS_META: Record<
   ItemStatus,
-  { icon: string; color: string; labelKey: keyof InspectionStrings }
+  { icon: IconName; color: string; labelKey: keyof InspectionStrings }
 > = {
-  unchecked: { icon: "○", color: colors.fog, labelKey: "statusUnchecked" },
-  working: { icon: "✓", color: "#3E7466", labelKey: "statusWorking" },
-  needs_attention: { icon: "⚠", color: "#B7791F", labelKey: "statusAttention" },
-  not_working: { icon: "✕", color: colors.signal, labelKey: "statusNotWorking" },
-  not_applicable: { icon: "–", color: colors.fog, labelKey: "statusNa" },
+  unchecked: { icon: "ellipse-outline", color: colors.textSecondary, labelKey: "statusUnchecked" },
+  working: { icon: "checkmark-circle", color: colors.success, labelKey: "statusWorking" },
+  needs_attention: { icon: "warning-outline", color: colors.warning, labelKey: "statusAttention" },
+  not_working: { icon: "close-circle-outline", color: colors.danger, labelKey: "statusNotWorking" },
+  not_applicable: { icon: "remove-outline", color: colors.textSecondary, labelKey: "statusNa" },
 };
 
 type Tab = { kind: "section"; section: TemplateSectionDef } | { kind: "meters" } | { kind: "inventory" };
@@ -146,7 +149,7 @@ export default function InspectScreen() {
         style={({ pressed }) => [styles.itemRow, pressed && { opacity: 0.7 }]}
       >
         <View style={[styles.statusDot, { borderColor: meta.color }]}>
-          <Text style={[styles.statusDotText, { color: meta.color }]}>{meta.icon}</Text>
+          <Icon name={meta.icon} size={18} color={meta.color} />
         </View>
         <View style={{ flex: 1 }}>
           <Text
@@ -159,7 +162,9 @@ export default function InspectScreen() {
             {lt(item.title, locale)}
           </Text>
           {item.isCritical && status === "unchecked" && (
-            <Text style={styles.criticalTag}>● {s.sevCritical.toUpperCase()}</Text>
+            <View style={styles.criticalTagRow}>
+              <Tag kind="critical" label={s.sevCritical.toUpperCase()} />
+            </View>
           )}
         </View>
       </Pressable>
@@ -178,16 +183,22 @@ export default function InspectScreen() {
           {tabs.map((t, idx) => {
             const active = idx === tabIndex;
             let label: string;
+            let chipIcon: IconName | null = null;
             let badge: string | null = null;
+            let complete = false;
             if (t.kind === "section") {
-              label = `${t.section.icon} ${lt(t.section.title, locale)}`;
+              label = lt(t.section.title, locale);
               const prog = sectionProgress(t.section, resultMap);
-              badge = prog.complete ? "✓" : `${prog.total - prog.unchecked}/${prog.total}`;
+              complete = prog.complete;
+              badge = prog.complete ? null : `${prog.total - prog.unchecked}/${prog.total}`;
             } else if (t.kind === "meters") {
-              label = `⛽ ${s.meters}`;
+              label = s.meters;
+              chipIcon = "speedometer-outline";
             } else {
-              label = `📦 ${s.inventory}`;
+              label = s.inventory;
+              chipIcon = "cube-outline";
             }
+            const fg = active ? colors.onPrimary : colors.text;
             return (
               <Pressable
                 key={idx}
@@ -197,10 +208,14 @@ export default function InspectScreen() {
                 accessibilityState={{ selected: active }}
                 style={[styles.chip, active && styles.chipActive]}
               >
+                {chipIcon ? <Icon name={chipIcon} size={15} color={fg} /> : null}
                 <Text style={[styles.chipText, active && styles.chipTextActive]}>
                   {label}
                   {badge ? `  ${badge}` : ""}
                 </Text>
+                {complete ? (
+                  <Icon name="checkmark-circle" size={15} color={active ? colors.onPrimary : colors.success} />
+                ) : null}
               </Pressable>
             );
           })}
@@ -230,9 +245,12 @@ export default function InspectScreen() {
       <View style={styles.bottomBar}>
         <Pressable
           onPress={() => navigation.navigate("InspectionSummary", { inspectionId: inspection.id })}
+          accessibilityRole="button"
+          accessibilityLabel={s.summary}
           style={({ pressed }) => [styles.summaryBtn, pressed && { opacity: 0.85 }]}
         >
-          <Text style={styles.summaryBtnText}>{s.summary} ›</Text>
+          <Icon name="document-text-outline" size={20} color={colors.onPrimary} />
+          <Text style={styles.summaryBtnText}>{s.summary}</Text>
         </Pressable>
       </View>
 
@@ -243,7 +261,7 @@ export default function InspectScreen() {
             {sheetItem && (
               <>
                 <Text style={styles.sheetTitle}>{lt(sheetItem.title, locale)}</Text>
-                {sheetItem.tip && <Text style={styles.sheetTip}>☞ {lt(sheetItem.tip, locale)}</Text>}
+                {sheetItem.tip && <Text style={styles.sheetTip}>{lt(sheetItem.tip, locale)}</Text>}
                 {(["working", "needs_attention", "not_working", "not_applicable"] as ItemStatus[]).map(
                   (st) => {
                     const meta = STATUS_META[st];
@@ -255,7 +273,7 @@ export default function InspectScreen() {
                         accessibilityLabel={s[meta.labelKey]}
                         style={({ pressed }) => [styles.statusBtn, pressed && { opacity: 0.7 }]}
                       >
-                        <Text style={[styles.statusBtnIcon, { color: meta.color }]}>{meta.icon}</Text>
+                        <Icon name={meta.icon} size={24} color={meta.color} />
                         <Text style={styles.statusBtnText}>{s[meta.labelKey]}</Text>
                       </Pressable>
                     );
@@ -321,15 +339,22 @@ function SectionView(props: {
             accessibilityLabel={s.approveSection}
             style={({ pressed }) => [styles.approveBtn, pressed && { opacity: 0.85 }]}
           >
-            <Text style={styles.approveBtnText}>✓ {s.approveSection}</Text>
+            <Icon name="checkmark-circle-outline" size={20} color={colors.success} />
+            <Text style={styles.approveBtnText}>{s.approveSection}</Text>
           </Pressable>
         ) : prog.complete ? (
-          <Text style={styles.sectionDone}>✓ {s.sectionClear}</Text>
+          <View style={styles.sectionDoneRow}>
+            <Icon name="checkmark-circle" size={18} color={colors.success} />
+            <Text style={styles.sectionDone}>{s.sectionClear}</Text>
+          </View>
         ) : null}
         {prog.criticalUnchecked > 0 && (
-          <Text style={styles.criticalHint}>
-            ● {prog.criticalUnchecked} {s.criticalNeedTap}
-          </Text>
+          <View style={styles.criticalHintRow}>
+            <Icon name="alert-circle-outline" size={15} color={colors.danger} />
+            <Text style={styles.criticalHint}>
+              {prog.criticalUnchecked} {s.criticalNeedTap}
+            </Text>
+          </View>
         )}
       </View>
     </View>
@@ -404,9 +429,14 @@ function IssueSheet(props: {
       <View style={styles.backdrop}>
         <View style={[styles.sheet, { maxHeight: "88%" }]}>
           <ScrollView keyboardShouldPersistTaps="handled">
-            <Text style={styles.sheetTitle}>
-              {STATUS_META[status].icon} {lt(item.title, locale)}
-            </Text>
+            <View style={styles.sheetTitleRow}>
+              <Icon
+                name={STATUS_META[status].icon}
+                size={22}
+                color={STATUS_META[status].color}
+              />
+              <Text style={styles.sheetTitle}>{lt(item.title, locale)}</Text>
+            </View>
 
             <Text style={styles.fieldLabel}>{s.severity}</Text>
             <View style={styles.sevRow}>
@@ -430,33 +460,37 @@ function IssueSheet(props: {
               style={[styles.input, { minHeight: 70 }]}
               multiline
               placeholder="…"
-              placeholderTextColor={colors.fog}
+              placeholderTextColor={colors.textSecondary}
             />
 
             <Pressable
               onPress={onAddPhoto}
               style={({ pressed }) => [styles.photoBtn, pressed && { opacity: 0.8 }]}
             >
+              <Icon name="camera-outline" size={20} color={colors.info} />
               <Text style={styles.photoBtnText}>
-                📷 {s.addPhoto}
+                {s.addPhoto}
                 {photoCount > 0 ? `  ·  ${photoCount} ${s.photoAdded}` : ""}
               </Text>
             </Pressable>
             {item.requiresPhotoOnIssue && photoCount === 0 && (
-              <Text style={styles.photoHint}>📷 !</Text>
+              <View style={styles.photoHintRow}>
+                <Icon name="camera-outline" size={15} color={colors.danger} />
+                <Text style={styles.photoHint}>{s.addPhoto}</Text>
+              </View>
             )}
 
             <View style={styles.switchRow}>
               <Text style={styles.switchLabel}>{s.reportedToCompany}</Text>
-              <Switch value={reported} onValueChange={setReported} trackColor={{ true: colors.brass }} />
+              <Switch value={reported} onValueChange={setReported} trackColor={{ true: colors.gold }} />
             </View>
             <View style={styles.switchRow}>
               <Text style={styles.switchLabel}>{s.resolved}</Text>
-              <Switch value={resolved} onValueChange={setResolved} trackColor={{ true: colors.brass }} />
+              <Switch value={resolved} onValueChange={setResolved} trackColor={{ true: colors.gold }} />
             </View>
 
             <View style={styles.sheetActions}>
-              <Pressable onPress={() => props.onClose(false)} hitSlop={8}>
+              <Pressable onPress={() => props.onClose(false)} hitSlop={8} style={styles.cancelBtn}>
                 <Text style={styles.cancelText}>{s.cancel}</Text>
               </Pressable>
               <Pressable
@@ -518,7 +552,7 @@ function MetersView(props: {
                 keyboardType="decimal-pad"
                 style={styles.meterInput}
                 placeholder="—"
-                placeholderTextColor={colors.fog}
+                placeholderTextColor={colors.textSecondary}
               />
               <Text style={styles.meterUnit}>{unit}</Text>
             </View>
@@ -553,7 +587,7 @@ function InventoryView(props: { inspection: InspectionRow; s: InspectionStrings;
           <View key={def.id} style={styles.invRow}>
             <View style={{ flex: 1 }}>
               <Text style={styles.meterLabel}>{lt(def.name, locale)}</Text>
-              <Text style={[styles.invExpected, missing && { color: colors.signal }]}>
+              <Text style={[styles.invExpected, missing && { color: colors.danger }]}>
                 {def.expectedCount} {s.expected}
               </Text>
             </View>
@@ -561,7 +595,7 @@ function InventoryView(props: { inspection: InspectionRow; s: InspectionStrings;
               <Pressable onPress={() => setCount(def, (found ?? def.expectedCount) - 1)} hitSlop={6}>
                 <Text style={styles.stepBtn}>−</Text>
               </Pressable>
-              <Text style={[styles.stepValue, missing && { color: colors.signal }]}>
+              <Text style={[styles.stepValue, missing && { color: colors.danger }]}>
                 {found ?? "—"}
               </Text>
               <Pressable onPress={() => setCount(def, (found ?? def.expectedCount - 1) + 1)} hitSlop={6}>
@@ -578,128 +612,160 @@ function InventoryView(props: { inspection: InspectionRow; s: InspectionStrings;
 // --- Stiller ----------------------------------------------------------------
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.night },
+  safe: { flex: 1, backgroundColor: colors.bg },
   chipBar: { paddingHorizontal: spacing.m, paddingVertical: 10, gap: 8 },
   chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minHeight: 44,
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 18,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: radius.pill,
     paddingHorizontal: 13,
     paddingVertical: 8,
   },
-  chipActive: { backgroundColor: colors.brass, borderColor: colors.brass },
-  chipText: { fontFamily: fonts.body, fontSize: 13, color: colors.fog },
-  chipTextActive: { color: colors.night, fontWeight: "700" },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipText: { fontFamily: fonts.body, fontSize: 13, color: colors.text },
+  chipTextActive: { color: colors.onPrimary, fontWeight: "600" },
   list: { paddingHorizontal: spacing.m, paddingBottom: 90 },
   itemRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: 12,
-    paddingVertical: 13,
+    minHeight: touch.row,
+    paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(147,165,184,0.25)",
+    borderBottomColor: colors.border,
   },
   statusDot: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     borderWidth: 2,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
-  statusDotText: { fontSize: 15, fontWeight: "700" },
-  itemText: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: colors.paper },
-  itemDone: { color: colors.fog },
-  itemNa: { color: colors.fog, textDecorationLine: "line-through" },
-  criticalTag: {
-    fontFamily: fonts.mono,
-    fontSize: 9,
-    letterSpacing: 1,
-    color: colors.signal,
-    marginTop: 3,
-  },
-  sectionFooter: { paddingHorizontal: spacing.m, paddingBottom: 66, gap: 6 },
+  itemText: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: colors.text },
+  itemDone: { color: colors.textSecondary },
+  itemNa: { color: colors.textSecondary, textDecorationLine: "line-through" },
+  criticalTagRow: { flexDirection: "row", marginTop: 4 },
+  sectionFooter: { paddingHorizontal: spacing.m, paddingBottom: 74, gap: 6 },
   approveBtn: {
-    backgroundColor: "rgba(127,181,168,0.15)",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: colors.successBg,
     borderWidth: 1,
-    borderColor: colors.seafoam,
-    borderRadius: 10,
-    paddingVertical: 14,
+    borderColor: colors.success,
+    borderRadius: radius.control,
+    minHeight: touch.min,
+    paddingVertical: 13,
     alignItems: "center",
   },
-  approveBtnText: { fontFamily: fonts.display, fontSize: 16, fontWeight: "700", color: colors.seafoam },
-  sectionDone: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.seafoam,
-    textAlign: "center",
+  approveBtnText: { fontFamily: fonts.body, fontSize: 15, fontWeight: "600", color: colors.success },
+  sectionDoneRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
     paddingVertical: 10,
   },
-  criticalHint: { fontFamily: fonts.body, fontSize: 12, color: colors.signal, textAlign: "center" },
+  sectionDone: { fontFamily: fonts.body, fontSize: 14, fontWeight: "600", color: colors.success },
+  criticalHintRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+  },
+  criticalHint: { fontFamily: fonts.body, fontSize: 13, color: colors.danger },
   bottomBar: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
     padding: spacing.s,
-    backgroundColor: colors.nightDeep,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: colors.line,
+    borderTopColor: colors.border,
   },
-  summaryBtn: { alignItems: "center", paddingVertical: 10 },
-  summaryBtnText: { fontFamily: fonts.display, fontSize: 16, fontWeight: "700", color: colors.brass },
-  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
+  summaryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    minHeight: touch.min,
+    backgroundColor: colors.primary,
+    borderRadius: radius.control,
+    paddingVertical: 10,
+  },
+  summaryBtnText: { fontFamily: fonts.body, fontSize: 16, fontWeight: "600", color: colors.onPrimary },
+  backdrop: { flex: 1, backgroundColor: "rgba(11,29,51,0.5)", justifyContent: "flex-end" },
   sheet: {
-    backgroundColor: colors.nightDeep,
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: spacing.l,
     borderTopWidth: 1,
-    borderTopColor: colors.brass,
+    borderTopColor: colors.border,
   },
+  sheetTitleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 },
   sheetTitle: {
-    fontFamily: fonts.display,
+    flex: 1,
+    fontFamily: fonts.body,
     fontSize: 17,
-    fontWeight: "700",
-    color: colors.paper,
+    fontWeight: "600",
+    color: colors.text,
     marginBottom: 6,
   },
-  sheetTip: { fontFamily: fonts.body, fontStyle: "italic", fontSize: 12, color: colors.fog, marginBottom: 8 },
+  sheetTip: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 18,
+    marginBottom: 8,
+  },
   statusBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    paddingVertical: 15,
+    minHeight: touch.row,
+    paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(147,165,184,0.2)",
+    borderBottomColor: colors.border,
   },
-  statusBtnIcon: { fontSize: 20, fontWeight: "700", width: 26, textAlign: "center" },
-  statusBtnText: { fontFamily: fonts.body, fontSize: 16, color: colors.paper },
+  statusBtnText: { fontFamily: fonts.body, fontSize: 16, color: colors.text },
   fieldLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
-    color: colors.brass,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    color: colors.textSecondary,
     marginTop: spacing.m,
     marginBottom: 6,
   },
   sevRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
   sevChip: {
+    minHeight: 44,
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 16,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
-  sevChipActive: { backgroundColor: colors.signal, borderColor: colors.signal },
-  sevText: { fontFamily: fonts.body, fontSize: 13, color: colors.fog },
-  sevTextActive: { color: colors.paper, fontWeight: "700" },
+  sevChipActive: { backgroundColor: colors.danger, borderColor: colors.danger },
+  sevText: { fontFamily: fonts.body, fontSize: 13, color: colors.text },
+  sevTextActive: { color: colors.onPrimary, fontWeight: "600" },
   input: {
-    backgroundColor: colors.night,
+    backgroundColor: colors.bg,
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 8,
-    color: colors.paper,
+    borderColor: colors.border,
+    borderRadius: radius.control,
+    color: colors.text,
     fontFamily: fonts.body,
     fontSize: 15,
     paddingHorizontal: 12,
@@ -707,82 +773,101 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   photoBtn: {
-    borderWidth: 1,
-    borderColor: colors.brass,
-    borderStyle: "dashed",
-    borderRadius: 8,
-    paddingVertical: 13,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: colors.info,
+    borderStyle: "dashed",
+    borderRadius: radius.control,
+    minHeight: touch.min,
+    paddingVertical: 13,
     marginTop: spacing.m,
   },
-  photoBtnText: { fontFamily: fonts.body, fontSize: 14, color: colors.brass },
-  photoHint: { fontFamily: fonts.body, fontSize: 12, color: colors.signal, marginTop: 4, textAlign: "center" },
+  photoBtnText: { fontFamily: fonts.body, fontSize: 14, fontWeight: "600", color: colors.info },
+  photoHintRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    marginTop: 6,
+  },
+  photoHint: { fontFamily: fonts.body, fontSize: 12, color: colors.danger },
   switchRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    minHeight: 44,
     marginTop: spacing.m,
   },
-  switchLabel: { flex: 1, fontFamily: fonts.body, fontSize: 14, color: colors.paper, marginRight: 10 },
+  switchLabel: { flex: 1, fontFamily: fonts.body, fontSize: 14, color: colors.text, marginRight: 10 },
   sheetActions: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginTop: spacing.l,
   },
-  cancelText: { fontFamily: fonts.body, fontSize: 15, color: colors.fog },
+  cancelBtn: { minHeight: touch.min, justifyContent: "center", paddingHorizontal: 8 },
+  cancelText: { fontFamily: fonts.body, fontSize: 15, color: colors.textSecondary },
   saveBtn: {
-    backgroundColor: colors.brass,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radius.control,
+    minHeight: touch.min,
+    justifyContent: "center",
     paddingHorizontal: 28,
     paddingVertical: 12,
   },
-  saveBtnText: { fontFamily: fonts.display, fontSize: 16, fontWeight: "700", color: colors.night },
+  saveBtnText: { fontFamily: fonts.body, fontSize: 16, fontWeight: "600", color: colors.onPrimary },
   meterRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 14,
+    minHeight: touch.row,
+    paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(147,165,184,0.25)",
+    borderBottomColor: colors.border,
   },
-  meterLabel: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: colors.paper, marginRight: 10 },
+  meterLabel: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: colors.text, marginRight: 10 },
   meterInputWrap: { flexDirection: "row", alignItems: "center", gap: 6 },
   meterInput: {
-    backgroundColor: colors.nightDeep,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 8,
-    color: colors.paper,
+    borderColor: colors.border,
+    borderRadius: radius.control,
+    color: colors.text,
     fontFamily: fonts.mono,
     fontSize: 17,
+    minHeight: touch.min,
     paddingHorizontal: 12,
     paddingVertical: 9,
     minWidth: 90,
     textAlign: "right",
   },
-  meterUnit: { fontFamily: fonts.mono, fontSize: 13, color: colors.fog, width: 22 },
+  meterUnit: { fontFamily: fonts.mono, fontSize: 13, color: colors.textSecondary, width: 22 },
   invRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 13,
+    minHeight: touch.row,
+    paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(147,165,184,0.25)",
+    borderBottomColor: colors.border,
   },
-  invExpected: { fontFamily: fonts.body, fontSize: 12, color: colors.fog, marginTop: 2 },
-  stepper: { flexDirection: "row", alignItems: "center", gap: 16 },
+  invExpected: { fontFamily: fonts.body, fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  stepper: { flexDirection: "row", alignItems: "center", gap: 14 },
   stepBtn: {
     fontSize: 24,
-    color: colors.brass,
-    fontWeight: "700",
-    width: 40,
-    height: 40,
+    color: colors.text,
+    fontWeight: "600",
+    width: touch.min,
+    height: touch.min,
     textAlign: "center",
-    lineHeight: 38,
+    lineHeight: 46,
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 20,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: touch.min / 2,
     overflow: "hidden",
   },
-  stepValue: { fontFamily: fonts.mono, fontSize: 18, color: colors.paper, minWidth: 34, textAlign: "center" },
+  stepValue: { fontFamily: fonts.mono, fontSize: 18, color: colors.text, minWidth: 34, textAlign: "center" },
 });

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Text } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { DarkTheme, NavigationContainer } from "@react-navigation/native";
+import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import TripHomeScreen from "./src/screens/trip/TripHomeScreen";
@@ -22,6 +21,7 @@ import ChecklistScreen from "./src/screens/ChecklistScreen";
 import GuideScreen from "./src/screens/GuideScreen";
 import PremiumScreen from "./src/screens/PremiumScreen";
 import { colors, fonts } from "./src/theme";
+import { Icon, type IconName } from "./src/components/Icon";
 import { initAds } from "./src/ads";
 import { LocaleProvider, useLocale } from "./src/i18n";
 import { INSPECTION_STRINGS } from "./src/i18n/inspection";
@@ -36,14 +36,14 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
 const theme = {
-  ...DarkTheme,
+  ...DefaultTheme,
   colors: {
-    ...DarkTheme.colors,
-    background: colors.night,
-    card: colors.night,
-    text: colors.paper,
-    primary: colors.brass,
-    border: colors.line,
+    ...DefaultTheme.colors,
+    background: colors.bg,
+    card: colors.surface,
+    text: colors.text,
+    primary: colors.primary,
+    border: colors.border,
   },
 };
 
@@ -51,43 +51,43 @@ function Tabs() {
   const { locale } = useLocale();
   const s = TRIP_STRINGS[locale];
   const icon =
-    (glyph: string) =>
+    (name: IconName) =>
     ({ color }: { color: string }) =>
-      <Text style={{ fontSize: 20, color }}>{glyph}</Text>;
+      <Icon name={name} size={24} color={color} />;
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: colors.nightDeep, borderTopColor: colors.line },
-        tabBarActiveTintColor: colors.brass,
-        tabBarInactiveTintColor: colors.fog,
+        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+        tabBarActiveTintColor: colors.text,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarLabelStyle: { fontFamily: fonts.body, fontSize: 11 },
       }}
     >
       <Tab.Screen
         name="HomeTab"
         component={TripHomeScreen}
-        options={{ title: s.tabHome, tabBarIcon: icon("☸") }}
+        options={{ title: s.tabHome, tabBarIcon: icon("home-outline") }}
       />
       <Tab.Screen
         name="TripsTab"
         component={TripsScreen}
-        options={{ title: s.tabTrips, tabBarIcon: icon("🧭") }}
+        options={{ title: s.tabTrips, tabBarIcon: icon("compass-outline") }}
       />
       <Tab.Screen
         name="BoatsTab"
         component={BoatsScreen}
-        options={{ title: s.tabBoats, tabBarIcon: icon("⛵") }}
+        options={{ title: s.tabBoats, tabBarIcon: icon("boat-outline") }}
       />
       <Tab.Screen
         name="LibraryTab"
         component={LibraryScreen}
-        options={{ title: s.tabLibrary, tabBarIcon: icon("📚") }}
+        options={{ title: s.tabLibrary, tabBarIcon: icon("library-outline") }}
       />
       <Tab.Screen
         name="ProfileTab"
         component={ProfileScreen}
-        options={{ title: s.tabProfile, tabBarIcon: icon("👤") }}
+        options={{ title: s.tabProfile, tabBarIcon: icon("person-outline") }}
       />
     </Tab.Navigator>
   );
@@ -99,15 +99,15 @@ function Root() {
   const s = TRIP_STRINGS[locale];
   return (
     <NavigationContainer theme={theme}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <Stack.Navigator
         screenOptions={{
-          headerStyle: { backgroundColor: colors.night },
-          headerTintColor: colors.brass,
+          headerStyle: { backgroundColor: colors.surface },
+          headerTintColor: colors.text,
           headerTitleStyle: {
             fontFamily: fonts.display,
-            fontWeight: "700",
-            color: colors.paper,
+            fontWeight: "600",
+            color: colors.text,
           },
           headerBackTitle: t.back,
         }}
@@ -118,12 +118,12 @@ function Root() {
         <Stack.Screen
           name="Provisioning"
           component={ProvisioningScreen}
-          options={{ title: `🛒 ${s.provisioning}` }}
+          options={{ title: s.provisioning }}
         />
         <Stack.Screen
           name="HandoverReview"
           component={HandoverReviewScreen}
-          options={{ title: `🔁 ${s.handoverReview}` }}
+          options={{ title: s.handoverReview }}
         />
         <Stack.Screen name="BoatHistory" component={BoatHistoryScreen} options={{ title: "" }} />
         <Stack.Screen

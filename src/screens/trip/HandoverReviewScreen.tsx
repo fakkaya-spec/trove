@@ -31,8 +31,9 @@ import {
 } from "../../domain/handover";
 import { capturePhoto } from "../../media/photos";
 import { PRODUCT_NAME } from "../../config/product";
-import { colors, fonts, spacing } from "../../theme";
-import { RopeDivider } from "../../components/ui";
+import { colors, fonts, spacing, radius } from "../../theme";
+import { RopeDivider, Button, EmptyState } from "../../components/ui";
+import { Icon } from "../../components/Icon";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
 import type { RootStackParamList } from "../../navigation";
@@ -88,7 +89,7 @@ export default function HandoverReviewScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
-          <Text style={styles.notice}>{s.noCheckinYet}</Text>
+          <EmptyState icon="git-compare-outline" title={s.noCheckinYet} />
         </View>
       </SafeAreaView>
     );
@@ -147,13 +148,16 @@ export default function HandoverReviewScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.statusRow}>
-          <Text style={styles.statusText}>⚓ {statusLabel}</Text>
+          <View style={styles.statusPill}>
+            <Icon name="git-compare-outline" size={15} color={colors.info} />
+            <Text style={styles.statusText}>{statusLabel}</Text>
+          </View>
         </View>
 
         {/* Sayaç karşılaştırması */}
         {meters.length > 0 && (
           <>
-            <RopeDivider label={`⛽ ${s.metersCompare.toUpperCase()}`} />
+            <RopeDivider label={s.metersCompare.toUpperCase()} />
             <View style={styles.meterHead}>
               <Text style={[styles.meterCell, styles.meterHeadText]}></Text>
               <Text style={[styles.meterCell, styles.meterHeadText]}>{s.checkIn}</Text>
@@ -187,7 +191,7 @@ export default function HandoverReviewScreen() {
         {/* Check-in gözlemleri */}
         {checkInIssues.length > 0 && (
           <>
-            <RopeDivider label={`📋 ${s.existingObservations.toUpperCase()} (${checkInIssues.length})`} />
+            <RopeDivider label={`${s.existingObservations.toUpperCase()} (${checkInIssues.length})`} />
             {checkInIssues.map((i) => (
               <Text key={i.id} style={styles.issueLine}>
                 • [{i.severity}] {i.title}
@@ -199,7 +203,7 @@ export default function HandoverReviewScreen() {
         {/* Check-out gözlemleri */}
         {checkOutIssues.length > 0 && (
           <>
-            <RopeDivider label={`🔁 ${s.newObservations.toUpperCase()} (${checkOutIssues.length})`} />
+            <RopeDivider label={`${s.newObservations.toUpperCase()} (${checkOutIssues.length})`} />
             {checkOutIssues.map((i) => (
               <Text key={i.id} style={styles.issueLine}>
                 • [{i.severity}] {i.title}
@@ -211,7 +215,7 @@ export default function HandoverReviewScreen() {
         {/* Foto eşleştirmeleri */}
         {pairs.length > 0 && (
           <>
-            <RopeDivider label={`📷 ${s.photoPairs.toUpperCase()} (${pairs.length})`} />
+            <RopeDivider label={`${s.photoPairs.toUpperCase()} (${pairs.length})`} />
             {pairs.map((pair) => (
               <View key={pair.id} style={styles.pairCard}>
                 {pair.label ? <Text style={styles.pairLabel}>{pair.label}</Text> : null}
@@ -235,20 +239,24 @@ export default function HandoverReviewScreen() {
                           (!checkOut || pressed) && { opacity: checkOut ? 0.8 : 0.4 },
                         ]}
                       >
-                        <Text style={styles.retakeText}>📷 {s.retakePhoto}</Text>
+                        <Icon name="camera-outline" size={22} color={colors.info} />
+                        <Text style={styles.retakeText}>{s.retakePhoto}</Text>
                       </Pressable>
                     )}
                   </View>
                 </View>
                 <View style={styles.reviewRow}>
-                  <Text style={styles.reviewLabel}>⚠ {s.requiresReviewLabel}</Text>
+                  <View style={styles.reviewLabelRow}>
+                    <Icon name="warning-outline" size={16} color={colors.warning} />
+                    <Text style={styles.reviewLabel}>{s.requiresReviewLabel}</Text>
+                  </View>
                   <Switch
                     value={pair.requiresReview}
                     onValueChange={(v) => {
                       setPairReview(pair.id, v);
                       refresh();
                     }}
-                    trackColor={{ true: colors.signal }}
+                    trackColor={{ true: colors.gold }}
                   />
                 </View>
               </View>
@@ -258,93 +266,104 @@ export default function HandoverReviewScreen() {
 
         <Text style={styles.disclaimer}>{s.factsDisclaimer}</Text>
 
-        <Pressable
-          onPress={shareReport}
-          accessibilityRole="button"
-          style={({ pressed }) => [styles.shareBtn, pressed && { opacity: 0.85 }]}
-        >
-          <Text style={styles.shareText}>📤 {s.shareReport}</Text>
-        </Pressable>
+        <Button label={s.shareReport} icon="share-outline" onPress={shareReport} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.night },
+  safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.l },
-  notice: { fontFamily: fonts.body, fontSize: 14, color: colors.fog, textAlign: "center" },
   statusRow: { alignItems: "center", marginBottom: spacing.s },
+  statusPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.infoBg,
+    borderRadius: radius.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+  },
   statusText: {
-    fontFamily: fonts.mono,
-    fontSize: 12,
-    letterSpacing: 1,
-    color: colors.brass,
-    borderWidth: 1,
-    borderColor: colors.brass,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    color: colors.info,
   },
   meterHead: { flexDirection: "row", paddingVertical: 4 },
-  meterHeadText: { fontFamily: fonts.mono, fontSize: 10, color: colors.fog, letterSpacing: 1 },
+  meterHeadText: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    fontWeight: "600",
+    color: colors.textSecondary,
+    letterSpacing: 0.5,
+  },
   meterRow: {
     flexDirection: "row",
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(147,165,184,0.2)",
+    borderBottomColor: colors.border,
   },
-  meterCell: { flex: 1, fontFamily: fonts.mono, fontSize: 13, color: colors.paper },
+  meterCell: { flex: 1, fontFamily: fonts.mono, fontSize: 13, color: colors.text },
   meterName: { textTransform: "capitalize", fontFamily: fonts.body },
-  issueLine: { fontFamily: fonts.body, fontSize: 13, color: colors.paper, paddingVertical: 3, lineHeight: 19 },
+  issueLine: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.text,
+    paddingVertical: 3,
+    lineHeight: 20,
+  },
   pairCard: {
-    backgroundColor: colors.nightDeep,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 10,
-    padding: spacing.s,
+    borderColor: colors.border,
+    borderRadius: radius.card,
+    padding: spacing.m,
     marginBottom: spacing.m,
   },
-  pairLabel: { fontFamily: fonts.body, fontSize: 13, color: colors.paper, marginBottom: 6 },
+  pairLabel: { fontFamily: fonts.body, fontSize: 14, fontWeight: "600", color: colors.text, marginBottom: 6 },
   pairImages: { flexDirection: "row", gap: 8 },
   pairSide: { flex: 1 },
-  pairSideLabel: { fontFamily: fonts.mono, fontSize: 10, color: colors.fog, marginBottom: 4 },
-  pairImage: { width: "100%", aspectRatio: 4 / 3, borderRadius: 6, backgroundColor: colors.night },
+  pairSideLabel: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    fontWeight: "600",
+    color: colors.textSecondary,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  pairImage: { width: "100%", aspectRatio: 4 / 3, borderRadius: 8, backgroundColor: colors.border },
   retakeBtn: {
     width: "100%",
     aspectRatio: 4 / 3,
-    borderRadius: 6,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.brass,
+    borderColor: colors.info,
     borderStyle: "dashed",
     alignItems: "center",
     justifyContent: "center",
+    gap: 4,
     padding: 8,
   },
-  retakeText: { fontFamily: fonts.body, fontSize: 12, color: colors.brass, textAlign: "center" },
+  retakeText: { fontFamily: fonts.body, fontSize: 12, color: colors.info, textAlign: "center" },
   reviewRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 8,
+    marginTop: 10,
+    minHeight: 44,
   },
-  reviewLabel: { fontFamily: fonts.body, fontSize: 13, color: colors.paper },
+  reviewLabelRow: { flexDirection: "row", alignItems: "center", gap: 6, flex: 1 },
+  reviewLabel: { fontFamily: fonts.body, fontSize: 14, color: colors.text },
   disclaimer: {
     fontFamily: fonts.body,
-    fontStyle: "italic",
-    fontSize: 11,
-    color: colors.fog,
-    lineHeight: 16,
-    marginTop: spacing.m,
+    fontSize: 12,
+    color: colors.textSecondary,
+    lineHeight: 17,
+    marginVertical: spacing.m,
     textAlign: "center",
   },
-  shareBtn: {
-    backgroundColor: colors.brass,
-    borderRadius: 10,
-    paddingVertical: 16,
-    alignItems: "center",
-    marginTop: spacing.m,
-  },
-  shareText: { fontFamily: fonts.display, fontSize: 16, fontWeight: "700", color: colors.night },
 });

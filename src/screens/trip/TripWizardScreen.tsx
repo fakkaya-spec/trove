@@ -24,8 +24,8 @@ import {
   ShopAccess,
   TripType,
 } from "../../domain/types";
-import { colors, fonts, spacing } from "../../theme";
-import { RopeDivider } from "../../components/ui";
+import { colors, fonts, spacing, radius, touch } from "../../theme";
+import { RopeDivider, Button } from "../../components/ui";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
 import { boatTypeLabel, INSPECTION_STRINGS } from "../../i18n/inspection";
@@ -42,13 +42,7 @@ const TRIP_TYPES: TripType[] = [
   "offshore_passage",
 ];
 
-const BOAT_TYPES: { type: BoatType; icon: string }[] = [
-  { type: "sailing", icon: "⛵" },
-  { type: "catamaran", icon: "⛵" },
-  { type: "motor", icon: "🛥️" },
-  { type: "rib", icon: "🚤" },
-  { type: "gulet", icon: "⚓" },
-];
+const BOAT_TYPES: BoatType[] = ["sailing", "catamaran", "motor", "rib", "gulet"];
 
 function Stepper(props: {
   label: string;
@@ -225,8 +219,8 @@ export default function TripWizardScreen() {
         <RopeDivider label={`1 · ${s.whichBoat.toUpperCase()}`} />
         <Chips
           options={[
-            { key: "own", label: `⚓ ${s.ownBoat}` },
-            { key: "charter", label: `📋 ${s.charterBoat}` },
+            { key: "own", label: s.ownBoat },
+            { key: "charter", label: s.charterBoat },
             { key: "undecided", label: s.decideLater },
           ]}
           value={ownership}
@@ -248,7 +242,7 @@ export default function TripWizardScreen() {
                     <Text
                       style={[styles.chipText, selectedBoat?.id === v.id && styles.chipTextActive]}
                     >
-                      ⛵ {v.name}
+                      {v.name}
                     </Text>
                   </Pressable>
                 ))}
@@ -261,10 +255,10 @@ export default function TripWizardScreen() {
                   onChangeText={setNewBoatName}
                   style={styles.input}
                   placeholder={`${s.addBoat}: S/Y Meltemi`}
-                  placeholderTextColor={colors.fog}
+                  placeholderTextColor={colors.textSecondary}
                 />
                 <Chips
-                  options={BOAT_TYPES.map((b) => ({ key: b.type, label: `${b.icon} ${boatTypeLabel(si, b.type)}` }))}
+                  options={BOAT_TYPES.map((b) => ({ key: b, label: boatTypeLabel(si, b) }))}
                   value={newBoatType}
                   onChange={setNewBoatType}
                 />
@@ -280,7 +274,7 @@ export default function TripWizardScreen() {
           onChangeText={setName}
           style={styles.input}
           placeholder={s.tripName}
-          placeholderTextColor={colors.fog}
+          placeholderTextColor={colors.textSecondary}
         />
         <View style={styles.row2}>
           <TextInput
@@ -288,14 +282,14 @@ export default function TripWizardScreen() {
             onChangeText={setStartAt}
             style={[styles.input, { flex: 1 }]}
             placeholder={`${s.tripDates}: ${s.dateHint}`}
-            placeholderTextColor={colors.fog}
+            placeholderTextColor={colors.textSecondary}
           />
           <TextInput
             value={endAt}
             onChangeText={setEndAt}
             style={[styles.input, { flex: 1 }]}
             placeholder={s.dateHint}
-            placeholderTextColor={colors.fog}
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
         <View style={styles.row2}>
@@ -304,14 +298,14 @@ export default function TripWizardScreen() {
             onChangeText={setDeparture}
             style={[styles.input, { flex: 1 }]}
             placeholder={s.departure}
-            placeholderTextColor={colors.fog}
+            placeholderTextColor={colors.textSecondary}
           />
           <TextInput
             value={destination}
             onChangeText={setDestination}
             style={[styles.input, { flex: 1 }]}
             placeholder={s.destination}
-            placeholderTextColor={colors.fog}
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
         <Text style={styles.fieldLabel}>{s.tripType}</Text>
@@ -323,20 +317,20 @@ export default function TripWizardScreen() {
           value={tripType}
           onChange={setTripType}
         />
-        {!dayTrip && <Stepper label={`🌙 ${s.nights}`} value={nights} onChange={setNights} />}
+        {!dayTrip && <Stepper label={s.nights} value={nights} onChange={setNights} />}
 
         {/* 3 — Mürettebat */}
         <RopeDivider label={`3 · ${s.crew.toUpperCase()}`} />
-        <Stepper label={`👤 ${s.adults}`} value={adults} min={0} onChange={setAdults} />
-        <Stepper label={`🧒 ${s.children}`} value={children} onChange={setChildren} />
-        <Stepper label={`👶 ${s.infants}`} value={infants} onChange={setInfants} />
-        <Stepper label={`🐕 ${s.pets}`} value={pets} onChange={setPets} />
+        <Stepper label={s.adults} value={adults} min={0} onChange={setAdults} />
+        <Stepper label={s.children} value={children} onChange={setChildren} />
+        <Stepper label={s.infants} value={infants} onChange={setInfants} />
+        <Stepper label={s.pets} value={pets} onChange={setPets} />
         <TextInput
           value={skipper}
           onChangeText={setSkipper}
           style={styles.input}
           placeholder={s.skipperName}
-          placeholderTextColor={colors.fog}
+          placeholderTextColor={colors.textSecondary}
         />
 
         {/* 4 — Kullanım profili */}
@@ -353,7 +347,7 @@ export default function TripWizardScreen() {
         />
         <Text style={styles.fieldLabel}>{s.mealsAboard}</Text>
         <Stepper
-          label={`🍳 ${s.breakfasts}`}
+          label={s.breakfasts}
           value={breakfasts}
           onChange={(v) => {
             setMealsTouched(true);
@@ -361,7 +355,7 @@ export default function TripWizardScreen() {
           }}
         />
         <Stepper
-          label={`🥪 ${s.lunches}`}
+          label={s.lunches}
           value={lunches}
           onChange={(v) => {
             setMealsTouched(true);
@@ -369,7 +363,7 @@ export default function TripWizardScreen() {
           }}
         />
         <Stepper
-          label={`🍝 ${s.dinners}`}
+          label={s.dinners}
           value={dinners}
           onChange={(v) => {
             setMealsTouched(true);
@@ -377,8 +371,8 @@ export default function TripWizardScreen() {
           }}
         />
         <View style={styles.switchRow}>
-          <Text style={styles.fieldText}>🍪 {s.snacksQ}</Text>
-          <Switch value={snacks} onValueChange={setSnacks} trackColor={{ true: colors.brass }} />
+          <Text style={styles.fieldText}>{s.snacksQ}</Text>
+          <Switch value={snacks} onValueChange={setSnacks} trackColor={{ true: colors.gold }} />
         </View>
         <Text style={styles.fieldLabel}>{s.shopAccess}</Text>
         <Chips
@@ -391,16 +385,16 @@ export default function TripWizardScreen() {
           onChange={setShopAccess}
         />
         <View style={styles.switchRow}>
-          <Text style={styles.fieldText}>💧 {s.watermaker}</Text>
-          <Switch value={watermaker} onValueChange={setWatermaker} trackColor={{ true: colors.brass }} />
+          <Text style={styles.fieldText}>{s.watermaker}</Text>
+          <Switch value={watermaker} onValueChange={setWatermaker} trackColor={{ true: colors.gold }} />
         </View>
         <View style={styles.switchRow}>
-          <Text style={styles.fieldText}>🧊 {s.refrigerator}</Text>
-          <Switch value={fridge} onValueChange={setFridge} trackColor={{ true: colors.brass }} />
+          <Text style={styles.fieldText}>{s.refrigerator}</Text>
+          <Switch value={fridge} onValueChange={setFridge} trackColor={{ true: colors.gold }} />
         </View>
         <View style={styles.switchRow}>
-          <Text style={styles.fieldText}>❄️ {s.freezer}</Text>
-          <Switch value={freezer} onValueChange={setFreezer} trackColor={{ true: colors.brass }} />
+          <Text style={styles.fieldText}>{s.freezer}</Text>
+          <Switch value={freezer} onValueChange={setFreezer} trackColor={{ true: colors.gold }} />
         </View>
         <Text style={styles.fieldLabel}>{s.climate}</Text>
         <Chips
@@ -427,63 +421,59 @@ export default function TripWizardScreen() {
           onChangeText={setAllergies}
           style={styles.input}
           placeholder={s.allergies}
-          placeholderTextColor={colors.fog}
+          placeholderTextColor={colors.textSecondary}
         />
 
-        {/* 5 — Oluştur */}
-        <Pressable
-          onPress={create}
-          disabled={!canCreate}
-          accessibilityRole="button"
-          accessibilityLabel={s.createTrip}
-          style={({ pressed }) => [
-            styles.primary,
-            (!canCreate || pressed) && { opacity: canCreate ? 0.85 : 0.4 },
-          ]}
-        >
-          <Text style={styles.primaryText}>⚓ {s.createTrip}</Text>
-        </Pressable>
       </ScrollView>
+      {/* Uzun formda birincil aksiyon sabit alt çubukta kalır */}
+      <View style={styles.bottomBar}>
+        <Button label={s.createTrip} onPress={create} disabled={!canCreate} icon="checkmark" />
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.night },
+  safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
+    minHeight: 44,
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 20,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: radius.pill,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
-  chipActive: { backgroundColor: colors.brass, borderColor: colors.brass },
-  chipText: { fontFamily: fonts.body, fontSize: 14, color: colors.fog },
-  chipTextActive: { color: colors.night, fontWeight: "700" },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipText: { fontFamily: fonts.body, fontSize: 14, color: colors.text },
+  chipTextActive: { color: colors.onPrimary, fontWeight: "600" },
   input: {
-    backgroundColor: colors.nightDeep,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 8,
-    color: colors.paper,
+    borderColor: colors.border,
+    borderRadius: radius.control,
+    color: colors.text,
     fontFamily: fonts.body,
     fontSize: 15,
+    minHeight: touch.min,
     paddingHorizontal: 12,
     paddingVertical: 12,
     marginTop: 8,
   },
   row2: { flexDirection: "row", gap: 8 },
   fieldLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    color: colors.brass,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    color: colors.textSecondary,
     marginTop: spacing.m,
     marginBottom: 6,
   },
-  fieldText: { fontFamily: fonts.body, fontSize: 15, color: colors.paper, flex: 1 },
+  fieldText: { fontFamily: fonts.body, fontSize: 15, color: colors.text, flex: 1 },
   stepperRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -493,30 +483,30 @@ const styles = StyleSheet.create({
   stepper: { flexDirection: "row", alignItems: "center", gap: 14 },
   stepBtn: {
     fontSize: 22,
-    color: colors.brass,
-    fontWeight: "700",
-    width: 42,
-    height: 42,
+    color: colors.text,
+    fontWeight: "600",
+    width: touch.min,
+    height: touch.min,
     textAlign: "center",
-    lineHeight: 40,
+    lineHeight: 46,
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 21,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: touch.min / 2,
     overflow: "hidden",
   },
-  stepVal: { fontFamily: fonts.mono, fontSize: 17, color: colors.paper, minWidth: 28, textAlign: "center" },
+  stepVal: { fontFamily: fonts.mono, fontSize: 17, color: colors.text, minWidth: 28, textAlign: "center" },
   switchRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    minHeight: touch.min,
     paddingVertical: 8,
   },
-  primary: {
-    backgroundColor: colors.brass,
-    borderRadius: 10,
-    paddingVertical: 18,
-    alignItems: "center",
-    marginTop: spacing.l,
+  bottomBar: {
+    padding: spacing.m,
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
-  primaryText: { fontFamily: fonts.display, fontSize: 17, fontWeight: "700", color: colors.night },
 });

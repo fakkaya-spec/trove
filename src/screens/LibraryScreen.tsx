@@ -6,8 +6,9 @@ import { listTemplates, TemplateListRow } from "../repositories/templates";
 import { isDbReady } from "../db/state";
 import { features } from "../config/features";
 import { lt } from "../domain/inspection";
-import { colors, fonts, spacing } from "../theme";
+import { colors, fonts, spacing, radius } from "../theme";
 import { RopeDivider } from "../components/ui";
+import { Icon, type IconName } from "../components/Icon";
 import { useLocale } from "../i18n";
 import { TRIP_STRINGS } from "../i18n/trip";
 import { boatTypeLabel, INSPECTION_STRINGS } from "../i18n/inspection";
@@ -15,11 +16,11 @@ import type { RootStackParamList } from "../navigation";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
-const KIND_ICON: Record<string, string> = {
-  charter_check_in: "📋",
-  charter_check_out: "🔁",
-  pre_departure: "🌤️",
-  return_secure: "🔒",
+const KIND_ICON: Record<string, IconName> = {
+  charter_check_in: "clipboard-outline",
+  charter_check_out: "swap-horizontal-outline",
+  pre_departure: "partly-sunny-outline",
+  return_secure: "lock-closed-outline",
 };
 
 export default function LibraryScreen() {
@@ -41,11 +42,11 @@ export default function LibraryScreen() {
         <RopeDivider label={s.templatesLib.toUpperCase()} />
         {templates.map((tpl) => (
           <View key={tpl.id} style={styles.card}>
-            <Text style={styles.cardIcon}>{KIND_ICON[tpl.kind] ?? "📋"}</Text>
+            <Icon name={KIND_ICON[tpl.kind] ?? "clipboard-outline"} size={22} color={colors.text} />
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>{lt(tpl.name, locale)}</Text>
               <Text style={styles.cardSub}>
-                {boatTypeLabel(si, tpl.boatType)} · {tpl.itemCount} ✓
+                {boatTypeLabel(si, tpl.boatType)} · {tpl.itemCount}
               </Text>
             </View>
           </View>
@@ -59,14 +60,14 @@ export default function LibraryScreen() {
               accessibilityRole="button"
               style={({ pressed }) => [styles.linkCard, pressed && { opacity: 0.8 }]}
             >
-              <Text style={styles.linkText}>📋 {s.legacyChecklists} ›</Text>
+              <Text style={styles.linkText}>{s.legacyChecklists} ›</Text>
             </Pressable>
             <Pressable
               onPress={() => navigation.navigate("Guide")}
               accessibilityRole="button"
               style={({ pressed }) => [styles.linkCard, pressed && { opacity: 0.8 }]}
             >
-              <Text style={styles.linkText}>📷 {t.guideTitle} ›</Text>
+              <Text style={styles.linkText}>{t.guideTitle} ›</Text>
             </Pressable>
           </>
         )}
@@ -76,22 +77,21 @@ export default function LibraryScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.night },
+  safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
   card: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: colors.nightDeep,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.card,
     padding: spacing.m,
     marginBottom: spacing.s,
   },
-  cardIcon: { fontSize: 22 },
-  cardTitle: { fontFamily: fonts.display, fontSize: 15, fontWeight: "700", color: colors.paper },
-  cardSub: { fontFamily: fonts.body, fontSize: 12, color: colors.fog, marginTop: 2 },
-  linkCard: { paddingVertical: 12, alignItems: "center" },
-  linkText: { fontFamily: fonts.body, fontSize: 14, color: colors.brass },
+  cardTitle: { fontFamily: fonts.body, fontSize: 15, fontWeight: "600", color: colors.text },
+  cardSub: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, marginTop: 2 },
+  linkCard: { paddingVertical: 14, minHeight: 48, justifyContent: "center", alignItems: "center" },
+  linkText: { fontFamily: fonts.body, fontSize: 14, fontWeight: "600", color: colors.info },
 });

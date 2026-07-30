@@ -12,21 +12,16 @@ import { useFocusEffect , useNavigation } from "@react-navigation/native";
 import { createVessel, listVessels, VesselRow } from "../../repositories/vessels";
 import { isDbReady } from "../../db/state";
 import type { BoatType } from "../../domain/types";
-import { colors, fonts, spacing } from "../../theme";
-import { RopeDivider } from "../../components/ui";
+import { colors, fonts, spacing, radius, touch } from "../../theme";
+import { RopeDivider, Button } from "../../components/ui";
+import { Icon } from "../../components/Icon";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS } from "../../i18n/trip";
 import { boatTypeLabel, INSPECTION_STRINGS } from "../../i18n/inspection";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation";
 
-const BOAT_TYPES: { type: BoatType; icon: string }[] = [
-  { type: "sailing", icon: "⛵" },
-  { type: "catamaran", icon: "⛵" },
-  { type: "motor", icon: "🛥️" },
-  { type: "rib", icon: "🚤" },
-  { type: "gulet", icon: "⚓" },
-];
+const BOAT_TYPES: BoatType[] = ["sailing", "catamaran", "motor", "rib", "gulet"];
 
 export default function BoatsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -59,7 +54,7 @@ export default function BoatsScreen() {
         accessibilityLabel={`${v.name} — ${s.historyTitle}`}
         style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
       >
-        <Text style={styles.cardIcon}>{BOAT_TYPES.find((b) => b.type === v.type)?.icon ?? "⛵"}</Text>
+        <Icon name="boat-outline" size={22} color={colors.text} />
         <View style={{ flex: 1 }}>
           <Text style={styles.cardTitle}>{v.name}</Text>
           <Text style={styles.cardSub}>
@@ -67,7 +62,7 @@ export default function BoatsScreen() {
             {v.model ? ` · ${v.model}` : ""}
           </Text>
         </View>
-        <Text style={styles.chevron}>›</Text>
+        <Icon name="chevron-forward" size={18} color={colors.textSecondary} />
       </Pressable>
     );
   }
@@ -85,17 +80,18 @@ export default function BoatsScreen() {
           onChangeText={setName}
           style={styles.input}
           placeholder="S/Y Meltemi"
-          placeholderTextColor={colors.fog}
+          placeholderTextColor={colors.textSecondary}
         />
         <View style={styles.chipRow}>
           {BOAT_TYPES.map((b) => (
             <Pressable
-              key={b.type}
-              onPress={() => setType(b.type)}
-              style={[styles.chip, type === b.type && styles.chipActive]}
+              key={b}
+              onPress={() => setType(b)}
+              accessibilityRole="button"
+              style={[styles.chip, type === b && styles.chipActive]}
             >
-              <Text style={[styles.chipText, type === b.type && styles.chipTextActive]}>
-                {b.icon} {boatTypeLabel(si, b.type)}
+              <Text style={[styles.chipText, type === b && styles.chipTextActive]}>
+                {boatTypeLabel(si, b)}
               </Text>
             </Pressable>
           ))}
@@ -105,28 +101,20 @@ export default function BoatsScreen() {
             onPress={() => setCharter(false)}
             style={[styles.chip, !charter && styles.chipActive]}
           >
-            <Text style={[styles.chipText, !charter && styles.chipTextActive]}>⚓ {s.ownBoat}</Text>
+            <Text style={[styles.chipText, !charter && styles.chipTextActive]}>{s.ownBoat}</Text>
           </Pressable>
           <Pressable
             onPress={() => setCharter(true)}
             style={[styles.chip, charter && styles.chipActive]}
           >
             <Text style={[styles.chipText, charter && styles.chipTextActive]}>
-              📋 {s.charterBoat}
+              {s.charterBoat}
             </Text>
           </Pressable>
         </View>
-        <Pressable
-          onPress={add}
-          disabled={!name.trim()}
-          accessibilityRole="button"
-          style={({ pressed }) => [
-            styles.primary,
-            (!name.trim() || pressed) && { opacity: name.trim() ? 0.85 : 0.4 },
-          ]}
-        >
-          <Text style={styles.primaryText}>＋ {s.addBoat}</Text>
-        </Pressable>
+        <View style={{ marginTop: spacing.m }}>
+          <Button label={s.addBoat} icon="add" onPress={add} disabled={!name.trim()} />
+        </View>
 
         {own.length > 0 && (
           <>
@@ -146,56 +134,54 @@ export default function BoatsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.night },
+  safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
   fieldLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    color: colors.brass,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   input: {
-    backgroundColor: colors.nightDeep,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 8,
-    color: colors.paper,
+    borderColor: colors.border,
+    borderRadius: radius.control,
+    color: colors.text,
     fontFamily: fonts.body,
     fontSize: 15,
+    minHeight: touch.min,
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 },
   chip: {
+    minHeight: 44,
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 20,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: radius.pill,
     paddingHorizontal: 13,
     paddingVertical: 9,
   },
-  chipActive: { backgroundColor: colors.brass, borderColor: colors.brass },
-  chipText: { fontFamily: fonts.body, fontSize: 13, color: colors.fog },
-  chipTextActive: { color: colors.night, fontWeight: "700" },
-  primary: {
-    backgroundColor: colors.brass,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginTop: spacing.m,
-  },
-  primaryText: { fontFamily: fonts.display, fontSize: 15, fontWeight: "700", color: colors.night },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipText: { fontFamily: fonts.body, fontSize: 13, color: colors.text },
+  chipTextActive: { color: colors.onPrimary, fontWeight: "600" },
   card: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: colors.paper,
-    borderRadius: 8,
+    minHeight: touch.row,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.card,
     padding: spacing.m,
     marginBottom: spacing.s,
   },
-  cardIcon: { fontSize: 22 },
-  cardTitle: { fontFamily: fonts.display, fontSize: 16, fontWeight: "700", color: colors.ink },
-  cardSub: { fontFamily: fonts.body, fontSize: 12, color: colors.inkFaded, marginTop: 2 },
-  chevron: { fontSize: 24, color: colors.brassDark },
+  cardTitle: { fontFamily: fonts.body, fontSize: 17, fontWeight: "600", color: colors.text },
+  cardSub: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, marginTop: 2 },
 });

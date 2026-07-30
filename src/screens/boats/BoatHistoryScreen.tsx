@@ -8,8 +8,9 @@ import { inspections, issues } from "../../db/schema";
 import { getVesselById, VesselRow } from "../../repositories/vessels";
 import { isDone } from "../../domain/trip";
 import type { InspectionStatus } from "../../domain/types";
-import { colors, fonts, spacing } from "../../theme";
-import { RopeDivider } from "../../components/ui";
+import { colors, fonts, spacing, radius, touch } from "../../theme";
+import { RopeDivider, EmptyState } from "../../components/ui";
+import { Icon, type IconName } from "../../components/Icon";
 import { useLocale } from "../../i18n";
 import { boatTypeLabel, INSPECTION_STRINGS } from "../../i18n/inspection";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
@@ -27,11 +28,11 @@ interface HistoryRow {
   totalIssues: number;
 }
 
-const KIND_ICON: Record<string, string> = {
-  check_in: "📋",
-  check_out: "🔁",
-  pre_departure: "🌤️",
-  return_secure: "🔒",
+const KIND_ICON: Record<string, IconName> = {
+  check_in: "clipboard-outline",
+  check_out: "swap-horizontal-outline",
+  pre_departure: "partly-sunny-outline",
+  return_secure: "lock-closed-outline",
 };
 
 // Denetim türü → mevcut modül etiketi (yeni anahtar üretmeden yeniden kullanım)
@@ -94,9 +95,9 @@ export default function BoatHistoryScreen() {
           {boat.model ? ` · ${boat.model}` : ""}
         </Text>
 
-        <RopeDivider label={`📖 ${s.historyTitle.toUpperCase()}`} />
+        <RopeDivider label={s.historyTitle.toUpperCase()} />
 
-        {rows.length === 0 && <Text style={styles.empty}>{s.historyEmpty}</Text>}
+        {rows.length === 0 && <EmptyState icon="document-text-outline" title={s.historyEmpty} />}
 
         {rows.map((r) => {
           const kindKey = KIND_LABEL[r.kind];
@@ -108,20 +109,32 @@ export default function BoatHistoryScreen() {
               accessibilityLabel={kindKey ? (s[kindKey] as string) : r.kind}
               style={({ pressed }) => [styles.row, pressed && { opacity: 0.85 }]}
             >
-              <Text style={styles.rowIcon}>{KIND_ICON[r.kind] ?? "📋"}</Text>
+              <Icon name={KIND_ICON[r.kind] ?? "clipboard-outline"} size={22} color={colors.text} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowTitle}>
                   {kindKey ? (s[kindKey] as string) : r.kind}
                 </Text>
-                <Text style={styles.rowMeta}>
-                  {new Date(r.startedAt).toLocaleDateString()}
-                  {r.totalIssues > 0 ? `  ·  ⚠ ${r.totalIssues}` : ""}
-                  {r.openIssues > 0 ? `  ·  ● ${r.openIssues}` : ""}
-                </Text>
+                <View style={styles.rowMetaRow}>
+                  <Text style={styles.rowMeta}>{new Date(r.startedAt).toLocaleDateString()}</Text>
+                  {r.totalIssues > 0 && (
+                    <>
+                      <Icon name="warning-outline" size={13} color={colors.warning} />
+                      <Text style={styles.rowMeta}>{r.totalIssues}</Text>
+                    </>
+                  )}
+                  {r.openIssues > 0 && (
+                    <>
+                      <Icon name="alert-circle-outline" size={13} color={colors.danger} />
+                      <Text style={[styles.rowMeta, { color: colors.danger }]}>{r.openIssues}</Text>
+                    </>
+                  )}
+                </View>
               </View>
-              <Text style={[styles.rowStatus, isDone(r.status) && { color: colors.seafoam }]}>
-                {isDone(r.status) ? "✓" : "…"}
-              </Text>
+              {isDone(r.status) ? (
+                <Icon name="checkmark-circle" size={22} color={colors.success} />
+              ) : (
+                <Icon name="time-outline" size={22} color={colors.warning} />
+              )}
             </Pressable>
           );
         })}
@@ -131,32 +144,22 @@ export default function BoatHistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.night },
+  safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
-  subtitle: { fontFamily: fonts.body, fontSize: 13, color: colors.fog, textAlign: "center" },
-  empty: {
-    fontFamily: fonts.body,
-    fontStyle: "italic",
-    fontSize: 13,
-    lineHeight: 19,
-    color: colors.fog,
-    textAlign: "center",
-    marginTop: spacing.l,
-  },
+  subtitle: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, textAlign: "center" },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: colors.nightDeep,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 10,
+    borderColor: colors.border,
+    borderRadius: radius.card,
     padding: spacing.m,
     marginBottom: spacing.s,
-    minHeight: 60,
+    minHeight: touch.row,
   },
-  rowIcon: { fontSize: 22 },
-  rowTitle: { fontFamily: fonts.display, fontSize: 15, fontWeight: "700", color: colors.paper },
-  rowMeta: { fontFamily: fonts.mono, fontSize: 11, color: colors.fog, marginTop: 3 },
-  rowStatus: { fontFamily: fonts.mono, fontSize: 18, color: colors.brass },
+  rowTitle: { fontFamily: fonts.body, fontSize: 15, fontWeight: "600", color: colors.text },
+  rowMetaRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 3 },
+  rowMeta: { fontFamily: fonts.mono, fontSize: 12, color: colors.textSecondary, marginRight: 6 },
 });

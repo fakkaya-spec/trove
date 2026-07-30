@@ -13,8 +13,9 @@ import {
 } from "../../repositories/inspections";
 import { getTemplateById } from "../../repositories/templates";
 import { checkCompletion, lt, summarize, toResultMap } from "../../domain/inspection";
-import { colors, fonts, spacing } from "../../theme";
+import { colors, fonts, spacing, radius, touch } from "../../theme";
 import { RopeDivider } from "../../components/ui";
+import { Icon } from "../../components/Icon";
 import { useLocale } from "../../i18n";
 import { INSPECTION_STRINGS } from "../../i18n/inspection";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
@@ -23,10 +24,10 @@ import type { RootStackParamList } from "../../navigation";
 type Route = RouteProp<RootStackParamList, "InspectionSummary">;
 
 const SEV_COLOR: Record<string, string> = {
-  low: colors.fog,
-  medium: "#B7791F",
-  high: colors.signal,
-  critical: colors.signal,
+  low: colors.textSecondary,
+  medium: colors.warning,
+  high: colors.danger,
+  critical: colors.danger,
 };
 
 export default function SummaryScreen() {
@@ -77,7 +78,7 @@ export default function SummaryScreen() {
     if (!completion.canComplete) {
       Alert.alert(
         s.completeBlockedTitle,
-        completion.blockingItems.map((i) => `● ${lt(i.title, locale)}`).join("\n")
+        completion.blockingItems.map((i) => `- ${lt(i.title, locale)}`).join("\n")
       );
       return;
     }
@@ -103,21 +104,22 @@ export default function SummaryScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         {isDone && (
           <View style={styles.doneStamp}>
-            <Text style={styles.doneStampText}>✓ {s.doneTitle}</Text>
+            <Icon name="checkmark-circle" size={22} color={colors.success} />
+            <Text style={styles.doneStampText}>{s.doneTitle}</Text>
           </View>
         )}
 
         <View style={styles.statRow}>
-          {stat(s.statusWorking, summary.working, "#3E7466")}
-          {stat(s.statusAttention, summary.needsAttention, "#B7791F")}
-          {stat(s.statusNotWorking, summary.notWorking, colors.signal)}
+          {stat(s.statusWorking, summary.working, colors.success)}
+          {stat(s.statusAttention, summary.needsAttention, colors.warning)}
+          {stat(s.statusNotWorking, summary.notWorking, colors.danger)}
           {stat(s.statusNa, summary.notApplicable)}
-          {stat(s.statusUnchecked, summary.unchecked, colors.fog)}
+          {stat(s.statusUnchecked, summary.unchecked, colors.textSecondary)}
         </View>
 
         {meters.length > 0 && (
           <>
-            <RopeDivider label={`⛽ ${s.meters.toUpperCase()}`} />
+            <RopeDivider label={s.meters.toUpperCase()} />
             {meters.map((m) => (
               <View key={m.id} style={styles.meterRow}>
                 <Text style={styles.meterKind}>{ts[(`meter_${m.kind}`) as keyof TripStrings] as string}</Text>
@@ -131,18 +133,24 @@ export default function SummaryScreen() {
 
         {issues.length > 0 && (
           <>
-            <RopeDivider label={`⚠ ${s.issuesLabel.toUpperCase()} (${issues.length})`} />
+            <RopeDivider label={`${s.issuesLabel.toUpperCase()} (${issues.length})`} />
             {issues.map((i) => (
               <View key={i.id} style={styles.issueRow}>
                 <View style={[styles.sevDot, { backgroundColor: SEV_COLOR[i.severity] }]} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.issueTitle}>{i.title}</Text>
                   {i.description ? <Text style={styles.issueDesc}>{i.description}</Text> : null}
-                  <Text style={styles.issueMeta}>
-                    {i.reportedToCompany ? "📣 " : ""}
-                    {i.resolved ? "✓ " : ""}
-                    {i.severity.toUpperCase()}
-                  </Text>
+                  <View style={styles.issueMetaRow}>
+                    {i.reportedToCompany ? (
+                      <Icon name="mail-outline" size={13} color={colors.textSecondary} />
+                    ) : null}
+                    {i.resolved ? (
+                      <Icon name="checkmark-circle" size={13} color={colors.success} />
+                    ) : null}
+                    <Text style={[styles.issueMeta, { color: SEV_COLOR[i.severity] }]}>
+                      {i.severity.toUpperCase()}
+                    </Text>
+                  </View>
                 </View>
               </View>
             ))}
@@ -173,15 +181,20 @@ export default function SummaryScreen() {
               pressed && { opacity: 0.85 },
             ]}
           >
+            <Icon
+              name={completion.canComplete ? "checkmark-circle-outline" : "alert-circle-outline"}
+              size={20}
+              color={completion.canComplete ? colors.onPrimary : colors.danger}
+            />
             <Text
               style={[
                 styles.completeBtnText,
-                !completion.canComplete && { color: colors.signal },
+                !completion.canComplete && { color: colors.danger },
               ]}
             >
               {completion.canComplete
-                ? `✓ ${s.complete}`
-                : `● ${completion.blockingItems.length} — ${s.completeBlockedTitle}`}
+                ? s.complete
+                : `${completion.blockingItems.length} — ${s.completeBlockedTitle}`}
             </Text>
           </Pressable>
         )}
@@ -191,58 +204,88 @@ export default function SummaryScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.night },
+  safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
   doneStamp: {
-    borderWidth: 2,
-    borderColor: colors.seafoam,
-    borderRadius: 8,
-    padding: spacing.m,
+    flexDirection: "row",
     alignItems: "center",
-    transform: [{ rotate: "-1deg" }],
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: colors.success,
+    borderRadius: radius.card,
+    padding: spacing.m,
     marginBottom: spacing.m,
-    backgroundColor: "rgba(127,181,168,0.1)",
+    backgroundColor: colors.successBg,
   },
   doneStampText: {
-    fontFamily: fonts.display,
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.seafoam,
-    letterSpacing: 1,
+    fontFamily: fonts.body,
+    fontSize: 17,
+    fontWeight: "600",
+    color: colors.success,
+    letterSpacing: 0.5,
   },
   statRow: { flexDirection: "row", flexWrap: "wrap", gap: 10, justifyContent: "center" },
   stat: {
     alignItems: "center",
-    backgroundColor: colors.nightDeep,
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingVertical: 10,
     paddingHorizontal: 14,
     minWidth: 62,
   },
-  statValue: { fontFamily: fonts.display, fontSize: 22, fontWeight: "700", color: colors.paper },
-  statLabel: { fontFamily: fonts.body, fontSize: 10, color: colors.fog, marginTop: 2, textAlign: "center" },
+  statValue: { fontFamily: fonts.body, fontSize: 22, fontWeight: "600", color: colors.text },
+  statLabel: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
+    textAlign: "center",
+  },
   meterRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(147,165,184,0.2)",
+    borderBottomColor: colors.border,
   },
-  meterKind: { fontFamily: fonts.body, fontSize: 14, color: colors.fog, textTransform: "capitalize" },
-  meterValue: { fontFamily: fonts.mono, fontSize: 15, color: colors.paper },
+  meterKind: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textSecondary,
+    textTransform: "capitalize",
+  },
+  meterValue: { fontFamily: fonts.mono, fontSize: 15, color: colors.text },
   issueRow: { flexDirection: "row", gap: 10, paddingVertical: 10, alignItems: "flex-start" },
   sevDot: { width: 10, height: 10, borderRadius: 5, marginTop: 6 },
-  issueTitle: { fontFamily: fonts.body, fontSize: 14, color: colors.paper, lineHeight: 20 },
-  issueDesc: { fontFamily: fonts.body, fontSize: 13, fontStyle: "italic", color: colors.fog, marginTop: 2 },
-  issueMeta: { fontFamily: fonts.mono, fontSize: 10, letterSpacing: 1, color: colors.fog, marginTop: 4 },
-  duration: { fontFamily: fonts.mono, fontSize: 12, color: colors.fog, textAlign: "center", marginTop: spacing.l },
-  completeBtn: {
-    backgroundColor: colors.brass,
-    borderRadius: 10,
-    paddingVertical: 17,
-    alignItems: "center",
+  issueTitle: { fontFamily: fonts.body, fontSize: 14, color: colors.text, lineHeight: 20 },
+  issueDesc: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, marginTop: 2 },
+  issueMetaRow: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 4 },
+  issueMeta: { fontFamily: fonts.body, fontSize: 11, fontWeight: "600", letterSpacing: 0.5 },
+  duration: {
+    fontFamily: fonts.mono,
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: "center",
     marginTop: spacing.l,
   },
-  completeBtnBlocked: { backgroundColor: "transparent", borderWidth: 1, borderColor: colors.signal },
-  completeBtnText: { fontFamily: fonts.display, fontSize: 16, fontWeight: "700", color: colors.night },
+  completeBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radius.control,
+    minHeight: touch.min,
+    paddingVertical: 15,
+    marginTop: spacing.l,
+  },
+  completeBtnBlocked: {
+    backgroundColor: colors.dangerBg,
+    borderWidth: 1,
+    borderColor: colors.danger,
+  },
+  completeBtnText: { fontFamily: fonts.body, fontSize: 16, fontWeight: "600", color: colors.onPrimary },
 });

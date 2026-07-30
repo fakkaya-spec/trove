@@ -24,20 +24,21 @@ import {
 } from "../../repositories/provisioning";
 import { quantityToBuy, shoppingListText, shoppingProgress } from "../../domain/provisioning";
 import type { ProvisionCategory, ProvisionItemState } from "../../domain/types";
-import { colors, fonts, spacing } from "../../theme";
-import { ProgressGauge } from "../../components/ui";
+import { colors, fonts, spacing, radius, touch } from "../../theme";
+import { ProgressGauge, Button } from "../../components/ui";
+import { Icon, type IconName } from "../../components/Icon";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
 import type { RootStackParamList } from "../../navigation";
 
 type Route = RouteProp<RootStackParamList, "Provisioning">;
 
-const STATE_ICON: Record<ProvisionItemState, string> = {
-  suggested: "○",
-  already_onboard: "⚓",
-  purchased: "🛒",
-  packed: "📦",
-  skipped: "⏭",
+const STATE_META: Record<ProvisionItemState, { icon: IconName; color: string }> = {
+  suggested: { icon: "ellipse-outline", color: colors.textSecondary },
+  already_onboard: { icon: "checkmark-circle-outline", color: colors.success },
+  purchased: { icon: "cart-outline", color: colors.info },
+  packed: { icon: "cube-outline", color: colors.success },
+  skipped: { icon: "play-skip-forward-outline", color: colors.textSecondary },
 };
 
 export default function ProvisioningScreen() {
@@ -83,7 +84,7 @@ export default function ProvisioningScreen() {
   if (!trip || !planId) return null;
 
   function cycleState(item: ProvisionItemRow) {
-    // Hızlı tek parmak akışı: ○ → 🛒 alındı → 📦 yerleşti → ○
+    // Hızlı tek parmak akışı: öneri → alındı → yerleşti → öneri
     const next: ProvisionItemState =
       item.state === "purchased" ? "packed" : item.state === "packed" ? "suggested" : "purchased";
     updateItem(item.id, { state: next });
@@ -92,7 +93,7 @@ export default function ProvisioningScreen() {
 
   async function shareList() {
     const text = shoppingListText(
-      `🛒 ${trip!.name} — ${s.provisioning}`,
+      `${trip!.name} — ${s.provisioning}`,
       items,
       Object.fromEntries(
         [...new Set(items.map((i) => i.category))].map((c) => [c, catLabel(c)])
@@ -124,15 +125,21 @@ export default function ProvisioningScreen() {
     <SafeAreaView style={styles.safe}>
       {/* Üst bilgi */}
       <View style={styles.top}>
-        <Text style={styles.topMeta}>
-          👤 {trip.adults + trip.children} · 🌙 {trip.nights} ·{" "}
-          {s[(`st_${trip.profile.style}`) as keyof TripStrings]}
-        </Text>
+        <View style={styles.topMetaRow}>
+          <Icon name="person-outline" size={14} color={colors.textSecondary} />
+          <Text style={styles.topMeta}>{trip.adults + trip.children}</Text>
+          <Icon name="time-outline" size={14} color={colors.textSecondary} />
+          <Text style={styles.topMeta}>{trip.nights}</Text>
+          <Text style={styles.topMeta}>
+            · {s[(`st_${trip.profile.style}`) as keyof TripStrings]}
+          </Text>
+        </View>
         <ProgressGauge done={progress.purchasedOrPacked} total={progress.toBuyItems} />
         {trip.profile.allergies ? (
           <View style={styles.allergy}>
+            <Icon name="warning-outline" size={16} color={colors.danger} />
             <Text style={styles.allergyText}>
-              ⚠ {s.allergyWarn}: {trip.profile.allergies}
+              {s.allergyWarn}: {trip.profile.allergies}
             </Text>
           </View>
         ) : null}
@@ -159,7 +166,11 @@ export default function ProvisioningScreen() {
                 accessibilityLabel={`${item.name}: ${item.state}`}
                 style={styles.stateBtn}
               >
-                <Text style={styles.stateIcon}>{STATE_ICON[item.state]}</Text>
+                <Icon
+                  name={STATE_META[item.state].icon}
+                  size={22}
+                  color={STATE_META[item.state].color}
+                />
               </Pressable>
               <Pressable style={{ flex: 1 }} onPress={() => setEditing(item)}>
                 <Text style={styles.itemName}>{item.name}</Text>
@@ -171,10 +182,11 @@ export default function ProvisioningScreen() {
               {item.explanation && (
                 <Pressable
                   onPress={() => Alert.alert(s.whyThis, explanationText(item))}
-                  hitSlop={8}
+                  hitSlop={12}
                   accessibilityLabel={s.whyThis}
+                  style={styles.infoBtn}
                 >
-                  <Text style={styles.infoBtn}>ⓘ</Text>
+                  <Icon name="information-circle-outline" size={22} color={colors.info} />
                 </Pressable>
               )}
             </View>
@@ -182,19 +194,22 @@ export default function ProvisioningScreen() {
         }}
         ListFooterComponent={
           progress.toBuyItems > 0 && progress.percent === 100 ? (
-            <Text style={styles.allDone}>✓ {s.allDone}</Text>
+            <View style={styles.allDoneRow}>
+              <Icon name="checkmark-circle" size={20} color={colors.success} />
+              <Text style={styles.allDone}>{s.allDone}</Text>
+            </View>
           ) : null
         }
       />
 
       {/* Alt bar */}
       <View style={styles.bottomBar}>
-        <Pressable onPress={() => setAdding(true)} style={styles.barBtn} accessibilityRole="button">
-          <Text style={styles.barBtnText}>＋ {s.addItem}</Text>
-        </Pressable>
-        <Pressable onPress={shareList} style={styles.barBtn} accessibilityRole="button">
-          <Text style={styles.barBtnText}>📤 {s.shareList}</Text>
-        </Pressable>
+        <View style={{ flex: 1 }}>
+          <Button label={s.addItem} icon="add" variant="secondary" onPress={() => setAdding(true)} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Button label={s.shareList} icon="share-outline" onPress={shareList} />
+        </View>
       </View>
 
       {editing && (
@@ -289,7 +304,7 @@ function ItemEditSheet(props: {
               onChangeText={setNote}
               style={styles.input}
               placeholder="…"
-              placeholderTextColor={colors.fog}
+              placeholderTextColor={colors.textSecondary}
             />
             <View style={styles.stateRow}>
               {(
@@ -300,9 +315,8 @@ function ItemEditSheet(props: {
                 ] as [ProvisionItemState, string][]
               ).map(([st, label]) => (
                 <Pressable key={st} onPress={() => setState(st)} style={styles.stateChip}>
-                  <Text style={styles.stateChipText}>
-                    {STATE_ICON[st]} {label}
-                  </Text>
+                  <Icon name={STATE_META[st].icon} size={16} color={STATE_META[st].color} />
+                  <Text style={styles.stateChipText}>{label}</Text>
                 </Pressable>
               ))}
             </View>
@@ -312,7 +326,7 @@ function ItemEditSheet(props: {
                   Alert.alert(s.deleteItemConfirm, "", [
                     { text: s.cancel, style: "cancel" },
                     {
-                      text: "🗑",
+                      text: s.deleteShort,
                       style: "destructive",
                       onPress: () => {
                         deleteItem(item.id);
@@ -322,10 +336,13 @@ function ItemEditSheet(props: {
                   ])
                 }
                 hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={s.deleteShort}
+                style={styles.trashBtn}
               >
-                <Text style={{ color: colors.signal, fontSize: 16 }}>🗑</Text>
+                <Icon name="trash-outline" size={22} color={colors.danger} />
               </Pressable>
-              <Pressable onPress={() => props.onClose(false)} hitSlop={8}>
+              <Pressable onPress={() => props.onClose(false)} hitSlop={8} style={styles.cancelBtn}>
                 <Text style={styles.cancelText}>{s.cancel}</Text>
               </Pressable>
               <Pressable onPress={save} style={styles.saveBtn}>
@@ -375,13 +392,13 @@ function AddItemSheet(props: {
     <Modal visible transparent animationType="slide" onRequestClose={() => props.onClose(false)}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
-          <Text style={styles.sheetTitle}>＋ {s.addItem}</Text>
+          <Text style={styles.sheetTitle}>{s.addItem}</Text>
           <TextInput
             value={name}
             onChangeText={setName}
             style={styles.input}
             placeholder={s.itemName}
-            placeholderTextColor={colors.fog}
+            placeholderTextColor={colors.textSecondary}
             autoFocus
           />
           <View style={styles.row2}>
@@ -391,14 +408,14 @@ function AddItemSheet(props: {
               keyboardType="decimal-pad"
               style={[styles.input, { flex: 1 }]}
               placeholder={s.quantity}
-              placeholderTextColor={colors.fog}
+              placeholderTextColor={colors.textSecondary}
             />
             <TextInput
               value={unit}
               onChangeText={setUnit}
               style={[styles.input, { flex: 1 }]}
               placeholder={s.unit}
-              placeholderTextColor={colors.fog}
+              placeholderTextColor={colors.textSecondary}
             />
           </View>
           <View style={styles.stateRow}>
@@ -406,10 +423,13 @@ function AddItemSheet(props: {
               <Pressable
                 key={c}
                 onPress={() => setCategory(c)}
-                style={[styles.stateChip, category === c && { backgroundColor: colors.brass }]}
+                style={[
+                  styles.stateChip,
+                  category === c && { backgroundColor: colors.primary, borderColor: colors.primary },
+                ]}
               >
                 <Text
-                  style={[styles.stateChipText, category === c && { color: colors.night }]}
+                  style={[styles.stateChipText, category === c && { color: colors.onPrimary }]}
                 >
                   {props.catLabel(c)}
                 </Text>
@@ -417,7 +437,7 @@ function AddItemSheet(props: {
             ))}
           </View>
           <View style={styles.sheetActions}>
-            <Pressable onPress={() => props.onClose(false)} hitSlop={8}>
+            <Pressable onPress={() => props.onClose(false)} hitSlop={8} style={styles.cancelBtn}>
               <Text style={styles.cancelText}>{s.cancel}</Text>
             </Pressable>
             <Pressable onPress={save} style={styles.saveBtn}>
@@ -431,110 +451,134 @@ function AddItemSheet(props: {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.night },
+  safe: { flex: 1, backgroundColor: colors.bg },
   top: { padding: spacing.m, gap: 8 },
-  topMeta: { fontFamily: fonts.body, fontSize: 13, color: colors.fog },
+  topMetaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+  topMeta: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, marginRight: 6 },
   allergy: {
-    backgroundColor: "rgba(192,57,43,0.18)",
-    borderWidth: 1,
-    borderColor: colors.signal,
-    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: colors.dangerBg,
+    borderRadius: radius.control,
     padding: 10,
   },
-  allergyText: { fontFamily: fonts.body, fontSize: 13, color: colors.signal, fontWeight: "700" },
-  note: { fontFamily: fonts.body, fontStyle: "italic", fontSize: 11, color: colors.fog, lineHeight: 16 },
-  list: { paddingHorizontal: spacing.m, paddingBottom: 90 },
+  allergyText: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.danger,
+    fontWeight: "600",
+  },
+  note: { fontFamily: fonts.body, fontSize: 12, color: colors.textSecondary, lineHeight: 17 },
+  list: { paddingHorizontal: spacing.m, paddingBottom: 100 },
   sectionHeader: {
-    fontFamily: fonts.display,
+    fontFamily: fonts.body,
     fontSize: 15,
-    fontWeight: "700",
-    color: colors.brass,
+    fontWeight: "600",
+    color: colors.text,
     marginTop: spacing.m,
     marginBottom: 4,
     borderBottomWidth: 1,
-    borderBottomColor: colors.line,
+    borderBottomColor: colors.border,
     paddingBottom: 4,
   },
   itemRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingVertical: 9,
+    minHeight: touch.row,
+    paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(147,165,184,0.2)",
+    borderBottomColor: colors.border,
   },
   stateBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: touch.min,
+    height: touch.min,
+    borderRadius: touch.min / 2,
     borderWidth: 1,
-    borderColor: colors.rope,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
-  stateIcon: { fontSize: 17 },
-  itemName: { fontFamily: fonts.body, fontSize: 15, color: colors.paper },
-  itemMeta: { fontFamily: fonts.mono, fontSize: 11, color: colors.fog, marginTop: 2 },
-  infoBtn: { fontSize: 18, color: colors.seafoam, paddingHorizontal: 4 },
-  allDone: {
-    fontFamily: fonts.display,
-    fontSize: 15,
-    color: colors.seafoam,
-    textAlign: "center",
+  itemName: { fontFamily: fonts.body, fontSize: 15, color: colors.text },
+  itemMeta: { fontFamily: fonts.mono, fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  infoBtn: { padding: 4 },
+  allDoneRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
     marginVertical: spacing.l,
   },
+  allDone: { fontFamily: fonts.body, fontSize: 15, fontWeight: "600", color: colors.success },
   bottomBar: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
     flexDirection: "row",
-    backgroundColor: colors.nightDeep,
+    gap: 10,
+    padding: spacing.m,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: colors.line,
+    borderTopColor: colors.border,
   },
-  barBtn: { flex: 1, alignItems: "center", paddingVertical: 14 },
-  barBtnText: { fontFamily: fonts.display, fontSize: 15, fontWeight: "700", color: colors.brass },
-  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
+  backdrop: { flex: 1, backgroundColor: "rgba(11,29,51,0.5)", justifyContent: "flex-end" },
   sheet: {
-    backgroundColor: colors.nightDeep,
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: spacing.l,
     borderTopWidth: 1,
-    borderTopColor: colors.brass,
+    borderTopColor: colors.border,
     maxHeight: "85%",
   },
-  sheetTitle: { fontFamily: fonts.display, fontSize: 17, fontWeight: "700", color: colors.paper },
+  sheetTitle: { fontFamily: fonts.body, fontSize: 17, fontWeight: "600", color: colors.text },
   input: {
-    backgroundColor: colors.night,
+    backgroundColor: colors.bg,
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 8,
-    color: colors.paper,
+    borderColor: colors.border,
+    borderRadius: radius.control,
+    color: colors.text,
     fontFamily: fonts.body,
     fontSize: 15,
+    minHeight: touch.min,
     paddingHorizontal: 12,
     paddingVertical: 11,
     marginTop: 8,
   },
   row2: { flexDirection: "row", gap: 8 },
   fieldLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
-    color: colors.brass,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    color: colors.textSecondary,
     marginTop: 10,
   },
   stateRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: spacing.m },
   stateChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minHeight: 44,
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 16,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  stateChipText: { fontFamily: fonts.body, fontSize: 13, color: colors.paper },
+  stateChipText: { fontFamily: fonts.body, fontSize: 13, color: colors.text },
+  trashBtn: {
+    width: touch.min,
+    height: touch.min,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   sheetActions: {
     flexDirection: "row",
     alignItems: "center",
@@ -542,7 +586,15 @@ const styles = StyleSheet.create({
     marginTop: spacing.l,
     gap: 16,
   },
-  cancelText: { fontFamily: fonts.body, fontSize: 15, color: colors.fog },
-  saveBtn: { backgroundColor: colors.brass, borderRadius: 8, paddingHorizontal: 26, paddingVertical: 12 },
-  saveBtnText: { fontFamily: fonts.display, fontSize: 15, fontWeight: "700", color: colors.night },
+  cancelBtn: { minHeight: touch.min, justifyContent: "center", paddingHorizontal: 8 },
+  cancelText: { fontFamily: fonts.body, fontSize: 15, color: colors.textSecondary },
+  saveBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.control,
+    minHeight: touch.min,
+    justifyContent: "center",
+    paddingHorizontal: 26,
+    paddingVertical: 12,
+  },
+  saveBtnText: { fontFamily: fonts.body, fontSize: 15, fontWeight: "600", color: colors.onPrimary },
 });

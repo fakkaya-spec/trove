@@ -4,8 +4,9 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { APP_VERSION, PRODUCT_NAME, PRODUCT_POSITIONING, SUPPORT_EMAIL } from "../config/product";
 import { features } from "../config/features";
-import { colors, fonts, spacing } from "../theme";
+import { colors, fonts, spacing, radius, touch } from "../theme";
 import { RopeDivider } from "../components/ui";
+import { Icon } from "../components/Icon";
 import { LOCALES, useLocale } from "../i18n";
 import { TRIP_STRINGS } from "../i18n/trip";
 import type { RootStackParamList } from "../navigation";
@@ -21,7 +22,6 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
-          <Text style={styles.compass}>☸</Text>
           <Text style={styles.title}>{PRODUCT_NAME}</Text>
           <Text style={styles.positioning}>{PRODUCT_POSITIONING}</Text>
         </View>
@@ -51,7 +51,8 @@ export default function ProfileScreen() {
               accessibilityRole="button"
               style={({ pressed }) => [styles.linkCard, pressed && { opacity: 0.8 }]}
             >
-              <Text style={styles.linkText}>⭐ {t.premiumCardTitle} ›</Text>
+              <Text style={styles.linkText}>{t.premiumCardTitle}</Text>
+              <Icon name="chevron-forward" size={18} color={colors.textSecondary} />
             </Pressable>
           </>
         )}
@@ -70,7 +71,11 @@ export default function ProfileScreen() {
           accessibilityLabel={s.feedbackBeta}
           style={({ pressed }) => [styles.linkCard, pressed && { opacity: 0.8 }]}
         >
-          <Text style={styles.linkText}>✉️ {s.feedbackBeta}</Text>
+          <View style={styles.linkLeft}>
+            <Icon name="mail-outline" size={20} color={colors.text} />
+            <Text style={styles.linkText}>{s.feedbackBeta}</Text>
+          </View>
+          <Icon name="chevron-forward" size={18} color={colors.textSecondary} />
         </Pressable>
         <Text style={styles.about}>
           {PRODUCT_NAME} v1.0 — offline-first. {"\n"}
@@ -82,37 +87,52 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.night },
+  safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
   header: { alignItems: "center", marginVertical: spacing.l },
-  compass: { fontSize: 36, color: colors.brass, marginBottom: 2 },
-  title: { fontFamily: fonts.display, fontSize: 28, color: colors.paper, fontWeight: "700" },
+  title: { fontFamily: fonts.logo, fontSize: 28, color: colors.text, fontWeight: "700" },
   positioning: {
     fontFamily: fonts.body,
-    fontStyle: "italic",
     fontSize: 13,
-    color: colors.fog,
+    color: colors.textSecondary,
     marginTop: 6,
     textAlign: "center",
+    lineHeight: 18,
   },
   langRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 10 },
   langBtn: {
+    minHeight: 44,
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: colors.rope,
-    borderRadius: 6,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: radius.control,
     paddingHorizontal: 14,
     paddingVertical: 9,
   },
-  langBtnActive: { backgroundColor: colors.brass, borderColor: colors.brass },
-  langText: { fontFamily: fonts.mono, fontSize: 13, letterSpacing: 1, color: colors.fog },
-  langTextActive: { color: colors.night, fontWeight: "700" },
-  linkCard: { paddingVertical: 12, alignItems: "center" },
-  linkText: { fontFamily: fonts.body, fontSize: 14, color: colors.brass },
+  langBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  langText: { fontFamily: fonts.body, fontSize: 13, color: colors.text },
+  langTextActive: { color: colors.onPrimary, fontWeight: "600" },
+  linkCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    minHeight: touch.min,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.card,
+    paddingHorizontal: spacing.m,
+    paddingVertical: 12,
+  },
+  linkLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
+  linkText: { fontFamily: fonts.body, fontSize: 15, fontWeight: "600", color: colors.text },
   about: {
     fontFamily: fonts.body,
     fontSize: 12,
-    color: colors.fog,
+    color: colors.textSecondary,
     lineHeight: 18,
     textAlign: "center",
+    marginTop: spacing.m,
   },
 });
