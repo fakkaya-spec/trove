@@ -2,11 +2,8 @@ import type { Locale } from "../i18n/strings";
 import type { GuideContent, Vessel } from "./types";
 import { GUIDE as GUIDE_TR, VESSELS as VESSELS_TR } from "./checklists";
 import { GUIDE as GUIDE_EN, VESSELS as VESSELS_EN } from "./checklists.en";
-// GEÇİCİ: DE/RU çevirileri hazırlanana kadar İngilizce'ye düşer (bir sonraki commit'te gerçek dosyalar gelecek).
-const VESSELS_DE = VESSELS_EN;
-const VESSELS_RU = VESSELS_EN;
-const GUIDE_DE = GUIDE_EN;
-const GUIDE_RU = GUIDE_EN;
+import { GUIDE as GUIDE_DE, VESSELS as VESSELS_DE } from "./checklists.de";
+import { GUIDE as GUIDE_RU, VESSELS as VESSELS_RU } from "./checklists.ru";
 
 export { totalItems } from "./checklists";
 
