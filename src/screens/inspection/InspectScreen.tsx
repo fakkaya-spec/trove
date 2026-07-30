@@ -141,6 +141,8 @@ export default function InspectScreen() {
     return (
       <Pressable
         onPress={() => setSheetItem(item)}
+        accessibilityRole="button"
+        accessibilityLabel={`${lt(item.title, locale)} — ${s[meta.labelKey]}`}
         style={({ pressed }) => [styles.itemRow, pressed && { opacity: 0.7 }]}
       >
         <View style={[styles.statusDot, { borderColor: meta.color }]}>
@@ -190,6 +192,9 @@ export default function InspectScreen() {
               <Pressable
                 key={idx}
                 onPress={() => setTabIndex(idx)}
+                accessibilityRole="tab"
+                accessibilityLabel={label}
+                accessibilityState={{ selected: active }}
                 style={[styles.chip, active && styles.chipActive]}
               >
                 <Text style={[styles.chipText, active && styles.chipTextActive]}>
@@ -246,6 +251,8 @@ export default function InspectScreen() {
                       <Pressable
                         key={st}
                         onPress={() => applyStatus(sheetItem, st)}
+                        accessibilityRole="button"
+                        accessibilityLabel={s[meta.labelKey]}
                         style={({ pressed }) => [styles.statusBtn, pressed && { opacity: 0.7 }]}
                       >
                         <Text style={[styles.statusBtnIcon, { color: meta.color }]}>{meta.icon}</Text>
@@ -310,6 +317,8 @@ function SectionView(props: {
         {canBulk ? (
           <Pressable
             onPress={props.onApprove}
+            accessibilityRole="button"
+            accessibilityLabel={s.approveSection}
             style={({ pressed }) => [styles.approveBtn, pressed && { opacity: 0.85 }]}
           >
             <Text style={styles.approveBtnText}>✓ {s.approveSection}</Text>

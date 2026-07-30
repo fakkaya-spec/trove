@@ -124,9 +124,19 @@ export default function TripHomeScreen() {
         )}
 
         <View style={styles.quickGrid}>
-          {quick(s.startTrip, "🧭", () => navigation.navigate("TripWizard"), !dbReady)}
-          {quick(s.inspectCharter, "📋", () => navigation.navigate("NewInspection"), !dbReady)}
-          {quick(s.prepareOwnBoat, "⚙️", () => navigation.navigate("TripWizard"), !dbReady)}
+          {quick(s.startTrip, "🧭", () => navigation.navigate("TripWizard", {}), !dbReady)}
+          {quick(
+            s.inspectCharter,
+            "📋",
+            () => navigation.navigate("TripWizard", { ownership: "charter" }),
+            !dbReady
+          )}
+          {quick(
+            s.prepareOwnBoat,
+            "⚙️",
+            () => navigation.navigate("TripWizard", { ownership: "own" }),
+            !dbReady
+          )}
           {draftInspectionId
             ? quick(s.resumeDraft, "▶️", () =>
                 navigation.navigate("Inspect", { inspectionId: draftInspectionId })

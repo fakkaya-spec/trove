@@ -2,25 +2,34 @@ import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { newId } from "../db/util";
 
-// Fotoğrafı kalıcı uygulama klasörüne kopyalar (picker cache'i OS tarafından
-// silinebilir; kanıt niteliğindeki medya documentDirectory'de yaşamalı).
+// KANIT FOTOĞRAFI KURALLARI
+// - Picker cache'i OS tarafından silinebilir → foto documentDirectory/media/
+//   altına kopyalanır.
+// - DB'de MUTLAK yol saklanmaz: iOS'ta uygulama güncellemesinde konteyner
+//   yolu (UUID) değişir ve mutlak yollar kırılır. DB'de yalnızca göreli
+//   anahtar ("media/<id>.jpg") tutulur; gösterim anında çözülür.
+// - quality 0.6 + EXIF kapalı: depolama politikası + konum sızıntısı yok.
+
+const MEDIA_DIR = "media/";
+
+export { resolveMediaUri } from "./paths";
+
 async function persist(uri: string): Promise<string> {
-  const dir = `${FileSystem.documentDirectory}media/`;
+  const dir = `${FileSystem.documentDirectory}${MEDIA_DIR}`;
   try {
     await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
   } catch {
     // klasör zaten olabilir
   }
   const ext = uri.includes(".") ? uri.slice(uri.lastIndexOf(".")) : ".jpg";
-  const dest = `${dir}${newId()}${ext}`;
-  await FileSystem.copyAsync({ from: uri, to: dest });
-  return dest;
+  const relative = `${MEDIA_DIR}${newId()}${ext}`;
+  await FileSystem.copyAsync({ from: uri, to: `${FileSystem.documentDirectory}${relative}` });
+  return relative; // DB'ye yazılacak GÖRELİ anahtar
 }
 
 /**
- * Kamera açar (izin yoksa/başarısızsa galeriye düşer). Kalıcı yerel URI döner;
- * kullanıcı vazgeçerse null. Boyut sınırı: quality 0.6 (depolama politikası —
- * "sınırsız medya" pazarlaması yapılmaz, bkz. PHASE0 §6).
+ * Kamera açar (izin yoksa/başarısızsa galeriye düşer). DB'ye yazılacak
+ * GÖRELİ medya anahtarı döner; kullanıcı vazgeçerse null.
  */
 export async function capturePhoto(): Promise<string | null> {
   const options: ImagePicker.ImagePickerOptions = {

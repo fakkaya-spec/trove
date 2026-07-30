@@ -17,6 +17,7 @@ import { colors, fonts, spacing } from "../../theme";
 import { RopeDivider } from "../../components/ui";
 import { useLocale } from "../../i18n";
 import { INSPECTION_STRINGS } from "../../i18n/inspection";
+import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
 import type { RootStackParamList } from "../../navigation";
 
 type Route = RouteProp<RootStackParamList, "InspectionSummary">;
@@ -32,6 +33,7 @@ export default function SummaryScreen() {
   const route = useRoute<Route>();
   const { locale } = useLocale();
   const s = INSPECTION_STRINGS[locale];
+  const ts = TRIP_STRINGS[locale];
 
   const [inspection, setInspection] = useState<InspectionRow | null>(null);
   const [issues, setIssues] = useState<IssueRow[]>([]);
@@ -118,7 +120,7 @@ export default function SummaryScreen() {
             <RopeDivider label={`⛽ ${s.meters.toUpperCase()}`} />
             {meters.map((m) => (
               <View key={m.id} style={styles.meterRow}>
-                <Text style={styles.meterKind}>{m.kind.replace(/_/g, " ")}</Text>
+                <Text style={styles.meterKind}>{ts[(`meter_${m.kind}`) as keyof TripStrings] as string}</Text>
                 <Text style={styles.meterValue}>
                   {m.value} {m.unit}
                 </Text>
@@ -163,6 +165,8 @@ export default function SummaryScreen() {
         {!isDone && (
           <Pressable
             onPress={onComplete}
+            accessibilityRole="button"
+            accessibilityLabel={s.complete}
             style={({ pressed }) => [
               styles.completeBtn,
               !completion.canComplete && styles.completeBtnBlocked,

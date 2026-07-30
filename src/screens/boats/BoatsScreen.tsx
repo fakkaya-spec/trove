@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   TextInput,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect , useNavigation } from "@react-navigation/native";
 import { createVessel, listVessels, VesselRow } from "../../repositories/vessels";
 import { isDbReady } from "../../db/state";
 import type { BoatType } from "../../domain/types";
@@ -16,6 +16,9 @@ import { colors, fonts, spacing } from "../../theme";
 import { RopeDivider } from "../../components/ui";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS } from "../../i18n/trip";
+import { boatTypeLabel, INSPECTION_STRINGS } from "../../i18n/inspection";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../../navigation";
 
 const BOAT_TYPES: { type: BoatType; icon: string }[] = [
   { type: "sailing", icon: "⛵" },
@@ -26,8 +29,10 @@ const BOAT_TYPES: { type: BoatType; icon: string }[] = [
 ];
 
 export default function BoatsScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { locale } = useLocale();
   const s = TRIP_STRINGS[locale];
+  const si = INSPECTION_STRINGS[locale];
   const [boats, setBoats] = useState<VesselRow[]>([]);
   const [name, setName] = useState("");
   const [type, setType] = useState<BoatType>("sailing");
@@ -47,16 +52,23 @@ export default function BoatsScreen() {
 
   function row(v: VesselRow) {
     return (
-      <View key={v.id} style={styles.card}>
+      <Pressable
+        key={v.id}
+        onPress={() => navigation.navigate("BoatHistory", { boatId: v.id })}
+        accessibilityRole="button"
+        accessibilityLabel={`${v.name} — ${s.historyTitle}`}
+        style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
+      >
         <Text style={styles.cardIcon}>{BOAT_TYPES.find((b) => b.type === v.type)?.icon ?? "⛵"}</Text>
         <View style={{ flex: 1 }}>
           <Text style={styles.cardTitle}>{v.name}</Text>
           <Text style={styles.cardSub}>
-            {v.type}
+            {boatTypeLabel(si, v.type)}
             {v.model ? ` · ${v.model}` : ""}
           </Text>
         </View>
-      </View>
+        <Text style={styles.chevron}>›</Text>
+      </Pressable>
     );
   }
 
@@ -83,7 +95,7 @@ export default function BoatsScreen() {
               style={[styles.chip, type === b.type && styles.chipActive]}
             >
               <Text style={[styles.chipText, type === b.type && styles.chipTextActive]}>
-                {b.icon} {b.type}
+                {b.icon} {boatTypeLabel(si, b.type)}
               </Text>
             </Pressable>
           ))}
@@ -185,4 +197,5 @@ const styles = StyleSheet.create({
   cardIcon: { fontSize: 22 },
   cardTitle: { fontFamily: fonts.display, fontSize: 16, fontWeight: "700", color: colors.ink },
   cardSub: { fontFamily: fonts.body, fontSize: 12, color: colors.inkFaded, marginTop: 2 },
+  chevron: { fontSize: 24, color: colors.brassDark },
 });

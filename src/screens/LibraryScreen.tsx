@@ -10,6 +10,7 @@ import { colors, fonts, spacing } from "../theme";
 import { RopeDivider } from "../components/ui";
 import { useLocale } from "../i18n";
 import { TRIP_STRINGS } from "../i18n/trip";
+import { boatTypeLabel, INSPECTION_STRINGS } from "../i18n/inspection";
 import type { RootStackParamList } from "../navigation";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -25,6 +26,7 @@ export default function LibraryScreen() {
   const navigation = useNavigation<Nav>();
   const { locale, t } = useLocale();
   const s = TRIP_STRINGS[locale];
+  const si = INSPECTION_STRINGS[locale];
   const [templates, setTemplates] = useState<TemplateListRow[]>([]);
 
   useFocusEffect(
@@ -43,7 +45,7 @@ export default function LibraryScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>{lt(tpl.name, locale)}</Text>
               <Text style={styles.cardSub}>
-                {tpl.boatType} · {tpl.itemCount} ✓
+                {boatTypeLabel(si, tpl.boatType)} · {tpl.itemCount} ✓
               </Text>
             </View>
           </View>

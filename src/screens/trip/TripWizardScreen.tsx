@@ -9,7 +9,7 @@ import {
   TextInput,
   Switch,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { createVessel, listVessels, VesselRow } from "../../repositories/vessels";
 import { createTrip } from "../../repositories/trips";
@@ -28,9 +28,11 @@ import { colors, fonts, spacing } from "../../theme";
 import { RopeDivider } from "../../components/ui";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
+import { boatTypeLabel, INSPECTION_STRINGS } from "../../i18n/inspection";
 import type { RootStackParamList } from "../../navigation";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+type WizardRoute = RouteProp<RootStackParamList, "TripWizard">;
 
 const TRIP_TYPES: TripType[] = [
   "short_day_trip",
@@ -105,11 +107,15 @@ function Chips<T extends string>(props: {
 
 export default function TripWizardScreen() {
   const navigation = useNavigation<Nav>();
+  const route = useRoute<WizardRoute>();
   const { locale } = useLocale();
   const s = TRIP_STRINGS[locale];
+  const si = INSPECTION_STRINGS[locale];
 
-  // 1) Tekne
-  const [ownership, setOwnership] = useState<OwnershipContext>("own");
+  // 1) Tekne (Home hızlı aksiyonları sahiplik ön seçimi geçebilir)
+  const [ownership, setOwnership] = useState<OwnershipContext>(
+    route.params?.ownership ?? "own"
+  );
   const saved = useMemo(() => listVessels(), []);
   const [selectedBoat, setSelectedBoat] = useState<VesselRow | null>(null);
   const [newBoatName, setNewBoatName] = useState("");
@@ -258,7 +264,7 @@ export default function TripWizardScreen() {
                   placeholderTextColor={colors.fog}
                 />
                 <Chips
-                  options={BOAT_TYPES.map((b) => ({ key: b.type, label: `${b.icon} ${b.type}` }))}
+                  options={BOAT_TYPES.map((b) => ({ key: b.type, label: `${b.icon} ${boatTypeLabel(si, b.type)}` }))}
                   value={newBoatType}
                   onChange={setNewBoatType}
                 />

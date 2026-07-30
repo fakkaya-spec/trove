@@ -1,7 +1,9 @@
 export type RootStackParamList = {
   /** Alt sekmeler (Home / Trips / Boats / Library / Profile) */
   Tabs: undefined;
-  TripWizard: undefined;
+  TripWizard: { ownership?: "own" | "charter" } | undefined;
+  /** Teknenin boylamsal durum geçmişi (ürünün uzun vadeli çekirdek değeri) */
+  BoatHistory: { boatId: string };
   TripDetail: { tripId: string };
   Provisioning: { tripId: string };
   HandoverReview: { tripId: string };

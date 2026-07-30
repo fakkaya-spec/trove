@@ -1,6 +1,7 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { getDb, newId, nowIso, stamps } from "../db/client";
 import { handoverPairs, handoverSessions, inspections, mediaAssets } from "../db/schema";
+import { resolveMediaUri } from "../media/paths";
 import { enqueueSync } from "./sync";
 
 export interface HandoverSessionRow {
@@ -131,18 +132,18 @@ export function listPairs(sessionId: string): PairRow[] {
     .where(and(eq(handoverPairs.sessionId, sessionId), isNull(handoverPairs.deletedAt)))
     .orderBy(asc(handoverPairs.createdAt))
     .all();
-  const mediaIds = new Set<string>();
-  rows.forEach((r) => {
-    mediaIds.add(r.checkinMediaId);
-    if (r.checkoutMediaId) mediaIds.add(r.checkoutMediaId);
-  });
+  const mediaIds = [
+    ...new Set(rows.flatMap((r) => [r.checkinMediaId, r.checkoutMediaId].filter(Boolean))),
+  ] as string[];
   const uris = new Map(
-    db
-      .select({ id: mediaAssets.id, uri: mediaAssets.localUri })
-      .from(mediaAssets)
-      .all()
-      .filter((m) => mediaIds.has(m.id))
-      .map((m) => [m.id, m.uri])
+    mediaIds.length === 0
+      ? []
+      : db
+          .select({ id: mediaAssets.id, uri: mediaAssets.localUri })
+          .from(mediaAssets)
+          .where(inArray(mediaAssets.id, mediaIds))
+          .all()
+          .map((m) => [m.id, resolveMediaUri(m.uri)])
   );
   return rows.map((r) => ({
     id: r.id,

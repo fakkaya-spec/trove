@@ -107,10 +107,11 @@ export default function HandoverReviewScreen() {
   }
 
   async function shareReport() {
-    const meterNames: Record<string, string> = {
-      engine_hours: "⏱", fuel_pct: "⛽", water_pct: "💧",
-      battery_v: "🔋", generator_hours: "🔌", waste_pct: "🚽",
-    };
+    const meterNames: Record<string, string> = Object.fromEntries(
+      ["engine_hours", "fuel_pct", "water_pct", "battery_v", "generator_hours", "waste_pct"].map(
+        (k) => [k, s[(`meter_${k}`) as keyof TripStrings] as string]
+      )
+    );
     const text = buildHandoverReportText({
       productName: PRODUCT_NAME,
       tripName: trip!.name,
@@ -162,7 +163,7 @@ export default function HandoverReviewScreen() {
             {meters.map((m: MeterComparisonRow) => (
               <View key={m.kind} style={styles.meterRow}>
                 <Text style={[styles.meterCell, styles.meterName]}>
-                  {m.kind.replace(/_/g, " ")}
+                  {s[(`meter_${m.kind}`) as keyof TripStrings] as string}
                 </Text>
                 <Text style={styles.meterCell}>
                   {m.checkIn !== null ? `${m.checkIn}` : "—"}

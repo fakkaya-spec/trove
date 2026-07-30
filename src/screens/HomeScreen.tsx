@@ -153,6 +153,7 @@ const styles = StyleSheet.create({
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
   langRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "flex-end",
     gap: 8,
     marginTop: spacing.s,

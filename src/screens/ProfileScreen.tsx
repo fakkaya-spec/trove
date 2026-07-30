@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     textAlign: "center",
   },
-  langRow: { flexDirection: "row", justifyContent: "center", gap: 10 },
+  langRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 10 },
   langBtn: {
     borderWidth: 1,
     borderColor: colors.rope,

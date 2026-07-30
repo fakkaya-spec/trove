@@ -8,12 +8,17 @@ import { GUIDE as GUIDE_ES, VESSELS as VESSELS_ES } from "./checklists.es";
 
 export { totalItems } from "./checklists";
 
+// hr/it/el/fr: şablon içerikleri henüz çevrilmedi — İngilizceye düşer (fallback).
 const VESSELS_BY_LOCALE: Record<Locale, Vessel[]> = {
   tr: VESSELS_TR,
   en: VESSELS_EN,
   de: VESSELS_DE,
   ru: VESSELS_RU,
   es: VESSELS_ES,
+  hr: VESSELS_EN,
+  it: VESSELS_EN,
+  el: VESSELS_EN,
+  fr: VESSELS_EN,
 };
 
 const GUIDE_BY_LOCALE: Record<Locale, GuideContent> = {
@@ -22,6 +27,10 @@ const GUIDE_BY_LOCALE: Record<Locale, GuideContent> = {
   de: GUIDE_DE,
   ru: GUIDE_RU,
   es: GUIDE_ES,
+  hr: GUIDE_EN,
+  it: GUIDE_EN,
+  el: GUIDE_EN,
+  fr: GUIDE_EN,
 };
 
 export function getVessels(locale: Locale): Vessel[] {
