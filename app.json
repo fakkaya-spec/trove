@@ -10,13 +10,16 @@
     "primaryColor": "#C9A227",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.kosko.marincheck",
+      "bundleIdentifier": "com.kosko.boatcheck",
+      "buildNumber": "1",
       "infoPlist": {
-        "CFBundleAllowMixedLocalizations": true
+        "CFBundleAllowMixedLocalizations": true,
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.kosko.marincheck",
+      "package": "com.kosko.boatcheck",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#0B1D33",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -30,11 +33,26 @@
     },
     "plugins": [
       [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "backgroundColor": "#0B1D33"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "The camera is used to photograph the boat's condition, gauges and equipment for your inspection records.",
+          "photosPermission": "Photo library access lets you attach existing photos to inspection records."
+        }
+      ],
+      [
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-3940256099942544~3347511713",
           "iosAppId": "ca-app-pub-3940256099942544~1458002511",
-          "userTrackingUsageDescription": "Reklamları size daha uygun hale getirmek için kullanılır."
+          "userTrackingUsageDescription": "This identifier is used to show less repetitive ads in the classic checklist mode."
         }
       ],
       "expo-localization",
