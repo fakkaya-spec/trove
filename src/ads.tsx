@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useSyncExternalStore } from "react";
 import { Platform, View } from "react-native";
+import { premiumStore } from "./premiumState";
 
 // ---------------------------------------------------------------------------
 // AdMob entegrasyonu.
@@ -52,9 +53,14 @@ export function bannerUnitId(): string {
   return __DEV__ ? ads.TestIds.ADAPTIVE_BANNER : PROD_BANNER;
 }
 
-/** Ekran altına yerleşen uyarlanabilir banner. Modül yoksa hiç yer kaplamaz. */
+/** Ekran altına yerleşen uyarlanabilir banner. Premium'da veya modül yoksa hiç yer kaplamaz. */
 export function AdBanner(): React.ReactElement | null {
-  if (!ads) return null;
+  const isPremium = useSyncExternalStore(
+    premiumStore.subscribe,
+    premiumStore.get,
+    premiumStore.get
+  );
+  if (!ads || isPremium) return null;
   const { BannerAd, BannerAdSize } = ads;
   return (
     <View style={{ alignItems: "center" }}>
@@ -68,7 +74,7 @@ export function AdBanner(): React.ReactElement | null {
  * Modül yoksa veya reklam yüklenemezse sessizce devam eder.
  */
 export function showInterstitial(): void {
-  if (!ads) return;
+  if (!ads || premiumStore.get()) return;
   const { InterstitialAd, AdEventType, TestIds } = ads;
   const unitId = __DEV__ ? TestIds.INTERSTITIAL : PROD_INTERSTITIAL;
   const interstitial = InterstitialAd.createForAdRequest(unitId);

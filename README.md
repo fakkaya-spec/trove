@@ -13,12 +13,12 @@ Araştırma sonucu (ASA, RYA, charter operatörleri check-in prosedürleri):
 
 ## Diller
 
-Uygulama **4 dilde** çalışır: 🇹🇷 Türkçe · 🇬🇧 İngilizce · 🇩🇪 Almanca · 🇷🇺 Rusça
+Uygulama **5 dilde** çalışır: 🇬🇧 İngilizce (varsayılan) · 🇹🇷 Türkçe · 🇩🇪 Almanca · 🇷🇺 Rusça · 🇪🇸 İspanyolca
 
-- Cihaz diline göre otomatik açılır, ana ekrandan elle değiştirilebilir (seçim kalıcıdır).
+- **Varsayılan dil İngilizce**; cihaz dili destekleniyorsa otomatik ona geçer, ana ekrandan elle değiştirilebilir (seçim kalıcıdır).
 - Dil seçimi ilerlemeyi bozmaz: işaretler madde kimliğiyle saklanır, dil değişince aynen korunur.
-- Dil dosyaları: `src/data/checklists.ts` (TR, ana kaynak), `checklists.en.ts`, `checklists.de.ts`, `checklists.ru.ts`; arayüz metinleri `src/i18n/strings.ts`.
-- Neden bu diller? Akdeniz charter pazarının en büyük müşteri grubu Almanca konuşanlar; Türkiye kıyılarında Rusça konuşan turist yoğunluğu yüksek. İngilizce zaten evrensel denizcilik dili.
+- Dil dosyaları: `src/data/checklists.ts` (TR, ana kaynak) + `checklists.{en,de,ru,es}.ts`; arayüz metinleri `src/i18n/strings.ts`.
+- Neden bu diller? İngilizce evrensel denizcilik dili; Akdeniz charter pazarının en büyük müşteri grubu Almanca konuşanlar; Türkiye kıyılarında Rusça konuşan turist yoğun; İspanyolca hem Balear Adaları (Mallorca/Ibiza — dünyanın en büyük charter merkezlerinden) hem Latin Amerika pazarını açar.
 
 ## Özellikler
 
@@ -31,19 +31,40 @@ Uygulama **4 dilde** çalışır: 🇹🇷 Türkçe · 🇬🇧 İngilizce · �
 - Liste tamamlanınca "KONTROL TAMAM" damgası
 - Özgün "kaptanın seyir defteri" tasarımı: gece laciverti, krem kâğıt, pirinç detaylar, serif tipografi
 
-## Gelir Modeli (AdMob)
+## Gelir Modeli
+
+İki ayak: **reklam (AdMob)** + **reklamsız Premium abonelik (aylık/yıllık)**.
+
+### 1) Reklamlar (AdMob)
 
 - Her ekranın altında uyarlanabilir **banner** reklam
 - Liste tamamlanınca **geçiş (interstitial)** reklamı
 - Geliştirmede otomatik olarak Google **test** reklamları gösterilir
+- Premium abonelerde tüm reklamlar otomatik gizlenir
 
-### Yayına almadan önce yapılacaklar
-
+Yayına almadan önce:
 1. [AdMob](https://admob.google.com) hesabı aç, iOS ve Android uygulamalarını kaydet.
 2. `app.json` → `react-native-google-mobile-ads` eklentisindeki `androidAppId` / `iosAppId` değerlerini kendi **Uygulama Kimliklerinle** değiştir (şu an Google'ın test kimlikleri).
 3. `src/ads.tsx` içindeki `PROD_BANNER` / `PROD_INTERSTITIAL` değerlerini kendi **Reklam Birimi Kimliklerinle** değiştir.
 
 > ⚠️ Gerçek kimliklerle test tıklaması yapma — AdMob hesabını kapattırır. Geliştirmede `__DEV__` sayesinde hep test reklamı çıkar.
+
+### 2) Premium Abonelik (reklamsız kullanım)
+
+`react-native-iap` ile uygulama içi otomatik yenilenen abonelik. Ürün kimlikleri (`src/premium.tsx`):
+
+| Plan  | Ürün kimliği                  |
+|-------|-------------------------------|
+| Aylık | `marincheck_premium_monthly`  |
+| Yıllık| `marincheck_premium_yearly`   |
+
+Yayına almadan önce:
+1. **App Store Connect** → Abonelikler: yukarıdaki iki kimlikle auto-renewing subscription oluştur, fiyatları belirle (öneri: aylık ~$1.99, yıllık ~$9.99 — yıllıkta "2 ay bedava" algısı).
+2. **Google Play Console** → Ürünler → Abonelikler: aynı kimliklerle abonelik + base plan oluştur.
+3. Fiyatlar uygulamaya mağazadan gelir (`fetchProducts`), kodda fiyat yazmaya gerek yok.
+4. İleri seviye: makbuz doğrulamasını sunucuda yapmak istersen RevenueCat entegrasyonu en kolay yoldur; mevcut yapı cihaz üstü doğrulama yapar.
+
+Davranış: satın alma/geri yükleme sonrası tercih cihazda saklanır, banner + interstitial anında kapanır. Ana ekrandaki ⭐ kart Premium ekranına götürür; mağaza olmayan ortamlarda (web/Expo Go) satın alma kapalıdır, `__DEV__` derlemede "premium simüle et" düğmesiyle test edilebilir.
 
 ## Geliştirme
 

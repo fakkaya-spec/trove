@@ -16,6 +16,7 @@ import { colors, fonts, spacing } from "../theme";
 import { BrassRing, ProgressGauge, RopeDivider } from "../components/ui";
 import { AdBanner } from "../ads";
 import { LOCALES, useLocale } from "../i18n";
+import { usePremium } from "../premium";
 import type { RootStackParamList } from "../navigation";
 
 type Nav = NativeStackNavigationProp<RootStackParamList, "Home">;
@@ -23,6 +24,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList, "Home">;
 export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
   const { locale, setLocale, t } = useLocale();
+  const { isPremium } = usePremium();
   const [progress, setProgress] = useState<Record<string, number>>({});
   const vessels = getVessels(locale);
 
@@ -122,6 +124,22 @@ export default function HomeScreen() {
           <Text style={[styles.chevron, { color: colors.brass }]}>›</Text>
         </Pressable>
 
+        <Pressable
+          onPress={() => navigation.navigate("Premium")}
+          style={({ pressed }) => [styles.premiumCard, pressed && { opacity: 0.85 }]}
+        >
+          <Text style={styles.guideIcon}>⭐</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.guideTitle, { color: colors.brass }]}>
+              {isPremium ? t.premiumActiveTitle : t.premiumCardTitle}
+            </Text>
+            <Text style={styles.guideSub}>
+              {isPremium ? t.premiumActiveSub : t.premiumCardSub}
+            </Text>
+          </View>
+          <Text style={[styles.chevron, { color: colors.brass }]}>›</Text>
+        </Pressable>
+
         <Text style={styles.footer}>{t.footerHome}</Text>
       </ScrollView>
       <AdBanner />
@@ -207,6 +225,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.brass,
     borderStyle: "dashed",
+    padding: spacing.m,
+    marginBottom: spacing.m,
+  },
+  premiumCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: colors.nightDeep,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.brass,
     padding: spacing.m,
     marginBottom: spacing.m,
   },

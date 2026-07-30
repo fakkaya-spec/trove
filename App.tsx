@@ -5,9 +5,11 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "./src/screens/HomeScreen";
 import ChecklistScreen from "./src/screens/ChecklistScreen";
 import GuideScreen from "./src/screens/GuideScreen";
+import PremiumScreen from "./src/screens/PremiumScreen";
 import { colors, fonts } from "./src/theme";
 import { initAds } from "./src/ads";
 import { LocaleProvider, useLocale } from "./src/i18n";
+import { PremiumProvider } from "./src/premium";
 import type { RootStackParamList } from "./src/navigation";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -48,6 +50,11 @@ function Root() {
           options={{ title: t.checklistFallbackTitle }}
         />
         <Stack.Screen name="Guide" component={GuideScreen} options={{ title: t.guideScreenTitle }} />
+        <Stack.Screen
+          name="Premium"
+          component={PremiumScreen}
+          options={{ title: t.premiumScreenTitle }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -60,7 +67,9 @@ export default function App() {
 
   return (
     <LocaleProvider>
-      <Root />
+      <PremiumProvider>
+        <Root />
+      </PremiumProvider>
     </LocaleProvider>
   );
 }

@@ -4,6 +4,7 @@ import { GUIDE as GUIDE_TR, VESSELS as VESSELS_TR } from "./checklists";
 import { GUIDE as GUIDE_EN, VESSELS as VESSELS_EN } from "./checklists.en";
 import { GUIDE as GUIDE_DE, VESSELS as VESSELS_DE } from "./checklists.de";
 import { GUIDE as GUIDE_RU, VESSELS as VESSELS_RU } from "./checklists.ru";
+import { GUIDE as GUIDE_ES, VESSELS as VESSELS_ES } from "./checklists.es";
 
 export { totalItems } from "./checklists";
 
@@ -12,6 +13,7 @@ const VESSELS_BY_LOCALE: Record<Locale, Vessel[]> = {
   en: VESSELS_EN,
   de: VESSELS_DE,
   ru: VESSELS_RU,
+  es: VESSELS_ES,
 };
 
 const GUIDE_BY_LOCALE: Record<Locale, GuideContent> = {
@@ -19,6 +21,7 @@ const GUIDE_BY_LOCALE: Record<Locale, GuideContent> = {
   en: GUIDE_EN,
   de: GUIDE_DE,
   ru: GUIDE_RU,
+  es: GUIDE_ES,
 };
 
 export function getVessels(locale: Locale): Vessel[] {
