@@ -17,6 +17,7 @@ import { BrassRing, ProgressGauge, RopeDivider } from "../components/ui";
 import { AdBanner } from "../ads";
 import { LOCALES, useLocale } from "../i18n";
 import { usePremium } from "../premium";
+import { PRODUCT_NAME } from "../config/product";
 import type { RootStackParamList } from "../navigation";
 
 type Nav = NativeStackNavigationProp<RootStackParamList, "Home">;
@@ -99,7 +100,7 @@ export default function HomeScreen() {
 
         <View style={styles.header}>
           <Text style={styles.compass}>☸</Text>
-          <Text style={styles.title}>MarinCheck</Text>
+          <Text style={styles.title}>{PRODUCT_NAME}</Text>
           <Text style={styles.subtitle}>{t.appSubtitle}</Text>
           <Text style={styles.tagline}>{t.tagline}</Text>
         </View>
