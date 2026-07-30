@@ -143,6 +143,24 @@ export interface TripStrings {
   save: string;
   next: string;
   back: string;
+  // Teslim (handover) incelemesi
+  handoverReview: string;
+  metersCompare: string;
+  deltaLabel: string;
+  existingObservations: string;
+  newObservations: string;
+  photoPairs: string;
+  retakePhoto: string;
+  requiresReviewLabel: string;
+  flaggedForReview: string;
+  shareReport: string;
+  factsDisclaimer: string;
+  noCheckinYet: string;
+  hs_draft: string;
+  hs_check_in_in_progress: string;
+  hs_checked_in: string;
+  hs_check_out_in_progress: string;
+  hs_completed: string;
 }
 
 const en: TripStrings = {
@@ -277,6 +295,23 @@ const en: TripStrings = {
   save: "Save",
   next: "Next",
   back: "Back",
+  handoverReview: "Handover review",
+  metersCompare: "Meters: check-in vs check-out",
+  deltaLabel: "difference",
+  existingObservations: "Recorded at check-in",
+  newObservations: "Recorded at check-out",
+  photoPairs: "Photo pairs",
+  retakePhoto: "Re-take this angle",
+  requiresReviewLabel: "Needs review",
+  flaggedForReview: "flagged for review",
+  shareReport: "Share handover summary",
+  factsDisclaimer: "This summary records facts and evidence only. It draws no conclusions about cause or liability.",
+  noCheckinYet: "Complete the charter check-in first to enable comparison.",
+  hs_draft: "Draft",
+  hs_check_in_in_progress: "Check-in in progress",
+  hs_checked_in: "Checked in",
+  hs_check_out_in_progress: "Check-out in progress",
+  hs_completed: "Completed",
 };
 
 const tr: TripStrings = {
@@ -412,6 +447,23 @@ const tr: TripStrings = {
   save: "Kaydet",
   next: "İleri",
   back: "Geri",
+  handoverReview: "Teslim incelemesi",
+  metersCompare: "Sayaçlar: check-in / check-out",
+  deltaLabel: "fark",
+  existingObservations: "Check-in'de kaydedilenler",
+  newObservations: "Check-out'ta kaydedilenler",
+  photoPairs: "Foto eşleştirmeleri",
+  retakePhoto: "Bu açıyı yeniden çek",
+  requiresReviewLabel: "İnceleme gerekli",
+  flaggedForReview: "incelemeye işaretli",
+  shareReport: "Teslim özetini paylaş",
+  factsDisclaimer: "Bu özet yalnızca olguları ve kanıtları kaydeder; neden veya sorumluluk hakkında sonuç çıkarmaz.",
+  noCheckinYet: "Karşılaştırma için önce charter check-in'i tamamlayın.",
+  hs_draft: "Taslak",
+  hs_check_in_in_progress: "Check-in sürüyor",
+  hs_checked_in: "Teslim alındı",
+  hs_check_out_in_progress: "Check-out sürüyor",
+  hs_completed: "Tamamlandı",
 };
 
 const de: TripStrings = {
@@ -547,6 +599,23 @@ const de: TripStrings = {
   save: "Speichern",
   next: "Weiter",
   back: "Zurück",
+  handoverReview: "Übergabe-Review",
+  metersCompare: "Zähler: Check-in / Check-out",
+  deltaLabel: "Differenz",
+  existingObservations: "Beim Check-in erfasst",
+  newObservations: "Beim Check-out erfasst",
+  photoPairs: "Foto-Paare",
+  retakePhoto: "Diesen Winkel erneut aufnehmen",
+  requiresReviewLabel: "Prüfung nötig",
+  flaggedForReview: "zur Prüfung markiert",
+  shareReport: "Übergabe-Zusammenfassung teilen",
+  factsDisclaimer: "Diese Zusammenfassung dokumentiert nur Fakten und Belege; sie zieht keine Schlüsse zu Ursache oder Haftung.",
+  noCheckinYet: "Zuerst den Charter-Check-in abschließen, um den Vergleich zu aktivieren.",
+  hs_draft: "Entwurf",
+  hs_check_in_in_progress: "Check-in läuft",
+  hs_checked_in: "Übernommen",
+  hs_check_out_in_progress: "Check-out läuft",
+  hs_completed: "Abgeschlossen",
 };
 
 const ru: TripStrings = {
@@ -682,6 +751,23 @@ const ru: TripStrings = {
   save: "Сохранить",
   next: "Далее",
   back: "Назад",
+  handoverReview: "Сравнение приёмки-сдачи",
+  metersCompare: "Счётчики: чек-ин / чек-аут",
+  deltaLabel: "разница",
+  existingObservations: "Зафиксировано на чек-ине",
+  newObservations: "Зафиксировано на чек-ауте",
+  photoPairs: "Пары фото",
+  retakePhoto: "Переснять этот ракурс",
+  requiresReviewLabel: "Требует проверки",
+  flaggedForReview: "отмечено для проверки",
+  shareReport: "Поделиться итогом сдачи",
+  factsDisclaimer: "Этот отчёт фиксирует только факты и доказательства; он не делает выводов о причинах или ответственности.",
+  noCheckinYet: "Сначала завершите чек-ин чартера, чтобы включить сравнение.",
+  hs_draft: "Черновик",
+  hs_check_in_in_progress: "Идёт чек-ин",
+  hs_checked_in: "Принято",
+  hs_check_out_in_progress: "Идёт чек-аут",
+  hs_completed: "Завершено",
 };
 
 const es: TripStrings = {
@@ -817,6 +903,23 @@ const es: TripStrings = {
   save: "Guardar",
   next: "Siguiente",
   back: "Atrás",
+  handoverReview: "Revisión de entrega",
+  metersCompare: "Medidores: check-in / check-out",
+  deltaLabel: "diferencia",
+  existingObservations: "Registrado en el check-in",
+  newObservations: "Registrado en el check-out",
+  photoPairs: "Pares de fotos",
+  retakePhoto: "Repetir este ángulo",
+  requiresReviewLabel: "Requiere revisión",
+  flaggedForReview: "marcados para revisión",
+  shareReport: "Compartir resumen de entrega",
+  factsDisclaimer: "Este resumen registra solo hechos y evidencias; no saca conclusiones sobre causas ni responsabilidades.",
+  noCheckinYet: "Completa primero el check-in del chárter para habilitar la comparación.",
+  hs_draft: "Borrador",
+  hs_check_in_in_progress: "Check-in en curso",
+  hs_checked_in: "Recibido",
+  hs_check_out_in_progress: "Check-out en curso",
+  hs_completed: "Completada",
 };
 
 export const TRIP_STRINGS: Record<Locale, TripStrings> = { en, tr, de, ru, es };

@@ -127,6 +127,17 @@ export const provisionItems = sqliteTable("provision_items", {
   ...common,
 });
 
+export const handoverPairs = sqliteTable("handover_pairs", {
+  id: text("id").primaryKey(),
+  sessionId: text("session_id").notNull(),
+  checkinMediaId: text("checkin_media_id").notNull(),
+  checkoutMediaId: text("checkout_media_id"),
+  label: text("label"),
+  requiresReview: integer("requires_review").notNull().default(0),
+  note: text("note"),
+  ...common,
+});
+
 export const seedVersions = sqliteTable("seed_versions", {
   seedKey: text("seed_key").primaryKey(),
   version: integer("version").notNull(),

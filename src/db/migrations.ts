@@ -245,6 +245,24 @@ CREATE INDEX idx_inspections_trip ON inspections(trip_id);
 CREATE INDEX idx_meters_trip ON meter_readings(trip_id);
 `,
   },
+  {
+    // Faz 3: check-in ↔ check-out foto eşleştirme (rehberli yeniden çekim +
+    // insan onaylı inceleme; otomatik hasar kararı YOK — yalnız olgular).
+    id: 3,
+    sql: `
+CREATE TABLE handover_pairs (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL REFERENCES handover_sessions(id),
+  checkin_media_id TEXT NOT NULL REFERENCES media_assets(id),
+  checkout_media_id TEXT REFERENCES media_assets(id),
+  label TEXT,
+  requires_review INTEGER NOT NULL DEFAULT 0,
+  note TEXT,
+  ${COMMON}
+);
+CREATE INDEX idx_pairs_session ON handover_pairs(session_id);
+`,
+  },
 ];
 
 export function migrate(db: SQLiteDatabase): void {

@@ -203,6 +203,11 @@ export default function TripDetailScreen() {
           moduleCard("🔁", s.checkOut, statusLabel(states.checkOut), () =>
             openChecklist("check_out")
           )}
+        {isCharter &&
+          states.checkIn !== null &&
+          moduleCard("🆚", s.handoverReview, "›", () =>
+            navigation.navigate("HandoverReview", { tripId: trip.id })
+          )}
         {moduleCard("🔒", s.returnCheck, statusLabel(states.returnCheck), () =>
           openChecklist("return_secure")
         )}

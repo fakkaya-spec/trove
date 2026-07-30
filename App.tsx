@@ -9,6 +9,7 @@ import TripsScreen from "./src/screens/trip/TripsScreen";
 import TripWizardScreen from "./src/screens/trip/TripWizardScreen";
 import TripDetailScreen from "./src/screens/trip/TripDetailScreen";
 import ProvisioningScreen from "./src/screens/trip/ProvisioningScreen";
+import HandoverReviewScreen from "./src/screens/trip/HandoverReviewScreen";
 import BoatsScreen from "./src/screens/boats/BoatsScreen";
 import LibraryScreen from "./src/screens/LibraryScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
@@ -117,6 +118,11 @@ function Root() {
           name="Provisioning"
           component={ProvisioningScreen}
           options={{ title: `🛒 ${s.provisioning}` }}
+        />
+        <Stack.Screen
+          name="HandoverReview"
+          component={HandoverReviewScreen}
+          options={{ title: `🔁 ${s.handoverReview}` }}
         />
         <Stack.Screen
           name="NewInspection"

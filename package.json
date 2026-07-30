@@ -40,7 +40,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "tsx tests/domain.test.ts && tsx tests/provisioning.test.ts && tsx tests/repos.test.ts && tsx tests/trip-flow.test.ts",
+    "test": "tsx tests/domain.test.ts && tsx tests/provisioning.test.ts && tsx tests/repos.test.ts && tsx tests/trip-flow.test.ts && tsx tests/handover.test.ts",
     "lint": "expo lint"
   },
   "private": true

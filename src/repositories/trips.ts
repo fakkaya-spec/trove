@@ -12,6 +12,7 @@ import {
 } from "../domain/types";
 import { tripDays , TripModuleStates } from "../domain/trip";
 import { getBestTemplate, TemplateKind } from "./templates";
+import { ensureSessionForTrip, linkInspectionToSession } from "./handover";
 import { enqueueSync } from "./sync";
 
 // --- Modül durumları (Home / TripDetail kartları için) ----------------------
@@ -271,5 +272,12 @@ export function ensureTripInspection(
     })
     .run();
   enqueueSync("inspections", id);
+
+  // Charter teslim denetimleri aynı HandoverSession altında eşleşir
+  // (check-in ↔ check-out karşılaştırmasının temeli).
+  if (kind === "check_in" || kind === "check_out") {
+    const session = ensureSessionForTrip(trip.id, trip.boatId);
+    linkInspectionToSession(session.id, kind, id);
+  }
   return id;
 }

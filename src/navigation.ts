@@ -4,6 +4,7 @@ export type RootStackParamList = {
   TripWizard: undefined;
   TripDetail: { tripId: string };
   Provisioning: { tripId: string };
+  HandoverReview: { tripId: string };
   /** Bağımsız hızlı charter check-in girişi */
   NewInspection: undefined;
   Inspect: { inspectionId: string };
