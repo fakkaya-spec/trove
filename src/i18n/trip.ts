@@ -171,9 +171,12 @@ export interface TripStrings {
   // Tekne durum geçmişi
   historyTitle: string;
   historyEmpty: string;
+  /** Beta geri bildirimi (Profil'de mailto linki) */
+  feedbackBeta: string;
 }
 
 const en: TripStrings = {
+  feedbackBeta: "Send beta feedback",
   tabHome: "Home", tabTrips: "Trips", tabBoats: "Boats", tabLibrary: "Library", tabProfile: "Profile",
   noTripYet: "No trip yet. Plan your next voyage.",
   startTrip: "Start a Trip",
@@ -334,6 +337,7 @@ const en: TripStrings = {
 
 const tr: TripStrings = {
   ...en,
+  feedbackBeta: "Beta geri bildirimi gönder",
   tabHome: "Ana Sayfa", tabTrips: "Seferler", tabBoats: "Tekneler", tabLibrary: "Kitaplık", tabProfile: "Profil",
   noTripYet: "Henüz sefer yok. Bir sonraki seyrini planla.",
   startTrip: "Sefer Başlat",
@@ -494,6 +498,7 @@ const tr: TripStrings = {
 
 const de: TripStrings = {
   ...en,
+  feedbackBeta: "Beta-Feedback senden",
   tabHome: "Start", tabTrips: "Törns", tabBoats: "Boote", tabLibrary: "Bibliothek", tabProfile: "Profil",
   noTripYet: "Noch kein Törn. Plane deine nächste Fahrt.",
   startTrip: "Törn starten",
@@ -654,6 +659,7 @@ const de: TripStrings = {
 
 const ru: TripStrings = {
   ...en,
+  feedbackBeta: "Отправить отзыв о бета-версии",
   tabHome: "Главная", tabTrips: "Походы", tabBoats: "Лодки", tabLibrary: "Библиотека", tabProfile: "Профиль",
   noTripYet: "Походов пока нет. Спланируйте следующий выход.",
   startTrip: "Начать поход",
@@ -814,6 +820,7 @@ const ru: TripStrings = {
 
 const es: TripStrings = {
   ...en,
+  feedbackBeta: "Enviar comentarios de la beta",
   tabHome: "Inicio", tabTrips: "Travesías", tabBoats: "Barcos", tabLibrary: "Biblioteca", tabProfile: "Perfil",
   noTripYet: "Aún no hay travesías. Planifica tu próxima salida.",
   startTrip: "Iniciar travesía",
@@ -973,6 +980,7 @@ const es: TripStrings = {
 };
 
 const hr: TripStrings = {
+  feedbackBeta: "Pošalji povratne informacije o beti",
   tabHome: "Početna", tabTrips: "Plovidbe", tabBoats: "Brodovi", tabLibrary: "Knjižnica", tabProfile: "Profil",
   noTripYet: "Još nema plovidbe. Isplaniraj sljedeću.",
   startTrip: "Započni plovidbu",
@@ -1132,6 +1140,7 @@ const hr: TripStrings = {
 };
 
 const it: TripStrings = {
+  feedbackBeta: "Invia feedback sulla beta",
   tabHome: "Home", tabTrips: "Crociere", tabBoats: "Barche", tabLibrary: "Libreria", tabProfile: "Profilo",
   noTripYet: "Nessuna crociera per ora. Pianifica la prossima uscita.",
   startTrip: "Inizia una crociera",
@@ -1291,6 +1300,7 @@ const it: TripStrings = {
 };
 
 const el: TripStrings = {
+  feedbackBeta: "Στείλτε σχόλια για τη beta",
   tabHome: "Αρχική", tabTrips: "Ταξίδια", tabBoats: "Σκάφη", tabLibrary: "Βιβλιοθήκη", tabProfile: "Προφίλ",
   noTripYet: "Κανένα ταξίδι ακόμη. Σχεδίασε το επόμενο.",
   startTrip: "Ξεκίνα ταξίδι",
@@ -1450,6 +1460,7 @@ const el: TripStrings = {
 };
 
 const fr: TripStrings = {
+  feedbackBeta: "Envoyer un retour sur la bêta",
   tabHome: "Accueil", tabTrips: "Croisières", tabBoats: "Bateaux", tabLibrary: "Bibliothèque", tabProfile: "Profil",
   noTripYet: "Aucune croisière pour l'instant. Planifiez votre prochaine sortie.",
   startTrip: "Démarrer une croisière",

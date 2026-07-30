@@ -4,8 +4,13 @@ export const features = {
   /**
    * Eski checklist tarama modu (reklamlı + premium). Kaldırılması ayrı bir
    * ürün kararıdır: önce kullanım/gelir verisi incelenecek (bkz. docs/PHASE0.md).
+   *
+   * BETA KARARI (docs/store/BETA-READINESS.md): TestFlight betasında KAPALI —
+   * beta reklamsız/IAP'siz çıkar, "veri toplanmıyor" beyanı temiz kalır.
+   * NOT: AdMob/IAP SDK'ları binary'de durur; mağaza gizlilik formunu buna göre
+   * doldur VEYA üretim öncesi paketleri kaldır (adımlar BETA-READINESS'ta).
    */
-  legacyChecklists: true,
+  legacyChecklists: false,
 
   /** Reklamlar yalnızca legacy modda yaşar. Yeni akışta asla. */
   adsInLegacyOnly: true,

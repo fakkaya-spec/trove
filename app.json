@@ -26,6 +26,7 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"],
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -44,7 +45,8 @@
         "expo-image-picker",
         {
           "cameraPermission": "The camera is used to photograph the boat's condition, gauges and equipment for your inspection records.",
-          "photosPermission": "Photo library access lets you attach existing photos to inspection records."
+          "photosPermission": "Photo library access lets you attach existing photos to inspection records.",
+          "microphonePermission": false
         }
       ],
       [

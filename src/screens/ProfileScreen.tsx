@@ -1,8 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView, Linking, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { PRODUCT_NAME, PRODUCT_POSITIONING } from "../config/product";
+import { APP_VERSION, PRODUCT_NAME, PRODUCT_POSITIONING, SUPPORT_EMAIL } from "../config/product";
 import { features } from "../config/features";
 import { colors, fonts, spacing } from "../theme";
 import { RopeDivider } from "../components/ui";
@@ -57,6 +57,21 @@ export default function ProfileScreen() {
         )}
 
         <RopeDivider label={s.about.toUpperCase()} />
+        <Pressable
+          onPress={() => {
+            // Yalnızca cihaz/uygulama meta verisi; denetim içeriği veya foto ASLA gönderilmez.
+            const subject = encodeURIComponent(`${PRODUCT_NAME} beta feedback`);
+            const body = encodeURIComponent(
+              `\n\n---\n${PRODUCT_NAME} v${APP_VERSION} · ${Platform.OS} ${Platform.Version} · ${locale}`
+            );
+            Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`).catch(() => {});
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={s.feedbackBeta}
+          style={({ pressed }) => [styles.linkCard, pressed && { opacity: 0.8 }]}
+        >
+          <Text style={styles.linkText}>✉️ {s.feedbackBeta}</Text>
+        </Pressable>
         <Text style={styles.about}>
           {PRODUCT_NAME} v1.0 — offline-first. {"\n"}
           {s.provEstimateNote}
