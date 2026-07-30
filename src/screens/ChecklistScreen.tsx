@@ -9,12 +9,13 @@ import {
   Alert,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import { getVessel, totalItems } from "../data/checklists";
+import { getVessel, totalItems } from "../data";
 import type { ChecklistItem } from "../data/types";
 import { CheckState, clearChecks, loadChecks, saveChecks } from "../storage";
 import { colors, fonts, spacing } from "../theme";
 import { ProgressGauge, Tag } from "../components/ui";
 import { AdBanner, showInterstitial } from "../ads";
+import { useLocale } from "../i18n";
 import type { RootStackParamList } from "../navigation";
 
 type Route = RouteProp<RootStackParamList, "Checklist">;
@@ -22,7 +23,8 @@ type Route = RouteProp<RootStackParamList, "Checklist">;
 export default function ChecklistScreen() {
   const route = useRoute<Route>();
   const navigation = useNavigation();
-  const vessel = getVessel(route.params.vesselId);
+  const { locale, t } = useLocale();
+  const vessel = getVessel(locale, route.params.vesselId);
   const [checks, setChecks] = useState<CheckState>({});
   const [loaded, setLoaded] = useState(false);
   const celebrated = useRef(false);
@@ -36,7 +38,7 @@ export default function ChecklistScreen() {
         Object.values(s).filter(Boolean).length === totalItems(vessel);
       setLoaded(true);
     });
-  }, [vessel?.id]);
+  }, [vessel?.id, locale]);
 
   const sections = useMemo(
     () =>
@@ -52,7 +54,7 @@ export default function ChecklistScreen() {
   if (!vessel) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Text style={styles.missing}>Tekne bulunamadı.</Text>
+        <Text style={styles.missing}>{t.notFound}</Text>
       </SafeAreaView>
     );
   }
@@ -81,10 +83,10 @@ export default function ChecklistScreen() {
   function resetAll() {
     if (!vessel) return;
     const vesselId = vessel.id;
-    Alert.alert("Defteri temizle", "Bu teknenin tüm işaretleri silinsin mi?", [
-      { text: "Vazgeç", style: "cancel" },
+    Alert.alert(t.resetTitle, t.resetMsg, [
+      { text: t.resetCancel, style: "cancel" },
       {
-        text: "Temizle",
+        text: t.resetConfirm,
         style: "destructive",
         onPress: () => {
           celebrated.current = false;
@@ -100,14 +102,14 @@ export default function ChecklistScreen() {
       <View style={styles.gaugeBar}>
         <ProgressGauge done={done} total={total} />
         <Pressable onPress={resetAll} hitSlop={8}>
-          <Text style={styles.reset}>SIFIRLA</Text>
+          <Text style={styles.reset}>{t.reset}</Text>
         </Pressable>
       </View>
 
       {complete && (
         <View style={styles.stamp}>
-          <Text style={styles.stampText}>✓ KONTROL TAMAM</Text>
-          <Text style={styles.stampSub}>Pruvanız neta, rüzgarınız kolayına olsun!</Text>
+          <Text style={styles.stampText}>{t.stampTitle}</Text>
+          <Text style={styles.stampSub}>{t.stampSub}</Text>
         </View>
       )}
 
@@ -144,8 +146,8 @@ export default function ChecklistScreen() {
                 </Text>
                 {(item.critical || item.photo) && !checked && (
                   <View style={styles.tags}>
-                    {item.critical && <Tag kind="critical" />}
-                    {item.photo && <Tag kind="photo" />}
+                    {item.critical && <Tag kind="critical" label={t.tagCritical} />}
+                    {item.photo && <Tag kind="photo" label={t.tagPhoto} />}
                   </View>
                 )}
                 {item.tip && !checked && <Text style={styles.tip}>☞ {item.tip}</Text>}

@@ -36,7 +36,8 @@
           "iosAppId": "ca-app-pub-3940256099942544~1458002511",
           "userTrackingUsageDescription": "Reklamları size daha uygun hale getirmek için kullanılır."
         }
-      ]
+      ],
+      "expo-localization"
     ]
   }
 }

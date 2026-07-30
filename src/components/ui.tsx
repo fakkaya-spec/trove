@@ -82,8 +82,8 @@ const gaugeStyles = StyleSheet.create({
   },
 });
 
-/** Küçük etiket rozeti (KRİTİK / FOTOĞRAFLA) */
-export function Tag({ kind }: { kind: "critical" | "photo" }) {
+/** Küçük etiket rozeti (KRİTİK / FOTOĞRAFLA) — etiket metni dile göre dışarıdan gelir */
+export function Tag({ kind, label }: { kind: "critical" | "photo"; label: string }) {
   const critical = kind === "critical";
   return (
     <View
@@ -93,7 +93,7 @@ export function Tag({ kind }: { kind: "critical" | "photo" }) {
       ]}
     >
       <Text style={[tagStyles.text, { color: critical ? colors.signal : colors.brassDark }]}>
-        {critical ? "KRİTİK" : "📷 FOTOĞRAFLA"}
+        {label}
       </Text>
     </View>
   );

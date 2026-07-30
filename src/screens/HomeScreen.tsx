@@ -9,25 +9,29 @@ import {
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { VESSELS, totalItems } from "../data/checklists";
+import { getVessels, totalItems } from "../data";
+import type { Vessel } from "../data/types";
 import { loadChecks } from "../storage";
 import { colors, fonts, spacing } from "../theme";
 import { BrassRing, ProgressGauge, RopeDivider } from "../components/ui";
 import { AdBanner } from "../ads";
+import { LOCALES, useLocale } from "../i18n";
 import type { RootStackParamList } from "../navigation";
 
 type Nav = NativeStackNavigationProp<RootStackParamList, "Home">;
 
 export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
+  const { locale, setLocale, t } = useLocale();
   const [progress, setProgress] = useState<Record<string, number>>({});
+  const vessels = getVessels(locale);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
       (async () => {
         const entries = await Promise.all(
-          VESSELS.map(async (v) => {
+          vessels.map(async (v) => {
             const state = await loadChecks(v.id);
             return [v.id, Object.values(state).filter(Boolean).length] as const;
           })
@@ -37,10 +41,10 @@ export default function HomeScreen() {
       return () => {
         active = false;
       };
-    }, [])
+    }, [locale])
   );
 
-  function renderCard(v: (typeof VESSELS)[number], idx: number) {
+  function renderCard(v: Vessel, idx: number) {
     const total = totalItems(v);
     const done = progress[v.id] ?? 0;
     return (
@@ -59,7 +63,7 @@ export default function HomeScreen() {
         <View style={styles.cardBody}>
           <Text style={styles.cardTitle}>{v.name}</Text>
           <Text style={styles.cardSub}>
-            {v.subtitle} · {total} madde · {v.duration}
+            {v.subtitle} · {total} {t.items} · {v.duration}
           </Text>
           <ProgressGauge done={done} total={total} />
         </View>
@@ -71,20 +75,38 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
+        <View style={styles.langRow}>
+          {LOCALES.map((l) => (
+            <Pressable
+              key={l.code}
+              onPress={() => setLocale(l.code)}
+              style={[styles.langBtn, locale === l.code && styles.langBtnActive]}
+              hitSlop={6}
+            >
+              <Text
+                style={[
+                  styles.langText,
+                  locale === l.code && styles.langTextActive,
+                ]}
+              >
+                {l.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.compass}>☸</Text>
           <Text style={styles.title}>MarinCheck</Text>
-          <Text style={styles.subtitle}>KAPTANIN TESLİM DEFTERİ</Text>
-          <Text style={styles.tagline}>
-            Kiralık teknede depozitonu, kendi teknende{"\n"}canını ve seyrini koru — hiçbir şeyi atlama.
-          </Text>
+          <Text style={styles.subtitle}>{t.appSubtitle}</Text>
+          <Text style={styles.tagline}>{t.tagline}</Text>
         </View>
 
-        <RopeDivider label="⚓ TEKNE Mİ KİRALADIN? ⚓" />
-        {VESSELS.filter((v) => v.group === "kiralik").map((v, idx) => renderCard(v, idx))}
+        <RopeDivider label={t.sectionRent} />
+        {vessels.filter((v) => v.group === "kiralik").map((v, idx) => renderCard(v, idx))}
 
-        <RopeDivider label="☸ TEKNE SAHİBİ MİSİN? ☸" />
-        {VESSELS.filter((v) => v.group === "sahip").map((v, idx) => renderCard(v, idx))}
+        <RopeDivider label={t.sectionOwner} />
+        {vessels.filter((v) => v.group === "sahip").map((v, idx) => renderCard(v, idx))}
 
         <RopeDivider />
 
@@ -94,15 +116,13 @@ export default function HomeScreen() {
         >
           <Text style={styles.guideIcon}>📷</Text>
           <View style={{ flex: 1 }}>
-            <Text style={styles.guideTitle}>Foto & Depozito Rehberi</Text>
-            <Text style={styles.guideSub}>
-              En çok ihtilaf çıkan noktalar ve teslim alırken mutlaka fotoğraflanacaklar
-            </Text>
+            <Text style={styles.guideTitle}>{t.guideTitle}</Text>
+            <Text style={styles.guideSub}>{t.guideSub}</Text>
           </View>
           <Text style={[styles.chevron, { color: colors.brass }]}>›</Text>
         </Pressable>
 
-        <Text style={styles.footer}>İyi seyirler! ⛵ Pruvanız neta olsun.</Text>
+        <Text style={styles.footer}>{t.footerHome}</Text>
       </ScrollView>
       <AdBanner />
     </SafeAreaView>
@@ -112,7 +132,28 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.night },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
-  header: { alignItems: "center", marginTop: spacing.m, marginBottom: spacing.s },
+  langRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+    marginTop: spacing.s,
+  },
+  langBtn: {
+    borderWidth: 1,
+    borderColor: colors.rope,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  langBtnActive: { backgroundColor: colors.brass, borderColor: colors.brass },
+  langText: {
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    letterSpacing: 1,
+    color: colors.fog,
+  },
+  langTextActive: { color: colors.night, fontWeight: "700" },
+  header: { alignItems: "center", marginTop: spacing.s, marginBottom: spacing.s },
   compass: { fontSize: 42, color: colors.brass, marginBottom: 4 },
   title: {
     fontFamily: fonts.display,
@@ -126,6 +167,7 @@ const styles = StyleSheet.create({
     letterSpacing: 4,
     color: colors.brass,
     marginTop: 4,
+    textAlign: "center",
   },
   tagline: {
     fontFamily: fonts.body,

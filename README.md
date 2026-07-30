@@ -11,6 +11,15 @@ Araştırma sonucu (ASA, RYA, charter operatörleri check-in prosedürleri):
 - Tekne kiralama ihtilaflarının çoğu **teslim anında belgelenmeyen hasarlardan** çıkıyor; 1 numaralı ihtilaf kalemi bot (dinghy) ve dıştan takma motor pervanesi.
 - Mevcut uygulamalar (Floatist, SpeedyDock, Boatsetter…) hep **işletme tarafına** çalışıyor; kiracıya bağımsız, tekne tipine özel bir kontrol uygulaması **yok** — Türkçe hiç yok, gulet/sürat teknesi pazarını kapsayan hiç yok.
 
+## Diller
+
+Uygulama **4 dilde** çalışır: 🇹🇷 Türkçe · 🇬🇧 İngilizce · 🇩🇪 Almanca · 🇷🇺 Rusça
+
+- Cihaz diline göre otomatik açılır, ana ekrandan elle değiştirilebilir (seçim kalıcıdır).
+- Dil seçimi ilerlemeyi bozmaz: işaretler madde kimliğiyle saklanır, dil değişince aynen korunur.
+- Dil dosyaları: `src/data/checklists.ts` (TR, ana kaynak), `checklists.en.ts`, `checklists.de.ts`, `checklists.ru.ts`; arayüz metinleri `src/i18n/strings.ts`.
+- Neden bu diller? Akdeniz charter pazarının en büyük müşteri grubu Almanca konuşanlar; Türkiye kıyılarında Rusça konuşan turist yoğunluğu yüksek. İngilizce zaten evrensel denizcilik dili.
+
 ## Özellikler
 
 - **10 hazır kontrol defteri, ~570 madde:**
@@ -77,11 +86,16 @@ marincheck/
     ├── storage.ts              # Kalıcı ilerleme (AsyncStorage)
     ├── ads.tsx / ads.web.tsx   # AdMob banner + interstitial (web'de kapalı)
     ├── components/ui.tsx       # Halat ayraç, pirinç rozet, ilerleme, etiketler
+    ├── i18n/
+    │   ├── strings.ts          # Arayüz metinleri (TR/EN/DE/RU)
+    │   └── index.tsx           # Dil algılama + kalıcı seçim (context)
     ├── data/
     │   ├── types.ts            # Veri modeli
-    │   └── checklists.ts       # 10 defter, ~570 madde (araştırma temelli)
+    │   ├── index.ts            # Dile göre veri seçici
+    │   ├── checklists.ts       # TR ana kaynak: 10 defter, ~570 madde
+    │   └── checklists.{en,de,ru}.ts  # Çeviriler (aynı kimlikler)
     └── screens/
-        ├── HomeScreen.tsx      # Tekne seçimi (kiralık / sahip)
+        ├── HomeScreen.tsx      # Tekne seçimi (kiralık / sahip) + dil seçici
         ├── ChecklistScreen.tsx # İşaretlenebilir kontrol listesi
         └── GuideScreen.tsx     # Foto & depozito rehberi
 ```

@@ -7,6 +7,7 @@ import ChecklistScreen from "./src/screens/ChecklistScreen";
 import GuideScreen from "./src/screens/GuideScreen";
 import { colors, fonts } from "./src/theme";
 import { initAds } from "./src/ads";
+import { LocaleProvider, useLocale } from "./src/i18n";
 import type { RootStackParamList } from "./src/navigation";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -23,11 +24,8 @@ const theme = {
   },
 };
 
-export default function App() {
-  useEffect(() => {
-    initAds();
-  }, []);
-
+function Root() {
+  const { t } = useLocale();
   return (
     <NavigationContainer theme={theme}>
       <StatusBar style="light" />
@@ -40,13 +38,29 @@ export default function App() {
             fontWeight: "700",
             color: colors.paper,
           },
-          headerBackTitle: "Geri",
+          headerBackTitle: t.back,
         }}
       >
         <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Checklist" component={ChecklistScreen} options={{ title: "Kontrol Listesi" }} />
-        <Stack.Screen name="Guide" component={GuideScreen} options={{ title: "📷 Foto & Depozito Rehberi" }} />
+        <Stack.Screen
+          name="Checklist"
+          component={ChecklistScreen}
+          options={{ title: t.checklistFallbackTitle }}
+        />
+        <Stack.Screen name="Guide" component={GuideScreen} options={{ title: t.guideScreenTitle }} />
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function App() {
+  useEffect(() => {
+    initAds();
+  }, []);
+
+  return (
+    <LocaleProvider>
+      <Root />
+    </LocaleProvider>
   );
 }

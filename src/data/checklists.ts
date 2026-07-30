@@ -1,4 +1,4 @@
-import { Category, ChecklistItem, Vessel } from "./types";
+import { Category, ChecklistItem, GuideContent, Vessel } from "./types";
 
 // ---------------------------------------------------------------------------
 // Madde fabrikası: kısa yazım için. id'ler kategori kurulurken atanır.
@@ -648,10 +648,98 @@ export const VESSELS: Vessel[] = [
   sahipKapama,
 ];
 
-export function getVessel(id: string): Vessel | undefined {
-  return VESSELS.find((v) => v.id === id);
-}
-
 export function totalItems(v: Vessel): number {
   return v.categories.reduce((sum, c) => sum + c.items.length, 0);
 }
+
+// ---------------------------------------------------------------------------
+// FOTO & DEPOZİTO REHBERİ
+// Kaynak: ASA, RYA ve charter operatörlerinin hasar/ihtilaf istatistikleri.
+// ---------------------------------------------------------------------------
+
+export const GUIDE: GuideContent = {
+  lead:
+    "Tekne kiralamada ihtilafların çoğu teslim anında belgelenmeyen hasarlardan çıkar. " +
+    "Bu rehber, depozitonu korumak için nereyi fotoğraflayacağını ve hangi kurallara dikkat edeceğini anlatır.",
+  photoSpots: [
+    {
+      title: "Dıştan takma motor pervanesi (bot + ana motor)",
+      why: "İade sırasında en sık suçlanan kalem. Botun motorunun denize düşmesi bareboat sigorta taleplerinin 1 numarasıdır.",
+    },
+    {
+      title: "Gövdenin baş ve kıç omuzlukları",
+      why: "İskele yanaşma çizikleri en çok burada oluşur; eski çizikler size fatura edilmesin.",
+    },
+    {
+      title: "Bot (dinghy) tüpleri ve tabanı",
+      why: "Kumsala çekilen botların altı çizilir; teslim öncesi durumu belgeleyin.",
+    },
+    {
+      title: "Yakıt göstergesi, su göstergesi ve motor saati",
+      why: "'Dolu aldın' tartışmasının tek panzehiri tarihli fotoğraftır.",
+    },
+    {
+      title: "Salma ve dümen (mümkünse)",
+      why: "Karaya oturma suçlamalarına karşı. İadede dalgıç kontrolü varsa çıkıştaki dalgıç raporunu isteyin.",
+    },
+    {
+      title: "Yelkenler açık halde",
+      why: "Mevcut yırtık, UV hasarı ve dikiş atmaları sizin döneminize yazılmasın.",
+    },
+    {
+      title: "Döşemeler, minderler, şilteler",
+      why: "Leke ve yırtıklar standart depozito kesintisidir.",
+    },
+    {
+      title: "Vardevele, pulpit ve bükük demir aksam",
+      why: "Küçük bükülmeler genelde önceki kiracıdan kalır; belgeleyin.",
+    },
+    {
+      title: "Ambar kapakları ve lomboz camları",
+      why: "Çatlak akrilik cam klasik bir kesinti kalemidir.",
+    },
+    {
+      title: "Tuvaletler (çalışırken)",
+      why: "Tıkalı WC standart ücret kesintisidir; teslim aldığınızda çalıştığını kaydedin.",
+    },
+    {
+      title: "Trambolin bağlantıları (katamaran)",
+      why: "Pahalıdır ve sık ihtilaf konusudur.",
+    },
+    {
+      title: "Jet ski: karina altı, emiş ızgarası, sele",
+      why: "Taş/kaya hasarı ve sele yırtığı en yaygın kesinti sebepleridir.",
+    },
+  ],
+  rules: [
+    {
+      title: "Videoyla tur at",
+      body: "Teslim almadan önce teknenin tamamını tek seferde videoya çek; tarih ve saat görünsün. ASA'nın tavsiyesi: teknik brifingi de videoya al — özellikle elektrik panelini.",
+    },
+    {
+      title: "İmzalamadan önce yazdır",
+      body: "Kırık, eksik, çizik ne varsa check-in formuna yazılmadan imza atma. İmzadan sonra her şey senin sorumluluğundadır.",
+    },
+    {
+      title: "Envanteri kendin say",
+      body: "Listeye 'tamam' deme; usturmaça, vinç kolu, çatal-bıçak dahil tek tek say. Eksik çıkan her kalem depozitodan düşülür.",
+    },
+    {
+      title: "Bagajları sonra yükle",
+      body: "Büyük operatörlerin kuralı: envanter kontrolü bitmeden valizleri tekneye alma — dolapların içini görmen gerekir.",
+    },
+    {
+      title: "Son kullanma tarihlerini fotoğrafla",
+      body: "Can salı servis etiketi, işaret fişekleri ve yangın söndürücü tarihlerini fotoğrafla. Tarihi geçmiş ekipmanla denize çıkma.",
+    },
+    {
+      title: "Yakıt politikasını yazılı al",
+      body: "Standart kural 'dolu al, dolu bırak'tır. Göstergeyi fotoğrafla, en yakın yakıt istasyonunu ve çalışma saatlerini öğren.",
+    },
+    {
+      title: "Depozito sigortası ekstralarına dikkat",
+      body: "Depozito sigortaları çoğu zaman bot, dıştan takma motor, karaya oturma ve pervaneyi kapsamaz — yani en riskli kalemleri. Kapsamı mutlaka oku.",
+    },
+  ],
+  footer: "Acil durumda: Sahil Güvenlik 158 · VHF Kanal 16",
+};

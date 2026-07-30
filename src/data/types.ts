@@ -16,6 +16,14 @@ export interface Category {
   items: ChecklistItem[];
 }
 
+/** Foto & depozito rehberi içeriği (dil başına bir tane) */
+export interface GuideContent {
+  lead: string;
+  photoSpots: { title: string; why: string }[];
+  rules: { title: string; body: string }[];
+  footer: string;
+}
+
 /** kiralik: kiralanan teknenin teslim kontrolü — sahip: tekne sahibinin rutin kontrolleri */
 export type VesselGroup = "kiralik" | "sahip";
 
