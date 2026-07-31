@@ -2,8 +2,6 @@ import React, { useCallback, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { TroveMark } from "../../components/brand/TroveMark";
-import { TroveWordmark } from "../../components/brand/TroveWordmark";
 import { isDbReady } from "../../db/state";
 import { listTrips, getTripModuleStates, TripRow } from "../../repositories/trips";
 import { listInspections } from "../../repositories/inspections";
@@ -92,12 +90,7 @@ export default function TripHomeScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Üst yarı: yalnız bilgi */}
-        <View style={styles.brandRow}>
-          <TroveMark size={22} color={colors.text} />
-          <TroveWordmark height={14} color={colors.text} />
-        </View>
-
+        {/* Üst yarı: yalnız bilgi (marka kilidi sekme başlığında) */}
         {!dbReady && (
           <View style={styles.notice}>
             <Icon name="alert-circle-outline" size={20} color={colors.warning} />
@@ -191,13 +184,6 @@ export default function TripHomeScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.l, flexGrow: 1 },
-  brandRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    marginVertical: spacing.s,
-  },
   notice: {
     flexDirection: "row",
     alignItems: "center",

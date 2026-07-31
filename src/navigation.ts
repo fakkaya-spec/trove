@@ -1,12 +1,18 @@
 export type RootStackParamList = {
-  /** Alt sekmeler (Home / Trips / Boats / Library / Profile) */
+  /** Alt sekmeler (Trip / Log / Vessel) — KİLİTLİ TROVE navigasyonu */
   Tabs: undefined;
+  /** Tüm seferler listesi (Trip sekmesi başlığından erişilir) */
+  Trips: undefined;
   TripWizard: { ownership?: "own" | "charter" } | undefined;
   /** Teknenin boylamsal durum geçmişi (ürünün uzun vadeli çekirdek değeri) */
   BoatHistory: { boatId: string };
   TripDetail: { tripId: string };
   Provisioning: { tripId: string };
   HandoverReview: { tripId: string };
+  /** Şablon kütüphanesi (Ayarlar'dan erişilir; artık sekme değil) */
+  Library: undefined;
+  /** Ayarlar (eski Profil ekranı) — Trip başlığındaki dişliden açılır */
+  Settings: undefined;
   /** Bağımsız hızlı charter check-in girişi */
   NewInspection: undefined;
   Inspect: { inspectionId: string };
@@ -19,9 +25,7 @@ export type RootStackParamList = {
 };
 
 export type TabParamList = {
-  HomeTab: undefined;
-  TripsTab: undefined;
-  BoatsTab: undefined;
-  LibraryTab: undefined;
-  ProfileTab: undefined;
+  TripTab: undefined;
+  LogTab: undefined;
+  VesselTab: undefined;
 };

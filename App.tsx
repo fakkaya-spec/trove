@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { Pressable, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
+import { DefaultTheme, NavigationContainer, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import TripHomeScreen from "./src/screens/trip/TripHomeScreen";
@@ -20,8 +22,11 @@ import HomeScreen from "./src/screens/HomeScreen";
 import ChecklistScreen from "./src/screens/ChecklistScreen";
 import GuideScreen from "./src/screens/GuideScreen";
 import PremiumScreen from "./src/screens/PremiumScreen";
+import LogPlaceholderScreen from "./src/screens/log/LogPlaceholderScreen";
 import { colors, fonts } from "./src/theme";
 import { Icon, type IconName } from "./src/components/Icon";
+import { TroveMark } from "./src/components/brand/TroveMark";
+import { TroveWordmark } from "./src/components/brand/TroveWordmark";
 import { initAds } from "./src/ads";
 import { LocaleProvider, useLocale } from "./src/i18n";
 import { INSPECTION_STRINGS } from "./src/i18n/inspection";
@@ -47,9 +52,51 @@ const theme = {
   },
 };
 
+/** Trip başlığı: sol "tüm seferler", orta TROVE kilidi, sağ Ayarlar dişlisi. */
+function TripHeaderButton({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: IconName;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      hitSlop={4}
+      style={({ pressed }) => [
+        {
+          minWidth: 44,
+          minHeight: 44,
+          alignItems: "center",
+          justifyContent: "center",
+          paddingHorizontal: 6,
+        },
+        pressed && { opacity: 0.6 },
+      ]}
+    >
+      <Icon name={icon} size={22} color={colors.text} />
+    </Pressable>
+  );
+}
+
+function TroveHeaderTitle() {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <TroveMark size={20} color={colors.text} />
+      <TroveWordmark height={13} color={colors.text} />
+    </View>
+  );
+}
+
 function Tabs() {
   const { locale } = useLocale();
   const s = TRIP_STRINGS[locale];
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const icon =
     (name: IconName) =>
     ({ color }: { color: string }) =>
@@ -57,7 +104,9 @@ function Tabs() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
+        headerStyle: { backgroundColor: colors.surface },
+        headerTitleStyle: { fontFamily: fonts.body, fontWeight: "600", color: colors.text },
+        headerShadowVisible: false,
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
         tabBarActiveTintColor: colors.text,
         tabBarInactiveTintColor: colors.textSecondary,
@@ -65,29 +114,46 @@ function Tabs() {
       }}
     >
       <Tab.Screen
-        name="HomeTab"
+        name="TripTab"
         component={TripHomeScreen}
-        options={{ title: s.tabHome, tabBarIcon: icon("home-outline") }}
+        options={{
+          title: s.tabTrip,
+          tabBarIcon: icon("compass-outline"),
+          headerTitle: () => <TroveHeaderTitle />,
+          headerTitleAlign: "center",
+          headerLeft: () => (
+            <TripHeaderButton
+              icon="list-outline"
+              label={s.allTrips}
+              onPress={() => navigation.navigate("Trips")}
+            />
+          ),
+          headerRight: () => (
+            <TripHeaderButton
+              icon="settings-outline"
+              label={s.settings}
+              onPress={() => navigation.navigate("Settings")}
+            />
+          ),
+        }}
       />
       <Tab.Screen
-        name="TripsTab"
-        component={TripsScreen}
-        options={{ title: s.tabTrips, tabBarIcon: icon("compass-outline") }}
+        name="LogTab"
+        component={LogPlaceholderScreen}
+        options={{
+          title: s.tabLog,
+          tabBarIcon: icon("create-outline"),
+          headerTitle: s.logbookTitle,
+        }}
       />
       <Tab.Screen
-        name="BoatsTab"
+        name="VesselTab"
         component={BoatsScreen}
-        options={{ title: s.tabBoats, tabBarIcon: icon("boat-outline") }}
-      />
-      <Tab.Screen
-        name="LibraryTab"
-        component={LibraryScreen}
-        options={{ title: s.tabLibrary, tabBarIcon: icon("library-outline") }}
-      />
-      <Tab.Screen
-        name="ProfileTab"
-        component={ProfileScreen}
-        options={{ title: s.tabProfile, tabBarIcon: icon("person-outline") }}
+        options={{
+          title: s.tabVessel,
+          tabBarIcon: icon("boat-outline"),
+          headerTitle: s.tabVessel,
+        }}
       />
     </Tab.Navigator>
   );
@@ -113,6 +179,9 @@ function Root() {
         }}
       >
         <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
+        <Stack.Screen name="Trips" component={TripsScreen} options={{ title: s.allTrips }} />
+        <Stack.Screen name="Library" component={LibraryScreen} options={{ title: s.templatesLib }} />
+        <Stack.Screen name="Settings" component={ProfileScreen} options={{ title: s.settings }} />
         <Stack.Screen name="TripWizard" component={TripWizardScreen} options={{ title: s.newTrip }} />
         <Stack.Screen name="TripDetail" component={TripDetailScreen} options={{ title: "" }} />
         <Stack.Screen

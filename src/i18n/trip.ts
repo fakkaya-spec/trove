@@ -104,6 +104,13 @@ export interface TripStrings {
   unit: string;
   deleteItemConfirm: string;
   deleteShort: string;
+  tabTrip: string;
+  tabLog: string;
+  tabVessel: string;
+  settings: string;
+  allTrips: string;
+  logbookTitle: string;
+  logbookComingBody: string;
   shareList: string;
   whyThis: string;
   reserve: string;
@@ -273,6 +280,14 @@ const en: TripStrings = {
   unit: "Unit",
   deleteItemConfirm: "Delete this item?",
   deleteShort: "Delete",
+  tabTrip: "Trip",
+  tabLog: "Log",
+  tabVessel: "Vessel",
+  settings: "Settings",
+  allTrips: "All trips",
+  logbookTitle: "Trip logbook",
+  logbookComingBody:
+    "The logbook is coming soon: a running record of observations, notes, photos, anchorages and moments from your trip.",
   shareList: "Share list",
   whyThis: "Why this amount?",
   reserve: "reserve",
@@ -435,6 +450,14 @@ const tr: TripStrings = {
   unit: "Birim",
   deleteItemConfirm: "Bu kalem silinsin mi?",
   deleteShort: "Sil",
+  tabTrip: "Sefer",
+  tabLog: "Jurnal",
+  tabVessel: "Tekne",
+  settings: "Ayarlar",
+  allTrips: "Tüm seferler",
+  logbookTitle: "Seyir defteri",
+  logbookComingBody:
+    "Seyir defteri yakında: gözlemler, notlar, fotoğraflar, demir yerleri ve seferinizden anlar için akan tek bir kayıt.",
   shareList: "Listeyi paylaş",
   whyThis: "Bu miktar neden?",
   reserve: "rezerv",
@@ -597,6 +620,14 @@ const de: TripStrings = {
   unit: "Einheit",
   deleteItemConfirm: "Diesen Artikel löschen?",
   deleteShort: "Löschen",
+  tabTrip: "Törn",
+  tabLog: "Logbuch",
+  tabVessel: "Boot",
+  settings: "Einstellungen",
+  allTrips: "Alle Törns",
+  logbookTitle: "Logbuch",
+  logbookComingBody:
+    "Das Logbuch kommt bald: eine fortlaufende Aufzeichnung von Beobachtungen, Notizen, Fotos, Ankerplätzen und Momenten Ihres Törns.",
   shareList: "Liste teilen",
   whyThis: "Warum diese Menge?",
   reserve: "Reserve",
@@ -759,6 +790,14 @@ const ru: TripStrings = {
   unit: "Ед.",
   deleteItemConfirm: "Удалить позицию?",
   deleteShort: "Удалить",
+  tabTrip: "Поход",
+  tabLog: "Журнал",
+  tabVessel: "Судно",
+  settings: "Настройки",
+  allTrips: "Все походы",
+  logbookTitle: "Судовой журнал",
+  logbookComingBody:
+    "Журнал скоро появится: единая лента наблюдений, заметок, фото, якорных стоянок и моментов вашего похода.",
   shareList: "Поделиться списком",
   whyThis: "Почему столько?",
   reserve: "резерв",
@@ -921,6 +960,14 @@ const es: TripStrings = {
   unit: "Unidad",
   deleteItemConfirm: "¿Eliminar este artículo?",
   deleteShort: "Eliminar",
+  tabTrip: "Viaje",
+  tabLog: "Diario",
+  tabVessel: "Barco",
+  settings: "Ajustes",
+  allTrips: "Todos los viajes",
+  logbookTitle: "Diario de a bordo",
+  logbookComingBody:
+    "El diario llegará pronto: un registro continuo de observaciones, notas, fotos, fondeos y momentos de tu viaje.",
   shareList: "Compartir lista",
   whyThis: "¿Por qué esta cantidad?",
   reserve: "reserva",
@@ -1082,6 +1129,14 @@ const hr: TripStrings = {
   unit: "Jedinica",
   deleteItemConfirm: "Izbrisati ovu stavku?",
   deleteShort: "Izbriši",
+  tabTrip: "Plovidba",
+  tabLog: "Dnevnik",
+  tabVessel: "Plovilo",
+  settings: "Postavke",
+  allTrips: "Sve plovidbe",
+  logbookTitle: "Brodski dnevnik",
+  logbookComingBody:
+    "Dnevnik stiže uskoro: kontinuirani zapis zapažanja, bilješki, fotografija, sidrišta i trenutaka s plovidbe.",
   shareList: "Podijeli popis",
   whyThis: "Zašto ova količina?",
   reserve: "rezerva",
@@ -1243,6 +1298,14 @@ const it: TripStrings = {
   unit: "Unità",
   deleteItemConfirm: "Eliminare questa voce?",
   deleteShort: "Elimina",
+  tabTrip: "Viaggio",
+  tabLog: "Diario",
+  tabVessel: "Barca",
+  settings: "Impostazioni",
+  allTrips: "Tutti i viaggi",
+  logbookTitle: "Diario di bordo",
+  logbookComingBody:
+    "Il diario arriverà presto: una registrazione continua di osservazioni, note, foto, ancoraggi e momenti del viaggio.",
   shareList: "Condividi la lista",
   whyThis: "Perché questa quantità?",
   reserve: "riserva",
@@ -1404,6 +1467,14 @@ const el: TripStrings = {
   unit: "Μονάδα",
   deleteItemConfirm: "Να διαγραφεί αυτό το είδος;",
   deleteShort: "Διαγραφή",
+  tabTrip: "Ταξίδι",
+  tabLog: "Ημερολόγιο",
+  tabVessel: "Σκάφος",
+  settings: "Ρυθμίσεις",
+  allTrips: "Όλα τα ταξίδια",
+  logbookTitle: "Ημερολόγιο ταξιδιού",
+  logbookComingBody:
+    "Το ημερολόγιο έρχεται σύντομα: μια συνεχής καταγραφή παρατηρήσεων, σημειώσεων, φωτογραφιών, αγκυροβολίων και στιγμών του ταξιδιού.",
   shareList: "Κοινοποίηση λίστας",
   whyThis: "Γιατί αυτή η ποσότητα;",
   reserve: "απόθεμα",
@@ -1565,6 +1636,14 @@ const fr: TripStrings = {
   unit: "Unité",
   deleteItemConfirm: "Supprimer cet article ?",
   deleteShort: "Supprimer",
+  tabTrip: "Voyage",
+  tabLog: "Journal",
+  tabVessel: "Bateau",
+  settings: "Réglages",
+  allTrips: "Tous les voyages",
+  logbookTitle: "Journal de bord",
+  logbookComingBody:
+    "Le journal arrive bientôt : un fil continu d'observations, de notes, de photos, de mouillages et de moments de votre voyage.",
   shareList: "Partager la liste",
   whyThis: "Pourquoi cette quantité ?",
   reserve: "réserve",

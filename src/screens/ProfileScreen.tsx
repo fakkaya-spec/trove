@@ -62,6 +62,20 @@ export default function ProfileScreen() {
           </>
         )}
 
+        <RopeDivider />
+        <Pressable
+          onPress={() => navigation.navigate("Library")}
+          accessibilityRole="button"
+          accessibilityLabel={s.templatesLib}
+          style={({ pressed }) => [styles.linkCard, pressed && { opacity: 0.8 }]}
+        >
+          <View style={styles.linkLeft}>
+            <Icon name="library-outline" size={20} color={colors.text} />
+            <Text style={styles.linkText}>{s.templatesLib}</Text>
+          </View>
+          <Icon name="chevron-forward" size={18} color={colors.textSecondary} />
+        </Pressable>
+
         <RopeDivider label={s.about.toUpperCase()} />
         <Pressable
           onPress={() => {
