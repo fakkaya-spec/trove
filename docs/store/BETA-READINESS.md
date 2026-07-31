@@ -1,4 +1,4 @@
-# BoatCheck — TestFlight Beta Hazırlık Raporu
+# TROVE — TestFlight Beta Hazırlık Raporu
 
 _Tarih: 2026-07-30 · Kapsam: depo/derleme denetimi, cihaz test planı, gözlemlenebilirlik, metadata, nihai karar_
 
@@ -9,7 +9,7 @@ _Tarih: 2026-07-30 · Kapsam: depo/derleme denetimi, cihaz test planı, gözleml
 | Öğe | Durum | Yapılan |
 |---|---|---|
 | `npx expo-doctor` | **20/20 temiz** | — |
-| Bundle ID / paket adı | `com.kosko.boatcheck` (iOS+Android) — ilk mağaza yüklemesinden sonra değişmez; onay bekliyor | dokümante |
+| Bundle ID / paket adı | `com.kosko.trove` (iOS+Android) — ilk mağaza yüklemesinden sonra değişmez; onay bekliyor | dokümante |
 | Sürüm/build | 1.0.0 · iOS buildNumber "1" · Android versionCode 1 · EAS autoIncrement açık | ✅ |
 | OTA/güncelleme | `expo-updates` **bilinçli olarak yok** — beta'da OTA kullanılmayacak; her değişiklik yeni build. runtimeVersion bu yüzden gereksiz | karar dokümante |
 | Kamera/foto izin metinleri | Mevcut ve amaca özel | ✅ |

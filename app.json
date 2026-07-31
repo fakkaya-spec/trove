@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "BoatCheck",
-    "slug": "marincheck",
+    "name": "TROVE",
+    "slug": "trove",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#0B1D33",
-    "primaryColor": "#C9A227",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F8F7F4",
+    "primaryColor": "#1B3A4B",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.kosko.boatcheck",
+      "bundleIdentifier": "com.kosko.trove",
       "buildNumber": "1",
       "infoPlist": {
         "CFBundleAllowMixedLocalizations": true,
@@ -18,10 +18,10 @@
       }
     },
     "android": {
-      "package": "com.kosko.boatcheck",
+      "package": "com.kosko.trove",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#0B1D33",
+        "backgroundColor": "#111110",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -38,7 +38,7 @@
         {
           "image": "./assets/splash-icon.png",
           "imageWidth": 180,
-          "backgroundColor": "#0B1D33"
+          "backgroundColor": "#111110"
         }
       ],
       [

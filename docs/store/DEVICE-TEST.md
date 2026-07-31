@@ -1,4 +1,4 @@
-# BoatCheck — Gerçek Cihaz Doğrulama Listesi
+# TROVE — Gerçek Cihaz Doğrulama Listesi
 
 _Teknik olmayan ürün sahibi için yazılmıştır. Her testte: ön koşul → adımlar → beklenen sonuç → SONUÇ kutusu → kanıt._
 _Kanıt = ekran görüntüsü veya kısa ekran videosu; dosya adını grup+numara ile kaydet (ör. `B3.png`)._
@@ -11,7 +11,7 @@ Kurulum: `eas build --profile preview --platform android` (APK'yı telefona kur)
 ## GRUP A — Temiz Kurulum
 
 **A1. İlk açılış** · Ön koşul: uygulama bu cihaza HİÇ kurulmamış.
-Adım: Kur → aç. Beklenen: 3 sn içinde BoatCheck ana ekranı; hata yok; "Start a Trip / Inspect a Charter Boat / Prepare My Boat" kartları görünür. SONUÇ: ☐ Geçti ☐ Kaldı (P0) · Kanıt: A1
+Adım: Kur → aç. Beklenen: 3 sn içinde TROVE ana ekranı; hata yok; "Start a Trip / Inspect a Charter Boat / Prepare My Boat" kartları görünür. SONUÇ: ☐ Geçti ☐ Kaldı (P0) · Kanıt: A1
 
 **A2. Şablonlar bir kez seed'lendi** · Adım: Library sekmesi. Beklenen: tam **5 şablon** (Check-in, 2× Pre-departure, Return, Check-out) — ne eksik ne çift. SONUÇ: ☐ ☐ (P0) · Kanıt: A2
 

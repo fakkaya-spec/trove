@@ -1,7 +1,7 @@
 # Faz 1-2 — Trip Merkezli Mimari + İkmal (Provisioning) Motoru
 
 Konumlandırma: *"One app to inspect the boat, prepare the voyage and provision the crew."*
-Ürün kod adı **BoatCheck** (`src/config/product.ts` — tek kaynak).
+Ürün kod adı **TROVE** (`src/config/product.ts` — tek kaynak).
 
 ## Mimari kararlar
 

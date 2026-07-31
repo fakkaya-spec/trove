@@ -1,102 +1,103 @@
-// Uygulama ikonu/splash üretimi: node scripts/generate-icons.mjs
-// Tasarım: gece laciverti zemin + pirinç dümen simidi, göbeğinde onay işareti.
-// Marka adı değişirse yalnızca bu script yeniden çalıştırılır (assets üretilir).
+// TROVE marka varlığı üretimi: node scripts/generate-icons.mjs
+// Sembol: C0 (KİLİTLİ) — 48×48 birim tuvalde dört ortalanmış yatay katman.
+// Bar genişlik/yükseklikleri ve boşluklar marka spesifikasyonundan; kavis,
+// gölge, degrade, deniz süslemesi YOK. Marka değişirse yalnız bu script
+// ve src/components/brand/ güncellenir.
+// Wordmark: "TROVE", DM Sans Medium (OFL — assets/brand/fonts/), büyük harf,
+// 0.18em harf aralığı. Üretim için DM Sans'ın sistem fontconfig'ine kurulu
+// olması gerekir (ttf assets/brand/fonts/ altında; ~/.fonts'a kopyala).
 import sharp from "sharp";
-import { mkdirSync } from "node:fs";
 
-const NAVY = "#0B1D33";
-const NAVY_DEEP = "#071426";
-const BRASS = "#C9A227";
-const PAPER = "#F6EFDC";
+const INK = "#111110";
+const PAPER = "#F8F7F4";
 
-// Dümen simidi + onay işareti (viewBox 1024, merkez 512)
-function helm({ stroke = BRASS, check = PAPER, scale = 1, bg = null } = {}) {
-  const s = (v) => 512 + (v - 512) * scale;
-  const r = (v) => v * scale;
-  // 8 kol: dıştaki tutamaklara uzanan çubuklar
-  let spokes = "";
-  for (let i = 0; i < 8; i++) {
-    const a = (i * Math.PI) / 4;
-    const x1 = 512 + Math.cos(a) * r(120);
-    const y1 = 512 + Math.sin(a) * r(120);
-    const x2 = 512 + Math.cos(a) * r(430);
-    const y2 = 512 + Math.sin(a) * r(430);
-    const hx = 512 + Math.cos(a) * r(468);
-    const hy = 512 + Math.sin(a) * r(468);
-    spokes += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${stroke}" stroke-width="${r(34)}" stroke-linecap="round"/>`;
-    spokes += `<circle cx="${hx}" cy="${hy}" r="${r(34)}" fill="${stroke}"/>`;
-  }
-  return `
-  ${bg ? `<rect width="1024" height="1024" fill="${bg}"/>` : ""}
-  <circle cx="512" cy="512" r="${r(330)}" fill="none" stroke="${stroke}" stroke-width="${r(52)}"/>
-  <circle cx="512" cy="512" r="${r(258)}" fill="none" stroke="${stroke}" stroke-width="${r(16)}" opacity="0.55"/>
-  ${spokes}
-  <circle cx="512" cy="512" r="${r(150)}" fill="${bg ?? NAVY}" stroke="${stroke}" stroke-width="${r(20)}"/>
-  <path d="M ${s(432)} ${s(516)} L ${s(492)} ${s(576)} L ${s(600)} ${s(448)}"
-        fill="none" stroke="${check}" stroke-width="${r(46)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+// --- C0 sembol geometrisi (48 birim tuval) --------------------------------
+const CANVAS = 48;
+const BARS = [
+  { w: 20, h: 2.5 },
+  { w: 30, h: 4.5 },
+  { w: 40, h: 7 },
+  { w: 48, h: 10.5 },
+];
+const GAPS = [7.5, 6, 4];
+const CONTENT_H = BARS.reduce((s, b) => s + b.h, 0) + GAPS.reduce((s, g) => s + g, 0); // 42
+
+/** C0 sembolünü SVG rect'leri olarak üretir; (cx, cy) merkez, size = tuval kenarı. */
+function mark({ cx, cy, size, fill }) {
+  const u = size / CANVAS;
+  let rects = "";
+  let y = cy - (CONTENT_H * u) / 2;
+  BARS.forEach((bar, i) => {
+    if (i > 0) y += GAPS[i - 1] * u;
+    rects += `<rect x="${cx - (bar.w * u) / 2}" y="${y}" width="${bar.w * u}" height="${bar.h * u}" fill="${fill}"/>`;
+    y += bar.h * u;
+  });
+  return rects;
 }
 
-const svg = (inner) =>
-  Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">${inner}</svg>`);
+const svg = (inner, w = 1024, h = 1024) =>
+  Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">${inner}</svg>`);
 
-async function main() {
-  mkdirSync("assets", { recursive: true });
+// --- Wordmark: TROVE, DM Sans Medium, 0.18em tracking ---------------------
+const WM_SIZE = 260; // master font boyutu (px) — bileşen küçülterek kullanır
+const wordmarkSvg = (fill) =>
+  Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="500">
+      <text x="40" y="360" font-family="DM Sans" font-weight="500" font-size="${WM_SIZE}"
+        letter-spacing="${0.18 * WM_SIZE}" fill="${fill}">TROVE</text>
+    </svg>`
+  );
 
-  // Ana ikon (iOS + genel): dolu zemin
-  await sharp(svg(helm({ bg: NAVY, scale: 0.86 })))
-    .resize(1024, 1024)
+async function run() {
+  // Uygulama ikonu: Ink zemin, Paper sembol (merkezde, tuvalin %52'si).
+  await sharp(
+    svg(`<rect width="1024" height="1024" fill="${INK}"/>${mark({ cx: 512, cy: 512, size: 532, fill: PAPER })}`)
+  )
     .png()
     .toFile("assets/icon.png");
 
-  // Android adaptive: foreground şeffaf zeminde, güvenli alan için küçük (%62)
-  await sharp(svg(helm({ scale: 0.62 })))
-    .resize(1024, 1024)
+  // Android adaptive: ön katman şeffaf zeminde Paper sembol (güvenli iç bölge ~%66).
+  await sharp(svg(mark({ cx: 512, cy: 512, size: 420, fill: PAPER })))
     .png()
     .toFile("assets/android-icon-foreground.png");
 
-  // Adaptive background: düz lacivert (hafif vinyet)
-  await sharp(
-    svg(
-      `<rect width="1024" height="1024" fill="${NAVY}"/>
-       <circle cx="512" cy="512" r="700" fill="${NAVY_DEEP}" opacity="0.35"/>`
-    )
-  )
-    .resize(1024, 1024)
+  await sharp(svg(`<rect width="1024" height="1024" fill="${INK}"/>`))
     .png()
     .toFile("assets/android-icon-background.png");
 
-  // Adaptive monochrome: beyaz siluet
-  await sharp(svg(helm({ stroke: "#FFFFFF", check: "#FFFFFF", scale: 0.62 })))
-    .resize(1024, 1024)
+  await sharp(svg(mark({ cx: 512, cy: 512, size: 420, fill: "#FFFFFF" })))
     .png()
     .toFile("assets/android-icon-monochrome.png");
 
-  // Splash ikonu: şeffaf zeminde dümen (splash arkaplanı app.json'da lacivert)
-  await sharp(svg(helm({ scale: 0.8 })))
-    .resize(512, 512)
+  // Splash: şeffaf zeminde Paper sembol (app.json splash zemini Ink).
+  await sharp(svg(mark({ cx: 512, cy: 512, size: 720, fill: PAPER })))
     .png()
     .toFile("assets/splash-icon.png");
 
-  // Favicon (web)
-  await sharp(svg(helm({ bg: NAVY, scale: 0.9 })))
+  // Favicon: Ink zemin, Paper sembol.
+  await sharp(
+    svg(`<rect width="1024" height="1024" fill="${INK}"/>${mark({ cx: 512, cy: 512, size: 640, fill: PAPER })}`)
+  )
     .resize(64, 64)
     .png()
     .toFile("assets/favicon.png");
 
-  // Play Store feature graphic (1024×500): dümen + geçici ad + konumlandırma.
-  // Marka adı kesinleşince yalnızca buradaki iki metin satırı değişir.
-  const fg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500">
-    <rect width="1024" height="500" fill="${NAVY}"/>
-    <circle cx="512" cy="250" r="620" fill="${NAVY_DEEP}" opacity="0.35"/>
-    <g transform="translate(-92,38) scale(0.55)">${helm({ scale: 0.62 })}</g>
-    <text x="400" y="230" font-family="Georgia, 'DejaVu Serif', serif" font-size="88"
-          font-weight="bold" fill="${PAPER}">BoatCheck</text>
-    <text x="404" y="298" font-family="Georgia, 'DejaVu Serif', serif" font-size="33"
-          font-style="italic" fill="${BRASS}">Inspect · Prepare · Provision</text>
-  </svg>`;
-  await sharp(Buffer.from(fg)).resize(1024, 500).png().toFile("assets/store-feature-graphic.png");
+  // Store feature graphic (1024×500): Ink zemin, sembol + boşluk.
+  await sharp(
+    svg(
+      `<rect width="1024" height="500" fill="${INK}"/>${mark({ cx: 512, cy: 250, size: 300, fill: PAPER })}`,
+      1024,
+      500
+    )
+  )
+    .png()
+    .toFile("assets/store-feature-graphic.png");
 
-  console.log("icons generated");
+  // Wordmark: siyah + alfa master (bileşen tintColor ile boyar), kırpılmış.
+  await sharp(wordmarkSvg("#000000")).trim().png().toFile("assets/brand/wordmark.png");
+
+  const meta = await sharp("assets/brand/wordmark.png").metadata();
+  console.log(`OK — ikonlar + wordmark (${meta.width}×${meta.height})`);
 }
 
-main();
+run();

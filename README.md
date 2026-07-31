@@ -1,8 +1,11 @@
-# ⚓ MarinCheck — Kaptanın Teslim Defteri
+# TROVE — Your boating trip companion
 
-Tekne kiralayanlar ve tekne sahipleri için **denizci temalı kontrol listesi uygulaması** (iOS + Android).
+Tekne seferi hazırlığı, seyir kaydı ve teslim belgeleme uygulaması (iOS + Android, offline-first).
 
-Kiralık teknede depozitonu, kendi teknende canını ve seyrini korur: teslim alırken neyi kontrol edeceğini, neyi fotoğraflayacağını madde madde söyler.
+Sefer akışı: **Hazırlan → Seyirde → Tamamla**. Kontrol listeleri, ikmal planı, check-in/check-out denetimleri, foto kanıt ve teslim karşılaştırması tek uygulamada.
+
+> Marka: TROVE — C0 sembolü (dört katman) + DM Sans wordmark, `src/components/brand/`.
+> Not: aşağıdaki bölümler ürünün önceki sürümlerinden kalmadır; TROVE mimarisi için `docs/` klasörüne bakın.
 
 ## Neden?
 

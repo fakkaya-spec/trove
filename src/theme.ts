@@ -1,5 +1,13 @@
 import { Platform } from "react-native";
 
+// TROVE marka renkleri — KİLİTLİ. Yalnız marka yüzeylerinde (logo, splash,
+// karşılama ekranı, rapor başlığı) kullanılır; ekran temasını değiştirmez.
+export const brand = {
+  ink: "#111110",
+  paper: "#F8F7F4",
+  depth: "#1B3A4B",
+};
+
 // AÇIK TEMA (varsayılan) — güneşli güvertede okunabilirlik önceliklidir.
 // Kontrastlar WCAG AA+ hedefiyle seçildi (text/bg 15.8:1).
 // KURAL: gold (#C9A227) açık zeminde ASLA metin rengi olarak kullanılmaz;
@@ -52,7 +60,8 @@ export const colors = {
 };
 
 // Arayüz sistem fontu kullanır (San Francisco / Roboto): güverte koşullarında
-// en okunaklı seçenek. Serif YALNIZ marka yazısı ("BoatCheck") içindir.
+// en okunaklı seçenek. fonts.logo artık kullanılmıyor — TROVE marka yazısı
+// DM Sans varlığından gelir (src/components/brand/TroveWordmark.tsx).
 export const fonts = {
   display: Platform.select({ ios: "System", android: "sans-serif", default: "System" })!,
   body: Platform.select({ ios: "System", android: "sans-serif", default: "System" })!,

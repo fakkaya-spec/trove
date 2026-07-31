@@ -3,7 +3,7 @@
 Sıralı, işaretlenebilir. ☐ = yapılacak · ⚠ = karar gerektirir.
 
 ## 0. Kararlar (koddan önce)
-- ☐ ⚠ **Marka adı**: "BoatCheck" ile mi çıkılıyor? Ad, domain ve marka tescil taraması yapılmadan mağazaya AD yazılmamalı. Paket kimlikleri `com.kosko.boatcheck` olarak ayarlandı — **ilk yüklemeden sonra değiştirilemez**; addan bağımsız kalıcı olduğuna karar ver.
+- ☐ ⚠ **Marka adı**: "TROVE" ile mi çıkılıyor? Ad, domain ve marka tescil taraması yapılmadan mağazaya AD yazılmamalı. Paket kimlikleri `com.kosko.trove` olarak ayarlandı — **ilk yüklemeden sonra değiştirilemez**; addan bağımsız kalıcı olduğuna karar ver.
 - ☐ ⚠ **Reklam kararı**: İlk sürüm reklamlı mı? Reklamsız çıkış = "No data collected" beyanı (çok daha temiz inceleme). Reklamsız çıkılacaksa: `features.adsInLegacyOnly` yetmez — app.json'dan `react-native-google-mobile-ads` plugin'ini kaldır + `npm uninstall react-native-google-mobile-ads` (SDK binary'de kalmasın). Kararın iki yönü de PRIVACY.md'de hazır.
 - ☐ ⚠ **IAP kararı**: Reklamsız çıkılırsa "reklam kaldırma" aboneliğinin anlamı kalmaz → Premium'u ilk sürümden çıkar veya reklamlı çık.
 

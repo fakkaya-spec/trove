@@ -1,6 +1,6 @@
 # Faz 0 — Kod Analizi ve Migration Planı
 
-Ürün kod adı: **BoatCheck** (geçici; merkezi config'ten yönetilir, koda dağıtılmaz).
+Ürün kod adı: **TROVE** (geçici; merkezi config'ten yönetilir, koda dağıtılmaz).
 Konumlandırma: *"Digital yacht handover and inspection platform."*
 
 ---
@@ -101,7 +101,7 @@ Bilinçli sadeleştirmeler: `charters` yerine tek `handover_sessions`; sayaç ba
 | Adım | İçerik | Risk |
 |---|---|---|
 | M1 | Bağımlılıklar: `expo-sqlite`, `drizzle-orm`, `expo-crypto`, `expo-image-picker`, `expo-file-system`, `zod` | düşük |
-| M2 | `config/product.ts` + `features.ts`; "MarinCheck" sabit metinleri config'e bağlanır; app.json görünen ad "BoatCheck" | düşük |
+| M2 | `config/product.ts` + `features.ts`; "MarinCheck" sabit metinleri config'e bağlanır; app.json görünen ad "TROVE" | düşük |
 | M3 | DB katmanı: client + **versiyonlu SQL migration runner** + Drizzle şeması. *(Karar: drizzle-kit yerine elle SQL migration — babel/metro `.sql` import konfigürasyonu gerektirmez, geri dönüşü kolay. Drizzle sadece tip güvenli sorgu için. Vendor lock-in işareti: Drizzle API'si repository katmanının altında kaldığı için değişimi ucuz.)* | orta |
 | M4 | Seed: "Sailing Yacht — Charter Check-in" şablonu; 7 bölüm, maddeler **mevcut 5 dilli yelkenli içeriğinden id ile derlenir**; sayaç maddeleri `input_kind=meter`; temel envanter listesi | orta |
 | M5 | Domain katmanı: durum makineleri + istisna-bazlı onay kuralları (saf fonksiyon + test) | düşük |
@@ -142,5 +142,5 @@ PDF, imza ve bulut senkronu Faz 0'da **yok** (iskelet tabloları hazır).
 
 ## 10. Faz 0 Sonu Kullanıcı Akışı (net tarif)
 
-> Kullanıcı uygulamayı açar → **BoatCheck** ana ekranı: "Yeni Denetim" düğmesi, devam eden denetim kartları, (flag açıksa) "Kontrol Listeleri (eski mod)" bağlantısı. → "Yeni Denetim" → tekne adı + tip girer (veya listeden seçer) → şablon onayı → Denetim ekranı: üstte 7 bölüm çipi, altta madde listesi; her madde `unchecked` başlar. Sorunsuz bölümde tek dokunuş "Sorun yok" → kritik olmayanlar toplanır, kritikler tek tek sorulur. Sorunlu maddeye dokunur → durum seçer → sheet açılır → not + foto + önem → kaydeder; madde kırmızı/amber rozetle listeye döner, kritik ❌ ise güvenlik uyarısı bandı görünür. → "Sayaçlar" çipi → değerleri girer. → "Özet" → eksik kritik yoksa "Denetimi Tamamla" → özet ekranı (sayılar, sorunlar, sayaçlar). Uygulama herhangi bir anda kapatılıp açılsa aynı noktadan sürer. Yeni akışın hiçbir ekranında reklam yoktur.
+> Kullanıcı uygulamayı açar → **TROVE** ana ekranı: "Yeni Denetim" düğmesi, devam eden denetim kartları, (flag açıksa) "Kontrol Listeleri (eski mod)" bağlantısı. → "Yeni Denetim" → tekne adı + tip girer (veya listeden seçer) → şablon onayı → Denetim ekranı: üstte 7 bölüm çipi, altta madde listesi; her madde `unchecked` başlar. Sorunsuz bölümde tek dokunuş "Sorun yok" → kritik olmayanlar toplanır, kritikler tek tek sorulur. Sorunlu maddeye dokunur → durum seçer → sheet açılır → not + foto + önem → kaydeder; madde kırmızı/amber rozetle listeye döner, kritik ❌ ise güvenlik uyarısı bandı görünür. → "Sayaçlar" çipi → değerleri girer. → "Özet" → eksik kritik yoksa "Denetimi Tamamla" → özet ekranı (sayılar, sorunlar, sayaçlar). Uygulama herhangi bir anda kapatılıp açılsa aynı noktadan sürer. Yeni akışın hiçbir ekranında reklam yoktur.
 ```

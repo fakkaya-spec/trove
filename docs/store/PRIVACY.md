@@ -1,11 +1,11 @@
-# Privacy Policy — BoatCheck
+# Privacy Policy — TROVE
 
 _Last updated: 2026-07-30_
 _(Türkçe özet en altta. Bu metin yayından önce herkese açık bir URL'de barındırılmalıdır — bkz. CHECKLIST.md.)_
 
 ## Summary
 
-BoatCheck is a **local-first** app. Your inspections, trips, photos and shopping lists are stored **only on your device**. We do not operate accounts, we do not run analytics, and we do not upload your data to any server.
+TROVE is a **local-first** app. Your inspections, trips, photos and shopping lists are stored **only on your device**. We do not operate accounts, we do not run analytics, and we do not upload your data to any server.
 
 ## Data we do NOT collect
 
@@ -36,7 +36,7 @@ Because your data stays on your device, you exercise access, correction and dele
 
 ## Children
 
-BoatCheck is not directed at children under 13 and collects no data from any user.
+TROVE is not directed at children under 13 and collects no data from any user.
 
 ## Changes
 
@@ -46,7 +46,7 @@ We will update this page when the policy changes and update the date above.
 
 ## Türkçe Özet
 
-BoatCheck **yerel-öncelikli** bir uygulamadır: denetimler, seferler, fotoğraflar ve listeler **yalnızca cihazınızda** saklanır. Hesap yoktur; analitik yoktur; **konum verisi toplanmaz** (fotoğraflar EXIF konumu olmadan kaydedilir). Veriler yalnızca siz paylaşırsanız cihazdan çıkar. Kamera izni yalnızca kendi denetim kayıtlarınıza fotoğraf eklemek içindir. İsteğe bağlı "klasik listeler" bölümünde Google AdMob reklamları gösterilir (Google'ın gizlilik politikası geçerlidir); profesyonel denetim/sefer/ikmal akışlarında hiçbir reklam yoktur. Abonelik ödemeleri tamamen App Store / Google Play üzerinden işlenir. Sorular için: **fakkaya@gmail.com**.
+TROVE **yerel-öncelikli** bir uygulamadır: denetimler, seferler, fotoğraflar ve listeler **yalnızca cihazınızda** saklanır. Hesap yoktur; analitik yoktur; **konum verisi toplanmaz** (fotoğraflar EXIF konumu olmadan kaydedilir). Veriler yalnızca siz paylaşırsanız cihazdan çıkar. Kamera izni yalnızca kendi denetim kayıtlarınıza fotoğraf eklemek içindir. İsteğe bağlı "klasik listeler" bölümünde Google AdMob reklamları gösterilir (Google'ın gizlilik politikası geçerlidir); profesyonel denetim/sefer/ikmal akışlarında hiçbir reklam yoktur. Abonelik ödemeleri tamamen App Store / Google Play üzerinden işlenir. Sorular için: **fakkaya@gmail.com**.
 
 ---
 

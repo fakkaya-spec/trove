@@ -7,6 +7,8 @@ import { features } from "../config/features";
 import { colors, fonts, spacing, radius, touch } from "../theme";
 import { RopeDivider } from "../components/ui";
 import { Icon } from "../components/Icon";
+import { TroveMark } from "../components/brand/TroveMark";
+import { TroveWordmark } from "../components/brand/TroveWordmark";
 import { LOCALES, useLocale } from "../i18n";
 import { TRIP_STRINGS } from "../i18n/trip";
 import type { RootStackParamList } from "../navigation";
@@ -22,7 +24,10 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
-          <Text style={styles.title}>{PRODUCT_NAME}</Text>
+          <TroveMark size={44} color={colors.text} />
+          <View style={styles.wordmarkWrap}>
+            <TroveWordmark height={20} color={colors.text} />
+          </View>
           <Text style={styles.positioning}>{PRODUCT_POSITIONING}</Text>
         </View>
 
@@ -90,7 +95,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
   header: { alignItems: "center", marginVertical: spacing.l },
-  title: { fontFamily: fonts.logo, fontSize: 28, color: colors.text, fontWeight: "700" },
+  wordmarkWrap: { marginTop: spacing.s },
   positioning: {
     fontFamily: fonts.body,
     fontSize: 13,

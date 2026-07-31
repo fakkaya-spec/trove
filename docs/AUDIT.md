@@ -1,4 +1,4 @@
-# BoatCheck — Beta Öncesi Ürün Denetimi
+# TROVE — Beta Öncesi Ürün Denetimi
 
 _Tarih: 2026-07-30 · Kapsam: tüm kod tabanı, tüm ekranlar, tüm akışlar_
 _Ortam notu: denetim kod + web smoke + gerçek-SQLite testleriyle yapıldı; render/bellek/jest-hissi ölçümleri **cihaz gerektirir** ve ayrıca işaretlendi._
