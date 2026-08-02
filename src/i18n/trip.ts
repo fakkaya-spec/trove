@@ -108,6 +108,16 @@ export interface TripStrings {
   tabLog: string;
   tabVessel: string;
   settings: string;
+  welcomeTitle: string;
+  welcomeBody: string;
+  yourBoats: string;
+  addFirstBoat: string;
+  addFirstBoatSub: string;
+  exploreTrove: string;
+  exploreTroveBody: string;
+  sampleNote: string;
+  sampleBanner: string;
+  sampleBannerCta: string;
   allTrips: string;
   logbookTitle: string;
   logbookComingBody: string;
@@ -284,6 +294,19 @@ const en: TripStrings = {
   tabLog: "Log",
   tabVessel: "Vessel",
   settings: "Settings",
+  welcomeTitle: "Welcome aboard.",
+  welcomeBody:
+    "Explore how TROVE works with a sample boat, or add your own and start planning your next trip.",
+  yourBoats: "Your boats",
+  addFirstBoat: "Add your first boat",
+  addFirstBoatSub: "Name, type, length and registration",
+  exploreTrove: "Explore TROVE",
+  exploreTroveBody:
+    "Try a sample trip to see how preparation, provisioning and the logbook work.",
+  sampleNote:
+    "Sample data is read-only and never saved. Your real trips are stored on this device.",
+  sampleBanner: "You're exploring a sample trip.",
+  sampleBannerCta: "Create your own boat",
   allTrips: "All trips",
   logbookTitle: "Trip logbook",
   logbookComingBody:
@@ -454,6 +477,19 @@ const tr: TripStrings = {
   tabLog: "Jurnal",
   tabVessel: "Tekne",
   settings: "Ayarlar",
+  welcomeTitle: "Gemiye hoş geldin.",
+  welcomeBody:
+    "TROVE'un nasıl çalıştığını örnek bir tekneyle keşfet ya da kendi tekneni ekleyip bir sonraki seferini planlamaya başla.",
+  yourBoats: "Teknelerin",
+  addFirstBoat: "İlk tekneni ekle",
+  addFirstBoatSub: "Ad, tip, boy ve tescil",
+  exploreTrove: "TROVE'u keşfet",
+  exploreTroveBody:
+    "Hazırlık, ikmal ve seyir defterinin nasıl çalıştığını görmek için örnek bir seferi dene.",
+  sampleNote:
+    "Örnek veriler salt okunurdur ve asla kaydedilmez. Gerçek seferlerin bu cihazda saklanır.",
+  sampleBanner: "Örnek bir seferi inceliyorsun.",
+  sampleBannerCta: "Kendi tekneni oluştur",
   allTrips: "Tüm seferler",
   logbookTitle: "Seyir defteri",
   logbookComingBody:
@@ -624,6 +660,19 @@ const de: TripStrings = {
   tabLog: "Logbuch",
   tabVessel: "Boot",
   settings: "Einstellungen",
+  welcomeTitle: "Willkommen an Bord.",
+  welcomeBody:
+    "Entdecke TROVE mit einem Beispielboot oder füge dein eigenes hinzu und plane deinen nächsten Törn.",
+  yourBoats: "Deine Boote",
+  addFirstBoat: "Erstes Boot hinzufügen",
+  addFirstBoatSub: "Name, Typ, Länge und Registrierung",
+  exploreTrove: "TROVE entdecken",
+  exploreTroveBody:
+    "Probiere einen Beispieltörn aus, um Vorbereitung, Proviant und Logbuch kennenzulernen.",
+  sampleNote:
+    "Beispieldaten sind schreibgeschützt und werden nie gespeichert. Deine echten Törns bleiben auf diesem Gerät.",
+  sampleBanner: "Du erkundest einen Beispieltörn.",
+  sampleBannerCta: "Eigenes Boot anlegen",
   allTrips: "Alle Törns",
   logbookTitle: "Logbuch",
   logbookComingBody:
@@ -794,6 +843,19 @@ const ru: TripStrings = {
   tabLog: "Журнал",
   tabVessel: "Судно",
   settings: "Настройки",
+  welcomeTitle: "Добро пожаловать на борт.",
+  welcomeBody:
+    "Изучите TROVE на примере лодки или добавьте свою и начните планировать следующий поход.",
+  yourBoats: "Ваши лодки",
+  addFirstBoat: "Добавьте первую лодку",
+  addFirstBoatSub: "Название, тип, длина и регистрация",
+  exploreTrove: "Изучить TROVE",
+  exploreTroveBody:
+    "Попробуйте пример похода, чтобы увидеть, как работают подготовка, снабжение и журнал.",
+  sampleNote:
+    "Демо-данные доступны только для чтения и никогда не сохраняются. Ваши походы хранятся на этом устройстве.",
+  sampleBanner: "Вы просматриваете пример похода.",
+  sampleBannerCta: "Создать свою лодку",
   allTrips: "Все походы",
   logbookTitle: "Судовой журнал",
   logbookComingBody:
@@ -964,6 +1026,19 @@ const es: TripStrings = {
   tabLog: "Diario",
   tabVessel: "Barco",
   settings: "Ajustes",
+  welcomeTitle: "Bienvenido a bordo.",
+  welcomeBody:
+    "Descubre cómo funciona TROVE con un barco de ejemplo o añade el tuyo y empieza a planificar tu próximo viaje.",
+  yourBoats: "Tus barcos",
+  addFirstBoat: "Añade tu primer barco",
+  addFirstBoatSub: "Nombre, tipo, eslora y matrícula",
+  exploreTrove: "Explora TROVE",
+  exploreTroveBody:
+    "Prueba un viaje de ejemplo para ver cómo funcionan la preparación, el aprovisionamiento y el diario.",
+  sampleNote:
+    "Los datos de ejemplo son de solo lectura y nunca se guardan. Tus viajes reales se almacenan en este dispositivo.",
+  sampleBanner: "Estás explorando un viaje de ejemplo.",
+  sampleBannerCta: "Crea tu propio barco",
   allTrips: "Todos los viajes",
   logbookTitle: "Diario de a bordo",
   logbookComingBody:
@@ -1133,6 +1208,19 @@ const hr: TripStrings = {
   tabLog: "Dnevnik",
   tabVessel: "Plovilo",
   settings: "Postavke",
+  welcomeTitle: "Dobrodošli na palubu.",
+  welcomeBody:
+    "Istraži kako TROVE radi s primjerom broda ili dodaj vlastiti i počni planirati sljedeću plovidbu.",
+  yourBoats: "Tvoja plovila",
+  addFirstBoat: "Dodaj svoje prvo plovilo",
+  addFirstBoatSub: "Ime, tip, duljina i registracija",
+  exploreTrove: "Istraži TROVE",
+  exploreTroveBody:
+    "Isprobaj primjer plovidbe i vidi kako rade priprema, opskrba i dnevnik.",
+  sampleNote:
+    "Primjeri su samo za čitanje i nikad se ne spremaju. Tvoje stvarne plovidbe ostaju na ovom uređaju.",
+  sampleBanner: "Pregledavaš primjer plovidbe.",
+  sampleBannerCta: "Izradi vlastito plovilo",
   allTrips: "Sve plovidbe",
   logbookTitle: "Brodski dnevnik",
   logbookComingBody:
@@ -1302,6 +1390,19 @@ const it: TripStrings = {
   tabLog: "Diario",
   tabVessel: "Barca",
   settings: "Impostazioni",
+  welcomeTitle: "Benvenuto a bordo.",
+  welcomeBody:
+    "Scopri come funziona TROVE con una barca di esempio o aggiungi la tua e inizia a pianificare il prossimo viaggio.",
+  yourBoats: "Le tue barche",
+  addFirstBoat: "Aggiungi la tua prima barca",
+  addFirstBoatSub: "Nome, tipo, lunghezza e immatricolazione",
+  exploreTrove: "Esplora TROVE",
+  exploreTroveBody:
+    "Prova un viaggio di esempio per vedere come funzionano preparazione, cambusa e diario di bordo.",
+  sampleNote:
+    "I dati di esempio sono di sola lettura e non vengono mai salvati. I tuoi viaggi reali restano su questo dispositivo.",
+  sampleBanner: "Stai esplorando un viaggio di esempio.",
+  sampleBannerCta: "Crea la tua barca",
   allTrips: "Tutti i viaggi",
   logbookTitle: "Diario di bordo",
   logbookComingBody:
@@ -1471,6 +1572,19 @@ const el: TripStrings = {
   tabLog: "Ημερολόγιο",
   tabVessel: "Σκάφος",
   settings: "Ρυθμίσεις",
+  welcomeTitle: "Καλώς ήρθες στο σκάφος.",
+  welcomeBody:
+    "Δες πώς λειτουργεί το TROVE με ένα δείγμα σκάφους ή πρόσθεσε το δικό σου και ξεκίνα τον σχεδιασμό του επόμενου ταξιδιού.",
+  yourBoats: "Τα σκάφη σου",
+  addFirstBoat: "Πρόσθεσε το πρώτο σου σκάφος",
+  addFirstBoatSub: "Όνομα, τύπος, μήκος και νηολόγιο",
+  exploreTrove: "Εξερεύνησε το TROVE",
+  exploreTroveBody:
+    "Δοκίμασε ένα δείγμα ταξιδιού για να δεις πώς λειτουργούν η προετοιμασία, ο εφοδιασμός και το ημερολόγιο.",
+  sampleNote:
+    "Τα δείγματα είναι μόνο για ανάγνωση και δεν αποθηκεύονται ποτέ. Τα πραγματικά σου ταξίδια μένουν σε αυτή τη συσκευή.",
+  sampleBanner: "Εξερευνάς ένα δείγμα ταξιδιού.",
+  sampleBannerCta: "Δημιούργησε το δικό σου σκάφος",
   allTrips: "Όλα τα ταξίδια",
   logbookTitle: "Ημερολόγιο ταξιδιού",
   logbookComingBody:
@@ -1640,6 +1754,19 @@ const fr: TripStrings = {
   tabLog: "Journal",
   tabVessel: "Bateau",
   settings: "Réglages",
+  welcomeTitle: "Bienvenue à bord.",
+  welcomeBody:
+    "Découvrez TROVE avec un bateau d'exemple, ou ajoutez le vôtre et commencez à planifier votre prochain voyage.",
+  yourBoats: "Vos bateaux",
+  addFirstBoat: "Ajoutez votre premier bateau",
+  addFirstBoatSub: "Nom, type, longueur et immatriculation",
+  exploreTrove: "Explorer TROVE",
+  exploreTroveBody:
+    "Essayez un voyage d'exemple pour voir la préparation, l'avitaillement et le journal de bord.",
+  sampleNote:
+    "Les données d'exemple sont en lecture seule et jamais enregistrées. Vos voyages réels restent sur cet appareil.",
+  sampleBanner: "Vous explorez un voyage d'exemple.",
+  sampleBannerCta: "Créez votre propre bateau",
   allTrips: "Tous les voyages",
   logbookTitle: "Journal de bord",
   logbookComingBody:

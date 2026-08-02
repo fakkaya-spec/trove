@@ -1,9 +1,11 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useLayoutEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { isDbReady } from "../../db/state";
 import { listTrips, getTripModuleStates, TripRow } from "../../repositories/trips";
+import { listVessels } from "../../repositories/vessels";
+import WelcomeScreen from "../WelcomeScreen";
 import { listInspections } from "../../repositories/inspections";
 import { nextAction, tripProgress, NextAction, TripModuleStates } from "../../domain/trip";
 import { colors, fonts, spacing, radius, touch } from "../../theme";
@@ -38,10 +40,13 @@ export default function TripHomeScreen() {
   const [trip, setTrip] = useState<TripRow | null>(null);
   const [states, setStates] = useState<TripModuleStates | null>(null);
   const [draftInspectionId, setDraftInspectionId] = useState<string | null>(null);
+  // KİLİTLİ şart: gerçek tekne yoksa Trip sekmesi karşılama ekranıdır.
+  const [welcomeMode, setWelcomeMode] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       if (!dbReady) return;
+      setWelcomeMode(listVessels().length === 0);
       const trips = listTrips().filter((t) => t.status !== "archived");
       const primary =
         trips.find((t) => t.status === "active") ??
@@ -56,6 +61,13 @@ export default function TripHomeScreen() {
       setDraftInspectionId(draft?.id ?? null);
     }, [dbReady])
   );
+
+  // Karşılamada sekme başlığı gizlenir (ekran kendi koyu hero başlığını taşır).
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: !(dbReady && welcomeMode) });
+  }, [navigation, dbReady, welcomeMode]);
+
+  if (dbReady && welcomeMode) return <WelcomeScreen />;
 
   const isCharter = trip?.ownershipContext === "charter";
   const progress = states && trip ? tripProgress(states, isCharter) : null;

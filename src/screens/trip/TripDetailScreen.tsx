@@ -25,6 +25,7 @@ import { nextAction, tripProgress, NextAction, TripModuleStates, isDone } from "
 import { InspectionStatus } from "../../domain/types";
 import { colors, fonts, spacing, radius, touch } from "../../theme";
 import { ProgressGauge, RopeDivider, Button } from "../../components/ui";
+import { SampleBanner } from "../../components/trove/SampleBanner";
 import { Icon, type IconName } from "../../components/Icon";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
@@ -133,6 +134,9 @@ export default function TripDetailScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
+        {trip.isSample && (
+          <SampleBanner onCreate={() => navigation.navigate("Tabs", { screen: "VesselTab" })} />
+        )}
         {/* Durum + özet */}
         <View style={styles.summaryCard}>
           <View style={styles.chipRow}>
@@ -235,6 +239,7 @@ export default function TripDetailScreen() {
 
         <RopeDivider />
 
+        {!trip.isSample && (
         <Button
           label={s.deleteTrip}
           variant="danger"
@@ -253,6 +258,7 @@ export default function TripDetailScreen() {
             ])
           }
         />
+        )}
       </ScrollView>
     </SafeAreaView>
   );

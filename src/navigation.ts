@@ -1,6 +1,8 @@
+import type { NavigatorScreenParams } from "@react-navigation/native";
+
 export type RootStackParamList = {
   /** Alt sekmeler (Trip / Log / Vessel) — KİLİTLİ TROVE navigasyonu */
-  Tabs: undefined;
+  Tabs: NavigatorScreenParams<TabParamList> | undefined;
   /** Tüm seferler listesi (Trip sekmesi başlığından erişilir) */
   Trips: undefined;
   TripWizard: { ownership?: "own" | "charter" } | undefined;
