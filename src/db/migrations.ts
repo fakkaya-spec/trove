@@ -354,6 +354,15 @@ CREATE TABLE trip_signoffs (
 CREATE INDEX idx_signoffs_trip ON trip_signoffs(trip_id);
 `,
   },
+  {
+    // M6: listLogEntriesByVessel vessel_id ile filtreler; index yoktu.
+    // Ekseldir; 1-7 değişmedi. FK bilinçli EKLENMEDİ (mevcut geçmişte
+    // gereklilik kanıtı yok ve tablo yeniden kurulumu gerektirirdi).
+    id: 8,
+    sql: `
+CREATE INDEX IF NOT EXISTS idx_log_entries_vessel ON log_entries(vessel_id);
+`,
+  },
 ];
 
 /** Testlerin sürüm-atlamalı (ör. 4→5) yükseltmeyi kanıtlaması için salt okunur dışa aktarım. */

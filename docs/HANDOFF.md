@@ -97,6 +97,16 @@ tazelenmesi; ardından cihaz doğrulama turu (R1-R17 + eski D listesi).
   yeniden başlatma, IAP derlemesi) hâlâ bekliyor.
 - `origin/main`'de diğer ajanın commit'leri var (e432242 alındı; 868131b
   ALINMADI — Faz 4 ekranlarının mükerrer kopyaları, birleştirilmeyecek).
+- Bağımsız denetim düzeltmeleri (H1, M2-M6): örnek seferler artık
+  repository katmanında mutasyona kapalı (SampleReadOnlyError; TripDetail
+  örneklerde salt okunur) · dokunma hedefleri touch token'larına ·
+  LogScreen medya sayımı tek sorgu (GROUP BY) · PREPARE_STRINGS parite
+  testinde · migration 8: idx_log_entries_vessel. TEKNİK BORÇ KARARI (M5):
+  `organizations`/`equipment`/`signatures` şema export'ları kullanılmıyor;
+  tablolar migration 1'de kalır, export'lara @deprecated yorumu kondu
+  (en az riskli seçenek) — imza için `tripSignoffs` kullanılır. NOT: örnek
+  seferde ikmal planı üretimi (TripDetail→generatePlan) hâlâ mümkün; H1
+  kapsamı dışıydı, ayrı bulgu adayı.
 - Kurucu Kilometre Taşı Sistemi: uygulama-içi sürüm GERİ ALINDI (kurucu
   kararı — tüketici uygulamasına ait değil; sahte yerel sayaç yasak).
   Sözleşme + aktivasyon tanımı + gelecek mimari: docs/ANALYTICS-EVENTS.md;

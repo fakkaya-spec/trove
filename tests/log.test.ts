@@ -305,6 +305,41 @@ assert.ok(addLogSrc.includes("createLogEntry"), "kaydetme repository'ye yazar");
 assert.ok(addLogSrc.includes('requestAccess("log_photo")'), "foto merkezî kapıdan geçer");
 assert.ok(!addLogSrc.includes("TODO"), "TODO kalmadı");
 
+// --- M6) Migration 8: vessel_id indexi (7→8 yükseltmesi, mevcut veriyle) ----
+{
+  const f8 = join(dir, "mig8.sqlite");
+  const sq8 = new Database(f8);
+  migrateUpTo(expoLikeAdapter(sq8), 7);
+  const t8 = new Date().toISOString();
+  sq8
+    .prepare(
+      `INSERT INTO log_entries (id, vessel_id, type, title, occurred_at, created_at, updated_at)
+       VALUES ('pre8','v-x','note','Pre-8 entry',?,?,?)`
+    )
+    .run(t8, t8, t8);
+  assert.equal(
+    sq8.prepare(`SELECT name FROM sqlite_master WHERE type='index' AND name='idx_log_entries_vessel'`).get(),
+    undefined,
+    "index 7'de henüz yok"
+  );
+  migrate(expoLikeAdapter(sq8)); // 8 uygulanır
+  migrate(expoLikeAdapter(sq8)); // idempotent
+  assert.ok(
+    sq8.prepare(`SELECT name FROM sqlite_master WHERE type='index' AND name='idx_log_entries_vessel'`).get(),
+    "idx_log_entries_vessel oluştu"
+  );
+  const kept = sq8.prepare(`SELECT vessel_id FROM log_entries WHERE id='pre8'`).get() as {
+    vessel_id: string;
+  };
+  assert.equal(kept.vessel_id, "v-x", "mevcut veri yükseltmede korunur");
+  assert.equal(
+    (sq8.prepare(`PRAGMA foreign_key_check`).all() as unknown[]).length,
+    0,
+    "FK bütünlüğü temiz"
+  );
+  sq8.close();
+}
+
 // --- Yerel saat gösterimi (saklama UTC, gösterim yerel + dile duyarlı) ------
 const IST = "Europe/Istanbul"; // UTC+3
 const midday = formatOccurredAt("2026-08-01T10:00:00.000Z", "tr", IST);

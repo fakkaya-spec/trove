@@ -15,6 +15,8 @@ export const users = sqliteTable("users", {
   ...common,
 });
 
+/** @deprecated Legacy/kullanılmıyor (hiçbir repository/seed başvurmaz).
+ *  Tablo migration 1'de yaşamaya devam eder; yeni kod BUNU KULLANMASIN. */
 export const organizations = sqliteTable("organizations", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -296,6 +298,8 @@ export const inventoryCounts = sqliteTable(
   (t) => [primaryKey({ columns: [t.inspectionId, t.inventoryItemId] })]
 );
 
+/** @deprecated Legacy/kullanılmıyor (hiçbir repository/seed başvurmaz).
+ *  Tablo migration 1'de yaşamaya devam eder; yeni kod BUNU KULLANMASIN. */
 export const equipment = sqliteTable("equipment", {
   id: text("id").primaryKey(),
   vesselId: text("vessel_id").notNull(),
@@ -306,6 +310,9 @@ export const equipment = sqliteTable("equipment", {
   ...common,
 });
 
+/** @deprecated Legacy/kullanılmıyor — media_id NOT NULL çizilmiş imza
+ *  görseli varsayar ve çizim akışı yok. Sefer kapanış onayı için BUNU
+ *  KULLANMA; `tripSignoffs` (migration 7) kullan. */
 export const signatures = sqliteTable("signatures", {
   id: text("id").primaryKey(),
   inspectionId: text("inspection_id").notNull(),
