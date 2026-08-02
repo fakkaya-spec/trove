@@ -207,6 +207,11 @@ export default function TripShoppingScreen() {
             </Pressable>
           </View>
         )}
+
+        {/* NOT (sprint D3): ikmal kişiselleştirme derinliği henüz kodda yok —
+            ölü eylem üretmemek için provisions giriş satırı BİLİNÇLİ olarak
+            eklenmedi. Derinlik geldiğinde PremiumEntryRow module="provisions"
+            buraya bağlanır (i18n metinleri hazır). */}
       </ScrollView>
     </SafeAreaView>
   );

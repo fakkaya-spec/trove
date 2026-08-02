@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView, Alert } from "react-native";
 import { useFocusEffect, useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -29,9 +29,12 @@ import { isDone as inspectionDone } from "../../../domain/trip";
 import { loadChecklist, ChecklistData } from "./checklistData";
 import { capturePhoto } from "../../../media/photos";
 import { useEntitlement } from "../../../entitlement";
+import { enterActiveFlow, exitActiveFlow } from "../../../entitlement/session";
+import { PremiumEntryRow } from "../../../components/premium/PremiumEntryRow";
 import { useLocale } from "../../../i18n";
 import { TRIP_STRINGS } from "../../../i18n/trip";
 import { PREPARE_STRINGS } from "../../../i18n/prepare";
+import { PREMIUM_STRINGS } from "../../../i18n/premium";
 import type { RootStackParamList } from "../../../navigation";
 import type { ItemResult } from "../../../domain/types";
 
@@ -61,7 +64,15 @@ export default function TripChecklistScreen() {
   const s = TRIP_STRINGS[locale];
   const p = PREPARE_STRINGS[locale];
   const c = COMPLETE_STRINGS[locale];
+  const m = PREMIUM_STRINGS[locale];
   const { requestAccess } = useEntitlement();
+
+  // PROTECT-1: aktif kontrol listesi boyunca diğer Premium yüzeyleri kapalı
+  // (§3 "during any active checklist"; bu ekranın kendi ufuk satırı muaf).
+  useEffect(() => {
+    enterActiveFlow();
+    return () => exitActiveFlow();
+  }, []);
 
   const [trip, setTrip] = useState<TripRow | null>(null);
   const [data, setData] = useState<ChecklistData | null>(null);
@@ -361,6 +372,18 @@ export default function TripChecklistScreen() {
             })}
           </View>
         ))}
+
+        {/* Ufuk girişi (ENTRY-1 #3): yalnız check-in, maddelerin SONUNDA —
+            doğal bölüm sınırı (§3.4); akışın kendi yüzeyi olduğundan
+            inActiveFlow'dan muaf. */}
+        {kind === "check_in" && !readOnly && (
+          <PremiumEntryRow
+            module="inspection"
+            title={m.entryInspectionTitle}
+            pill={m.pillAddEvidence}
+            withinOwnFlow
+          />
+        )}
       </ScrollView>
 
       {!readOnly && !completed && (

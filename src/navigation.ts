@@ -1,5 +1,6 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
 import type { PaywallContext } from "./entitlement/policy";
+import type { UpgradeModule } from "./i18n/premium";
 
 export type RootStackParamList = {
   /** Alt sekmeler (Trip / Log / Vessel) — KİLİTLİ TROVE navigasyonu */
@@ -27,6 +28,7 @@ export type RootStackParamList = {
   Premium: undefined;
   /** Premium foto kanıtı kapısı — bağlam takibiyle açılır (MONETIZATION 2/9) */
   Paywall: { context: PaywallContext };
+  Upgrade: { module: UpgradeModule };
   /** Faz 4 — Trip Prepare ekranları (onaylı TROVE tasarımı) */
   TripCrew: { tripId: string };
   TripProvisions: { tripId: string };

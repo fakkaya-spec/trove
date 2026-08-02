@@ -46,7 +46,9 @@ import TripChecklistScreen from "./src/screens/trip/prepare/TripChecklistScreen"
 import TripCompleteScreen from "./src/screens/trip/complete/TripCompleteScreen";
 import { PremiumProvider } from "./src/premium";
 import { EntitlementProvider, type PaywallContext } from "./src/entitlement";
+import { CONTEXT_MODULE } from "./src/entitlement/upgrades";
 import PaywallScreen from "./src/screens/PaywallScreen";
+import UpgradeSheetScreen from "./src/screens/premium/UpgradeSheetScreen";
 import { initDb } from "./src/db/client";
 import { markDbReady } from "./src/db/state";
 import { features } from "./src/config/features";
@@ -60,7 +62,14 @@ const Tab = createBottomTabNavigator<TabParamList>();
 const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 function openPaywall(context: PaywallContext) {
-  if (navigationRef.isReady()) navigationRef.navigate("Paywall", { context });
+  if (!navigationRef.isReady()) return;
+  // Tasarım sistemi v1.0 §5: kapı bağlamları modülün yükseltme SAYFASINI
+  // açar (fayda-dilli, koruma notlu); tam ekran paywall yalnız gönüllü
+  // keşif girişinden (settings) açılır. Entitlement servisi değişmedi —
+  // yalnız yüzey seçimi burada yapılır.
+  const module = CONTEXT_MODULE[context];
+  if (module) navigationRef.navigate("Upgrade", { module });
+  else navigationRef.navigate("Paywall", { context });
 }
 
 const theme = {
@@ -235,6 +244,15 @@ function Root() {
           name="Paywall"
           component={PaywallScreen}
           options={{ headerShown: false, presentation: "modal" }}
+        />
+        <Stack.Screen
+          name="Upgrade"
+          component={UpgradeSheetScreen}
+          options={{
+            headerShown: false,
+            presentation: "transparentModal",
+            animation: "none", // hareket §2'ye göre ekranın kendi animasyonu
+          }}
         />
         <Stack.Screen
           name="AddLog"

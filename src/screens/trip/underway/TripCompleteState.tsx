@@ -16,6 +16,7 @@ import {
 import { useLocale } from "../../../i18n";
 import { UNDERWAY_STRINGS } from "../../../i18n/underway";
 import { COMPLETE_STRINGS } from "../../../i18n/complete";
+import { PremiumReportCta } from "../../../components/premium/PremiumEntryRow";
 import type { RootStackParamList } from "../../../navigation";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -135,6 +136,10 @@ export function TripCompleteState({ trip }: { trip: TripRow }) {
             </Text>
           </Pressable>
         )}
+
+        {/* Ufuk girişi (ENTRY-1 #5): rapor/dışa aktarma kartının altında,
+            koyu T.vessel CTA — ücretsiz rapor yukarıda eksiksiz durur. */}
+        <PremiumReportCta />
 
         <Pressable
           onPress={() => navigation.navigate("TripWizard", {})}

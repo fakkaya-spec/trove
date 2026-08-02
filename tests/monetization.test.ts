@@ -78,8 +78,14 @@ function walk(dirPath: string): string[] {
   });
 }
 const screenFiles = walk(join(root, "src", "screens")).filter((f) => f.endsWith(".tsx"));
-// Legacy (bayrak arkasında, yeni akış dışı) + paywall'ın kendisi muaf:
-const RAW_ALLOWED = ["PaywallScreen.tsx", "HomeScreen.tsx", "PremiumScreen.tsx"];
+// Legacy (bayrak arkasında, yeni akış dışı) + satın alma yüzeylerinin
+// kendileri muaf (paywall + modül yükseltme sayfası — tasarım sistemi §5):
+const RAW_ALLOWED = [
+  "PaywallScreen.tsx",
+  "HomeScreen.tsx",
+  "PremiumScreen.tsx",
+  "UpgradeSheetScreen.tsx",
+];
 for (const file of screenFiles) {
   const base = file.split("/").pop()!;
   const src = readFileSync(file, "utf8");

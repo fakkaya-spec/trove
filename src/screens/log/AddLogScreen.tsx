@@ -21,8 +21,11 @@ import { addLogMedia, createLogEntry } from "../../repositories/log";
 import { deriveTitle, LogEntryType, LogSeverity } from "../../domain/log";
 import { capturePhoto, resolveMediaUri } from "../../media/photos";
 import { useEntitlement } from "../../entitlement";
+import { enterActiveFlow, exitActiveFlow } from "../../entitlement/session";
+import { PremiumEntryRow } from "../../components/premium/PremiumEntryRow";
 import { useLocale } from "../../i18n";
 import { LOG_STRINGS, typeLabel } from "../../i18n/log";
+import { PREMIUM_STRINGS } from "../../i18n/premium";
 import type { RootStackParamList } from "../../navigation";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -43,7 +46,15 @@ export default function AddLogScreen() {
   const navigation = useNavigation<Nav>();
   const { locale } = useLocale();
   const s = LOG_STRINGS[locale];
+  const m = PREMIUM_STRINGS[locale];
   const { requestAccess } = useEntitlement();
+
+  // PROTECT-1: jurnal girişi sürerken diğer Premium yüzeyleri kapalı
+  // (§3 "during log entry — from tap to save or cancel").
+  useEffect(() => {
+    enterActiveFlow();
+    return () => exitActiveFlow();
+  }, []);
 
   const [type, setType] = useState<LogEntryType>("observation");
   const [severity, setSeverity] = useState<LogSeverity>("minor");
@@ -198,6 +209,17 @@ export default function AddLogScreen() {
               </>
             )}
           </Pressable>
+
+          {/* Ufuk girişi (ENTRY-1 #4): kamera alanının hemen altı — kapının
+              kendini açıklama yüzeyi (MONETIZATION kural 3); akışın kendi
+              yüzeyi olduğundan inActiveFlow'dan muaf. */}
+          <PremiumEntryRow
+            module="log"
+            title={m.entryLogTitle}
+            pill={m.pillPremium}
+            withinOwnFlow
+            mt={8}
+          />
 
           {/* Açıklama */}
           <Text style={styles.sectionLabel}>{s.descriptionLabel.toUpperCase()}</Text>

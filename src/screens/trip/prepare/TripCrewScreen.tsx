@@ -188,6 +188,10 @@ export default function TripCrewScreen() {
           <LIcon name="users" size={TICON.sm} color={T.ink2} style={{ marginTop: 1 }} />
           <Text style={styles.noteText}>{p.crewProvisionNote}</Text>
         </View>
+
+        {/* NOT (sprint D4): mürettebat profil derinliği (beslenme/acil durum)
+            henüz kodda yok — ölü eylem üretmemek için crew giriş satırı
+            BİLİNÇLİ olarak eklenmedi (i18n metinleri hazır). */}
       </ScrollView>
     </SafeAreaView>
   );
