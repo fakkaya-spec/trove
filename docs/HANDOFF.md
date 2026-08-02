@@ -1,6 +1,39 @@
 # TROVE — Devir-Teslim / Güncel Durum
 
-_Son güncelleme: 2026-08-02 (Faz 7 — Complete/Rapor) · Dal: claude/trove-integration_
+_Son güncelleme: 2026-08-03 (Tasarım sistemi v1.0 + Beta erişim + Faz 8) · Dal: claude/trove-integration_
+
+## SON SPRİNT (gece koşusu) — tasarım devri + Premium temeli + Faz 8
+- **Tasarım devri:** donmuş Premium Design System v1.0 depoda
+  (`design-reference/premium-design-system.md` + `implementation-audit.md`
+  + `tokens.ts`; tam ekran referansı `src/app/App.screens.v0.tsx` bayt-bayt
+  korundu). Depo tek doğruluk kaynağı; Make sandbox'ındaki 1911 satırlık
+  tam interaktif sürüm AKTARILAMADI (yalnız o oturumda) — ekran gövdeleri
+  spec §5-6 + v0 export'undan uygulanıyor.
+- **DS Faz 1:** gözlem kartları amber sol çizgi (Underway/Log/Complete);
+  karşılaştırma başlıkları ↑/↓ (WCAG). `tests/design.test.ts` token paritesi.
+- **DS Faz 2:** `src/i18n/premium.ts` onaylı metin kütüphanesi (dürüstlük
+  kuralı: benefits yalnız BUGÜN var olan davranış; kodlanmamış derinlik
+  comingLater'da) · UpgradeSheetScreen (şeffaf modal, §5) · PremiumEntryRow
+  ufuk satırları (check-in sonu / AddLog / tamamlanan sefer raporu;
+  ikmal+mürettebat BİLİNÇLİ yok — derinlik kodda yok, ölü eylem yasağı) ·
+  inActiveFlow + oturum-içi modül kapatma (`entitlement/session.ts`) ·
+  PaywallScreen spec §5 tam ekran yapısı (dürüst karşılaştırma, tek CTA).
+- **BETA TAM ERİŞİM:** `BETA_FULL_ACCESS=true` (policy.ts, TEK sabit).
+  İlk ~100 beta kullanıcısı için kapılar hiç açılmaz, satın alma çağrılmaz,
+  sahte kayıt yok; kapatma tek satır (tests/premium.test.ts kanıtlar).
+- **Faz 8 (ilk beş dakika):** Welcome→AddVessel doğrudan · BoatsScreen
+  TROVE + boş durum · AddVesselScreen (aşamalı; isteğe bağlı kimlik
+  alanları v1 şemasına kalıcı) · TripWizard TROVE (profil katlanır, kirli
+  geri koruması) · TripDetail ikincil yönetim ekranı (H1 aynen) ·
+  HandoverReview TROVE (mono değerler, amber delta, feragat aynen).
+- **Testler:** 15 paket (design + premium + firstuse eklendi); tsc/lint/
+  expo-doctor 20/20 yeşil. iOS+Android Hermes bundle'ları temiz üretildi
+  (Metro kanıtı); native derleme + cihaz turu BEKLEMEDE
+  (docs/store/DEVICE-TEST.md "FAZ 8 + PREMIUM EKİ").
+- **DS Faz 3 bilinçli ertelendi:** SuccessBanner/satın alma durum UI'ları
+  beta'da davranışsız (mağaza yok, satın alma kapalı) — sprint kuralı
+  "davranışı olmayan durum inşa etme". Parasallaştırma aktivasyonunda
+  implementation-audit Faz 3 (CONFIRM-1, STATES-1, IAP-2) uygulanır.
 
 ## Tamamlanan fazlar
 - **Faz 1** — TROVE marka geçişi: C0 `TroveMark`, DM Sans wordmark varlığı, app.json
@@ -75,14 +108,12 @@ _Son güncelleme: 2026-08-02 (Faz 7 — Complete/Rapor) · Dal: claude/trove-int
   - **Cihaz doğrulaması BEKLEMEDE** — docs/store/DEVICE-TEST.md "FAZ 7 EKİ"
     (R1-R17) koşulmadan faz "tam doğrulandı" sayılmaz.
 
-## İlk-kullanım tasarım borcu (Faz 7 denetimi — Faz 8 önerisi)
-Yeni kullanıcının ilk 5 dakikası hâlâ eski görsel dilde: Karşılama →
-"İlk tekneni ekle" → **BoatsScreen (eski)** · TripWizard (eski) · hub/hero →
-**TripDetailScreen (eski)** · Complete akışında karşılaştırma adımı →
-**HandoverReviewScreen (eski)**. Faz 7'de yalnız belgelendi (kapsam şişirilmedi).
-**FAZ 8 ÖNERİSİ:** "İlk beş dakika" dikeyi — Karşılama→tekne ekleme→
-TripWizard→TripDetail'in TROVE görünümüne taşınması + HandoverReview
-tazelenmesi; ardından cihaz doğrulama turu (R1-R17 + eski D listesi).
+## İlk-kullanım tasarım borcu — KAPANDI (Faz 8, gece sprinti)
+Karşılama→AddVessel→BoatsScreen→TripWizard→TripDetail→HandoverReview
+tamamı TROVE görünümünde (yukarıdaki sprint özeti). Kalan eski-görünüm
+ekranlar: InspectScreen/InspectionSummary/Provisioning/BoatHistory/
+TripsScreen/Profile (bayrak arkası legacy hariç) — sonraki fazların işi.
+Cihaz doğrulama turu (R1-R17 + S1-S8 + P1-P9) hâlâ BEKLEMEDE.
 
 ## Bilinmesi gerekenler
 - Eski repo `fakkaya-spec/koskoraporweb` ARŞİV; oraya push yok. PR #3 kapatılacak.

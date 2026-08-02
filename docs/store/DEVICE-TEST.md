@@ -147,3 +147,44 @@ _Kod kapıları yeşil; aşağıdakiler gerçek cihazda doğrulanmadan Faz 7
 | R15 | Android donanım geri: kapanış akışında güvenli | | |
 | R16 | iOS çentik/safe-area: hero + alt CTA taşmaz | | |
 | R17 | Rapor yeniden üret → aynı dosya güncellenir, kayıt çoğalmaz | | |
+
+---
+
+## FAZ 8 + PREMIUM EKİ — Gece sprinti cihaz doğrulaması (BEKLEMEDE)
+
+_Durum etiketleri: **[A]** otomatik testle doğrulandı · **[M]** Metro/derleme
+kanıtı var (iOS+Android Hermes bundle üretildi, native derleme ortamda
+mümkün değildi) · **[C]** gerçek cihaz bekliyor · **[S]** mağaza konsolu
+bekliyor. Otomatik kapılar: 15 test paketi + tsc + lint + expo-doctor 20/20._
+
+### İlk kullanım (Faz 8)
+| # | Adım | Durum |
+|---|---|---|
+| S1 | Temiz kurulum → Karşılama; "İlk tekneni ekle" → AddVessel açılır | [A] rota, [C] cihaz |
+| S2 | AddVessel: yalnız ad+tür ile kaydet; ayrıntılar katlanır; kirli formda geri sorar | [A] sözleşme, [C] klavye/safe-area |
+| S3 | Tekne listesi: boş durum → ekleme → liste; satır → tekne geçmişi | [A], [C] |
+| S4 | TripWizard: own/charter/undecided; profil katlanır; kirli geri koruması; oluştur → TripDetail | [A] motor, [C] UX |
+| S5 | TripDetail: durum çipleri (gerçek), örnekte salt gösterim; akış bağlantıları çalışır | [A] H1, [C] |
+| S6 | Örnek keşif: Karşılama → örnek sefer → hiçbir mutasyon mümkün değil | [A] izolasyon, [C] |
+| S7 | HandoverReview: ↑/↓ etiketler, mono değerler, amber delta; paylaşım | [A] sözleşme, [C] görsel |
+| S8 | Uçak modunda S1-S7 tamamı (ağ çağrısı yok) | [A] kod taraması, [C] |
+
+### Premium + beta tam erişim
+| # | Adım | Durum |
+|---|---|---|
+| P1 | Beta açıkken: kamera dokunuşları paywall AÇMAZ, foto akışı çalışır | [A] seam testi, [C] kamera |
+| P2 | Giriş satırları görünür (check-in sonu, AddLog, tamamlanan sefer raporu) | [A] yerleşim, [C] |
+| P3 | Giriş satırı → yükseltme sayfası (280ms giriş, arka plan/geri ile kapanış) | [C] |
+| P4 | Sayfayı kapat → aynı modül satırı bu oturumda görünmez; yeniden başlatınca döner | [A] session, [C] |
+| P5 | AddLog taslağı yükseltme sayfası açılıp kapanınca aynen durur | [A] transparentModal, [C] |
+| P6 | Ayarlar → tam paywall: başlık/karşılaştırma/Not now/Restore; fiyat YOK (mağazasız) | [A] metin, [C] |
+| P7 | Mağaza yokken: "Store unavailable..." kopyası; satın alma düğmesi yok | [A], [C] |
+| P8 | Satın alma/geri yükleme gerçek akışı | [S] SKU'lar konsolda YOK — parasallaştırma aktivasyonunda |
+| P9 | react-native-iap RN 0.86 native derlemesi | [C] prebuild + run gerekli (bilinen risk) |
+
+### Kapanış öncesi (beta yayını)
+- `BETA_FULL_ACCESS=true` doğrula (beta profili) — kapatma tek satır, testli.
+- `__DEV__` Premium toggle üretim derlemesinde görünmez (yalnız __DEV__).
+- expo-sqlite WEB export'u wa-sqlite.wasm çözümlemesinde takılıyor
+  (önceden var olan paketleme sınırı; native hedefleri etkilemez — iOS ve
+  Android Hermes bundle'ları temiz üretildi).
