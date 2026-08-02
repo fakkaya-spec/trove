@@ -33,7 +33,7 @@ export type RootStackParamList = {
   TripShopping: { tripId: string };
   TripPredep: { tripId: string };
   TripCheckin: { tripId: string };
-  /** Seyir defteri — yeni kayıt ekleme (Faz 5'te repository'ye bağlanacak) */
+  /** Seyir defteri — yeni kayıt ekleme (modal; yerel-önce kalıcı) */
   AddLog: undefined;
 };
 

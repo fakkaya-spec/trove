@@ -20,9 +20,10 @@ import {
   LogEntryRow,
   pendingLogSyncIds,
 } from "../../repositories/log";
-import type { LogEntryType } from "../../domain/log";
+import { formatOccurredAt, logSyncState, LogEntryType, LogSyncState } from "../../domain/log";
+import { features } from "../../config/features";
 import { useLocale } from "../../i18n";
-import { LOG_STRINGS } from "../../i18n/log";
+import { LOG_STRINGS, LogStrings } from "../../i18n/log";
 import type { RootStackParamList } from "../../navigation";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -42,10 +43,11 @@ const ENTRY_CFG: Record<LogEntryType, { icon: LIconName; color: string; bg: stri
   general: { icon: "book-open", color: T.green, bg: T.greenL },
 };
 
-/** ISO → "2026-07-20 · 10:28" (mono makine-zamanı gösterimi). */
-function formatOccurredAt(iso: string): string {
-  return iso.length >= 16 ? `${iso.slice(0, 10)} · ${iso.slice(11, 16)}` : iso;
-}
+const SYNC_LABEL: Record<LogSyncState, keyof LogStrings> = {
+  saved_device: "savedDevice",
+  waiting_sync: "waitingSync",
+  synced: "synced",
+};
 
 export default function LogScreen() {
   const navigation = useNavigation<Nav>();
@@ -76,7 +78,8 @@ export default function LogScreen() {
     const isLast = index === entries.length - 1;
     const expanded = expandedId === e.id;
     const photos = mediaCounts.get(e.id) ?? 0;
-    const syncText = pending.has(e.id) ? s.waitingSync : s.savedDevice;
+    // Karar merkezî: tüketici yokken dürüstçe yalnız "bu cihazda kayıtlı".
+    const syncText = s[SYNC_LABEL[logSyncState(pending.has(e.id), features.syncWorker)]];
 
     return (
       <View style={styles.entryRow}>
@@ -118,7 +121,7 @@ export default function LogScreen() {
                   <Text style={styles.mediaCount}>{photos}</Text>
                 </View>
               )}
-              <Text style={styles.entryTime}>{formatOccurredAt(e.occurredAt)}</Text>
+              <Text style={styles.entryTime}>{formatOccurredAt(e.occurredAt, locale)}</Text>
             </View>
             <Text style={styles.syncState}>{syncText}</Text>
           </View>
@@ -247,7 +250,9 @@ const styles = StyleSheet.create({
   entryLoc: { fontSize: 11, color: T.ink2, flex: 1 },
   mediaBadge: { flexDirection: "row", alignItems: "center", gap: 3 },
   mediaCount: { fontSize: 10, color: T.ink3, fontFamily: T.mono },
-  entryTime: { fontSize: 10, color: T.ink3, fontFamily: T.mono },
+  // Sıradan tarih/saat gösterimi mono DEĞİLDİR (mono yalnız kanıt
+  // metaverisinde — ör. foto üstü damga); yerel dilime çevrilmiş metin.
+  entryTime: { fontSize: 10, color: T.ink3 },
   syncState: { fontSize: 9, color: T.ink3, marginTop: 3 },
   empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl },
   emptyIcon: {

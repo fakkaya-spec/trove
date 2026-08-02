@@ -38,7 +38,7 @@ _Son güncelleme: 2026-08-02 (Faz 5 — Log dikey dilimi) · Dal: claude/trove-i
     kayıtlı/senkron bekliyor'), AddLog modal (taslak koruması, foto
     `log_photo` kapısıyla `useEntitlement.requestAccess` üstünden;
     çekim mevcut medya hattıyla addLogMedia'ya bağlanır).
-  - `tests/log.test.ts` (10. paket): 4→5 migration + yeniden başlatma
+  - `tests/log.test.ts` (9. paket): 4→5 migration + yeniden başlatma
     kalıcılığı + izolasyon + kapı sözleşmesi + i18n bütünlüğü.
 
 ## Sıradaki: FAZ 6+ (öncelik sırası kullanıcı onayında)

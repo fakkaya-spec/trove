@@ -14,4 +14,11 @@ export const features = {
 
   /** Reklamlar yalnızca legacy modda yaşar. Yeni akışta asla. */
   adsInLegacyOnly: true,
+
+  /**
+   * Bulut senkron tüketicisi (Faz 11). false iken UI DÜRÜSTTÜR: yalnız
+   * "bu cihazda kayıtlı" gösterilir; sync_queue yazımları içeride sürer.
+   * true yapılınca domain/log.logSyncState bekliyor/senkronlandı ayrımını açar.
+   */
+  syncWorker: false,
 } as const;

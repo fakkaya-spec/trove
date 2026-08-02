@@ -165,7 +165,7 @@ function Tabs() {
         options={{
           title: s.tabLog,
           tabBarIcon: icon("create-outline"),
-          // LogScreen kendi başlığını çizer (Faz 5'te repository'ye bağlanacak)
+          // LogScreen kendi başlığını çizer
           headerShown: false,
         }}
       />

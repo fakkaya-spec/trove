@@ -111,7 +111,13 @@ import {
   SampleReadOnlyError,
   updateLogEntry,
 } from "../src/repositories/log";
-import { deriveTitle } from "../src/domain/log";
+import {
+  compareLogEntriesDesc,
+  deriveTitle,
+  formatOccurredAt,
+  logSyncState,
+} from "../src/domain/log";
+import { features } from "../src/config/features";
 import {
   capabilitiesFor,
   CONTEXT_CAPABILITY,
@@ -270,6 +276,69 @@ const addLogSrc = readFileSync(join(root, "src", "screens", "log", "AddLogScreen
 assert.ok(addLogSrc.includes("createLogEntry"), "kaydetme repository'ye yazar");
 assert.ok(addLogSrc.includes('requestAccess("log_photo")'), "foto merkezî kapıdan geçer");
 assert.ok(!addLogSrc.includes("TODO"), "TODO kalmadı");
+
+// --- Yerel saat gösterimi (saklama UTC, gösterim yerel + dile duyarlı) ------
+const IST = "Europe/Istanbul"; // UTC+3
+const midday = formatOccurredAt("2026-08-01T10:00:00.000Z", "tr", IST);
+assert.ok(midday.includes("13:00"), `UTC 10:00 → UTC+3'te 13:00 (görülen: ${midday})`);
+assert.ok(midday.includes("1 Ağu"), `gün yerel dilimde ve dile duyarlı (görülen: ${midday})`);
+// Gece yarısı devrilmesi: UTC 22:30 → yerel ertesi gün 01:30
+const rollover = formatOccurredAt("2026-08-01T22:30:00.000Z", "tr", IST);
+assert.ok(rollover.includes("01:30"), `devrilme saati (görülen: ${rollover})`);
+assert.ok(rollover.includes("2 Ağu"), `tarih ertesi güne devrilir (görülen: ${rollover})`);
+// Bozuk damga: ham değer döner, uydurma dönüşüm yok
+assert.equal(formatOccurredAt("not-a-timestamp", "tr", IST), "not-a-timestamp");
+// Kronolojik sıra SAKLANAN UTC değerine göredir (yerel görünümden bağımsız)
+const utcSorted = [
+  { occurredAt: "2026-08-01T10:00:00.000Z" },
+  { occurredAt: "2026-08-01T22:30:00.000Z" },
+].sort(compareLogEntriesDesc);
+assert.equal(utcSorted[0].occurredAt, "2026-08-01T22:30:00.000Z", "UTC'ye göre en yeni üstte");
+assert.equal(list[0].id, e2.id, "repository sıralaması saklanan UTC üstünden sürer");
+
+// --- Senkron dürüstlüğü: tüketici yokken yalnız 'bu cihazda kayıtlı' --------
+assert.equal(features.syncWorker, false, "MVP: senkron tüketicisi henüz yok");
+assert.equal(logSyncState(true, features.syncWorker), "saved_device",
+  "kuyrukta beklese bile tüketici yokken 'senkron bekliyor' VAAT EDİLMEZ");
+assert.equal(logSyncState(false, features.syncWorker), "saved_device");
+// Gerçek tüketici açılınca ayrım hazır:
+assert.equal(logSyncState(true, true), "waiting_sync");
+assert.equal(logSyncState(false, true), "synced");
+assert.ok(
+  readFileSync(join(__dirname, "..", "src", "screens", "log", "LogScreen.tsx"), "utf8")
+    .includes("logSyncState("),
+  "karar merkezî yardımcıda; satır başına elle kurulmaz"
+);
+
+// --- Migration bütünlük kapısı ----------------------------------------------
+// Geçerli yükseltilmiş DB geçer (yukarıdaki ana akış + foreign_key_check=0).
+// Kasıtlı bozuk FK migration'ı AÇIKÇA düşürür ve FK geri açık kalır:
+{
+  const dir2 = mkdtempSync(join(tmpdir(), "trove-mig-"));
+  const brokenFile = join(dir2, "broken.sqlite");
+  const sq2 = new Database(brokenFile);
+  migrateUpTo(expoLikeAdapter(sq2), 4);
+  sq2.pragma("foreign_keys = OFF");
+  sq2
+    .prepare(
+      `INSERT INTO media_assets (id, inspection_id, kind, local_uri, taken_at, upload_state, created_at, updated_at)
+       VALUES ('m-orphan','ghost-inspection','photo','media/x.jpg',?, 'pending', ?, ?)`
+    )
+    .run(now, now, now);
+  sq2.pragma("foreign_keys = ON");
+  assert.throws(
+    () => migrate(expoLikeAdapter(sq2)),
+    /integrity check failed/i,
+    "bozuk FK ile migration açıkça başarısız olur"
+  );
+  assert.equal(
+    sq2.pragma("foreign_keys", { simple: true }),
+    1,
+    "başarısızlıkta bile foreign_keys geri açılır (finally)"
+  );
+  sq2.close();
+  rmSync(dir2, { recursive: true, force: true });
+}
 
 // --- 18) i18n anahtar bütünlüğü ---------------------------------------------
 const enKeys = Object.keys(LOG_STRINGS.en).sort();

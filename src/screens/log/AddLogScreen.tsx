@@ -58,7 +58,14 @@ export default function AddLogScreen() {
     { key: "serious", label: s.sev_serious, color: T.red, bg: T.redL },
   ];
 
-  const dirty = description.trim().length > 0 || photoKey !== null;
+  // Kirli taslak: METİN/FOTO'nun yanı sıra yer, tür ve önem seçimleri de
+  // kullanıcı emeğidir — hepsi varsayılandan sapınca atılmadan önce sorulur.
+  const dirty =
+    description.trim().length > 0 ||
+    photoKey !== null ||
+    place.trim().length > 0 ||
+    type !== "observation" ||
+    severity !== "minor";
 
   // Taslak koruması: geri/iptal (Android donanım geri dahil) kirli taslakta
   // önce sorar; kayıt sonrası serbest bırakır.
@@ -87,8 +94,13 @@ export default function AddLogScreen() {
   }
 
   function handleSave() {
+    // Sessiz devre dışı düğme yerine mevcut doğrulama mesajı gösterilir.
+    if (!description.trim()) {
+      Alert.alert(s.descriptionLabel, s.descriptionRequired);
+      return;
+    }
     const trip = currentTrip();
-    if (!trip || !description.trim()) return;
+    if (!trip) return;
     const entry = createLogEntry({
       tripId: trip.id,
       vesselId: trip.boatId,
@@ -122,11 +134,9 @@ export default function AddLogScreen() {
           <Text style={styles.headerTitle}>{s.addTitle}</Text>
           <Pressable
             onPress={handleSave}
-            disabled={!description.trim()}
             style={({ pressed }) => [styles.navBtn, styles.navBtnRight, pressed && { opacity: 0.6 }]}
             accessibilityRole="button"
             accessibilityLabel={s.save}
-            accessibilityState={{ disabled: !description.trim() }}
           >
             <Text style={[styles.saveLabel, !description.trim() && { color: T.ink3 }]}>
               {s.addCta}
@@ -249,7 +259,6 @@ export default function AddLogScreen() {
           {/* Kaydet */}
           <Pressable
             onPress={handleSave}
-            disabled={!description.trim()}
             style={({ pressed }) => [
               styles.primaryBtn,
               !description.trim() && styles.primaryBtnDisabled,
@@ -257,7 +266,6 @@ export default function AddLogScreen() {
             ]}
             accessibilityRole="button"
             accessibilityLabel={s.save}
-            accessibilityState={{ disabled: !description.trim() }}
           >
             <Text
               style={[styles.primaryBtnLabel, !description.trim() && { color: T.ink3 }]}

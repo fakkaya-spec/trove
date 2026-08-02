@@ -358,7 +358,16 @@ function applyPending(db: SQLiteDatabase, maxId: number): void {
         ]);
       });
     }
+    // Bütünlük kapısı: FK geri açılmadan önce ihlal taraması. İhlal varsa
+    // migration AÇIKÇA başarısızdır — sessizce bozuk şemayla devam edilmez.
+    const violations = db.getAllSync<Record<string, unknown>>(`PRAGMA foreign_key_check`);
+    if (violations.length > 0) {
+      throw new Error(
+        `Migration integrity check failed: ${violations.length} foreign key violation(s)`
+      );
+    }
   } finally {
+    // Denetim düşse bile FK zorlaması MUTLAKA geri açılır.
     db.execSync("PRAGMA foreign_keys = ON;");
   }
 }
