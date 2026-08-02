@@ -10,6 +10,8 @@ import React, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { usePremium } from "../premium";
 import {
+  ALL_CAPABILITIES,
+  BETA_FULL_ACCESS,
   Capabilities,
   capabilitiesFor,
   CONTEXT_CAPABILITY,
@@ -30,6 +32,10 @@ const CONTEXTS_KEY = "trove:paywall:contexts";
 
 interface EntitlementCtx {
   capabilities: Capabilities;
+  /** GERÇEK (satın alınmış) Premium yetkisi — beta tam erişimden bağımsız.
+   *  Premium giriş satırları yalnız buna bakarak gizlenir: beta sırasında
+   *  yüzeyler tasarım doğrulaması için görünür kalır (spec §9). */
+  premiumActive: boolean;
   /** Yetki varsa true döner; yoksa bağlamı kaydedip paywall'ı açar, false döner. */
   requestAccess: (context: PaywallContext) => Promise<boolean>;
 }
@@ -44,6 +50,7 @@ const DENIED: Capabilities = {
 
 const Ctx = createContext<EntitlementCtx>({
   capabilities: DENIED,
+  premiumActive: false,
   requestAccess: async () => false,
 });
 
@@ -59,7 +66,8 @@ export function EntitlementProvider({
   const [snapshot, setSnapshot] = useState<{
     lastVerifiedAt: string | null;
     capabilities: Capabilities;
-  }>({ lastVerifiedAt: null, capabilities: DENIED });
+    premiumActive: boolean;
+  }>({ lastVerifiedAt: null, capabilities: DENIED, premiumActive: false });
   const countsRef = useRef<Partial<Record<PaywallContext, number>>>({});
 
   // Önbelleği yükle + mağaza bu oturumda erişilebilirken Premium doğrulandıysa
@@ -93,12 +101,18 @@ export function EntitlementProvider({
         AsyncStorage.setItem(VERIFIED_AT_KEY, verifiedAt).catch(() => {});
       }
       if (!cancelled) {
+        // BETA TAM ERİŞİM SEAM'İ (tek nokta): bayrak açıkken tüm mevcut
+        // kapasiteler verilir — satın alma yok, sahte kayıt yok, önbellek
+        // olduğu gibi. Bayrak kapanınca normal hesap geri gelir.
+        // premiumActive daima GERÇEK yetkidir (beta'dan bağımsız).
+        const real = capabilitiesFor(
+          { isPremium: premium.isPremium, lastVerifiedAt: verifiedAt },
+          Date.now()
+        );
         setSnapshot({
           lastVerifiedAt: verifiedAt,
-          capabilities: capabilitiesFor(
-            { isPremium: premium.isPremium, lastVerifiedAt: verifiedAt },
-            Date.now()
-          ),
+          capabilities: BETA_FULL_ACCESS ? ALL_CAPABILITIES : real,
+          premiumActive: real.canCapturePhoto,
         });
       }
     })();
@@ -109,6 +123,8 @@ export function EntitlementProvider({
 
   const requestAccess = useCallback(
     async (context: PaywallContext): Promise<boolean> => {
+      // Beta tam erişim: kapı hiç açılmaz, bağlam sayılmaz, paywall yok.
+      if (BETA_FULL_ACCESS) return true;
       // Karar çağrı anında verilir: grace penceresi ekran açıkken dolsa bile
       // bayat bir snapshot yetki sızdırmaz.
       const caps = capabilitiesFor(
@@ -126,8 +142,12 @@ export function EntitlementProvider({
   );
 
   const value = useMemo<EntitlementCtx>(
-    () => ({ capabilities: snapshot.capabilities, requestAccess }),
-    [snapshot.capabilities, requestAccess]
+    () => ({
+      capabilities: snapshot.capabilities,
+      premiumActive: snapshot.premiumActive,
+      requestAccess,
+    }),
+    [snapshot.capabilities, snapshot.premiumActive, requestAccess]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

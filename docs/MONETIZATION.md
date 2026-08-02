@@ -36,10 +36,15 @@ reopens it. Recorded here so no session re-debates it._
 7. **Beta = no monetization.** The first ~100 real beta users experience the
    complete product with NO monetization, to observe real behaviour before
    deciding what becomes Premium and where upgrade moments belong.
-   _Implementation note (deferred, one-line thanks to the central seam):
-   before the beta build ships, the entitlement policy gets a beta-full-
-   access switch so the existing photo gate does not fire for beta users.
-   Not implemented yet — beta-readiness item._
+   _Implementation note: IMPLEMENTED — `BETA_FULL_ACCESS` in
+   `src/entitlement/policy.ts` (single central constant, currently `true`).
+   While on: all currently implemented Premium capabilities are granted,
+   gates never open a paywall, purchase is never called, no fake
+   subscription/transaction record is created, the entitlement cache is
+   untouched, and Premium surfaces stay visible for design validation.
+   To disable before monetization activation: set the constant to `false` —
+   normal purchase+grace entitlement behavior returns; there are no other
+   beta conditionals anywhere (proven by `tests/premium.test.ts`)._
 8. **Partner openness.** Architecture stays open for future integrations
    (Boatsy, Click&Boat, SamBoat, Borrow A Boat, marina reservation,
    insurance partners) — long-term business options, NOT MVP features.

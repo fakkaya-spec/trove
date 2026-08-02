@@ -28,6 +28,21 @@ export interface EntitlementState {
   lastVerifiedAt: string | null;
 }
 
+/**
+ * BETA TAM ERİŞİM ANAHTARI (MONETIZATION karar 7 — kilitli felsefe):
+ * İlk ~100 gerçek beta kullanıcısı ürünün TAMAMINI parasallaştırmasız
+ * deneyimler. true iken merkezî servis tüm mevcut Premium kapasiteleri
+ * satın alma istemeden verir; kapılar paywall AÇMAZ; satın alma ÇAĞRILMAZ;
+ * sahte abonelik/işlem kaydı oluşturulmaz; entitlement önbelleğine
+ * dokunulmaz. Premium yüzeyleri (giriş satırları, sayfalar) tasarım
+ * doğrulaması için GÖRÜNÜR kalır (spec §9).
+ *
+ * KAPATMA (parasallaştırma aktivasyonundan önce): bu sabiti false yap —
+ * normal entitlement davranışı (satın alma + grace penceresi) olduğu
+ * gibi geri gelir; başka hiçbir yerde beta koşulu yoktur.
+ */
+export const BETA_FULL_ACCESS = true;
+
 /** Çevrimdışı entitlement grace penceresi (gün). */
 export const OFFLINE_GRACE_DAYS = 14;
 
@@ -53,6 +68,15 @@ export interface Capabilities {
   canCreatePhotoPair: boolean;
   canSyncNewPhotos: boolean;
 }
+
+/** Beta tam erişimde verilen kapasite kümesi (yalnız MEVCUT yetenekler). */
+export const ALL_CAPABILITIES: Capabilities = {
+  canCapturePhoto: true,
+  canImportPhoto: true,
+  canAttachPhoto: true,
+  canCreatePhotoPair: true,
+  canSyncNewPhotos: true,
+};
 
 export function capabilitiesFor(state: EntitlementState, nowMs: number): Capabilities {
   const entitled = state.isPremium && withinGrace(state.lastVerifiedAt, nowMs);
