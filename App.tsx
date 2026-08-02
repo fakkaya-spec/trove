@@ -28,7 +28,8 @@ import HomeScreen from "./src/screens/HomeScreen";
 import ChecklistScreen from "./src/screens/ChecklistScreen";
 import GuideScreen from "./src/screens/GuideScreen";
 import PremiumScreen from "./src/screens/PremiumScreen";
-import LogPlaceholderScreen from "./src/screens/log/LogPlaceholderScreen";
+import LogScreen from "./src/screens/log/LogScreen";
+import AddLogScreen from "./src/screens/log/AddLogScreen";
 import { colors, fonts } from "./src/theme";
 import { Icon, type IconName } from "./src/components/Icon";
 import { TroveMark } from "./src/components/brand/TroveMark";
@@ -160,11 +161,12 @@ function Tabs() {
       />
       <Tab.Screen
         name="LogTab"
-        component={LogPlaceholderScreen}
+        component={LogScreen}
         options={{
           title: s.tabLog,
           tabBarIcon: icon("create-outline"),
-          headerTitle: s.logbookTitle,
+          // LogScreen kendi başlığını çizer (Faz 5'te repository'ye bağlanacak)
+          headerShown: false,
         }}
       />
       <Tab.Screen
@@ -231,6 +233,11 @@ function Root() {
         <Stack.Screen
           name="Paywall"
           component={PaywallScreen}
+          options={{ headerShown: false, presentation: "modal" }}
+        />
+        <Stack.Screen
+          name="AddLog"
+          component={AddLogScreen}
           options={{ headerShown: false, presentation: "modal" }}
         />
         {/* Faz 4 — Trip Prepare ekranları */}

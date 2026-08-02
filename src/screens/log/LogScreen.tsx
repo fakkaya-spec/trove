@@ -30,6 +30,9 @@ export interface LogEntry {
   photoUri?: string;
 }
 
+// ⚠️ EKSİK — GÖRSEL PROTOTİP (Faz 5'e kadar işlevsel DEĞİL):
+// kayıtlar sabit yer tutucudur; log_entries migration'ı + repository +
+// sync kuyruğu + örnek izolasyonu + i18n + LIcon geçişi Faz 5'te bağlanacak.
 // Placeholder entries — replaced by log repository (Phase 5)
 const PLACEHOLDER_ENTRIES: LogEntry[] = [
   { id: "1", type: "observation", title: "Port winch — grinding noise under load", location: "Cockpit", timestamp: "Jun 17 · 10:28", severity: "minor" },

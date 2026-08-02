@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { T, TSH, TICON, spacing, touch, radius } from "../../theme";
+import { T, TSH, TICON, spacing, touch } from "../../theme";
 import { Icon } from "../../components/Icon";
 import type { RootStackParamList } from "../../navigation";
 import type { LogEntryType, Severity } from "./LogScreen";
@@ -38,7 +38,9 @@ export default function AddLogScreen() {
   const [description, setDescription] = useState("");
 
   function handleSave() {
-    // TODO: persist to log repository (Phase 5)
+    // ⚠️ EKSİK — kayıt HENÜZ KALICI DEĞİL (Faz 5): log repository +
+    // sync kuyruğu bağlanana dek bu ekran görsel prototiptir. Foto kutusu da
+    // no-op; gerçek çekim entitlement kapısından (log_photo) geçecek.
     navigation.goBack();
   }
 
@@ -156,7 +158,7 @@ export default function AddLogScreen() {
 
           {/* Location row */}
           <View style={[styles.card, styles.locationRow]}>
-            <Icon name="location-outline" size={TICON.sm} color={T.ink2} />
+            <Icon name="navigate-outline" size={TICON.sm} color={T.ink2} />
             <Text style={styles.locationText}>Current location</Text>
           </View>
 
