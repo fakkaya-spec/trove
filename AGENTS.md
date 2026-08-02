@@ -21,6 +21,6 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
 10. Her faz sonunda: `npm run typecheck && npm run lint && npm test` (7 paket) + `npx expo-doctor` yeşil olmadan commit yok.
 
 ## Çalışma düzeni
-- Fazlar doğrudan `main`'e commit edilir (küçük, anlamlı commit'ler); faz bitince `faz-N` etiketi.
+- Fazlar doğrudan `main`'e commit edilir (küçük, anlamlı commit'ler); faz sınırı commit mesajında "Faz N" ile işaretlenir (git tag push'u oturum proxy'sinde desteklenmiyor — etiket gerekiyorsa Mac'ten atılır).
 - Riskli/deneysel iş: ayrı dal + PR.
 - `design-reference/` salt referanstır; tsc/eslint dışındadır; içine uygulama kodu yazılmaz.
