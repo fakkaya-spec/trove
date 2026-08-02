@@ -20,7 +20,10 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
   çalışamayan özellik yok · hava durumu gelecek genişleme noktası ·
   bulut-önce varsayım yok · gereksiz ayar yok.
 
-### Ürün felsefesi (kalıcı — Faz 6 sonrası reset + misyon güncellemesi)
+### Ürün felsefesi (kalıcı — DONDURULDU 2026-08-02)
+_Ürün sahibi açıkça istemedikçe bu bölüme YENİ İLKE EKLENMEZ. Yeni fikirler
+yeni ilke olmaz; MEVCUT ilkelere göre değerlendirilir. Ürün evrilir,
+felsefe sabit kalır. İtirazlar mevcut ilkelerle yapılır._
 - **Misyon:** TROVE denizciliği her seferden önce, sefer sırasında ve sonra
   daha kolay, daha sakin ve daha keyifli yapar. Denetim yalnız bir andır;
   TROVE denetim/filo/sigorta/ERP/uyumluluk yazılımı DEĞİLDİR. Denizciliği
