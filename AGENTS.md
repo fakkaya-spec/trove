@@ -3,6 +3,23 @@
 ## Expo HAS CHANGED
 Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
 
+## KALICI ÜRÜN İLKELERİ (her implementasyon önce bu soruyu geçer)
+> **"Gerçek bir kaptan bunu bugün, gerçek bir seferde kullanır mı?"**
+> Yanıt hayırsa, HENÜZ yapma.
+
+- Önce aktif seferde günlük değer üreten işler; kurumsal (enterprise) iş
+  akışları ASLA günlük denizciliğin önüne geçmez.
+- TROVE bir **Sefer Yoldaşıdır** — sigorta platformu, filo yönetimi veya
+  kurumsal pano DEĞİLDİR. Aktif sefer daima ürünün merkezidir.
+- **Underway hedefi:** ekran 3 saniyede tek soruyu yanıtlar — "şu an neye
+  dikkat etmeliyim?" Tüm etkileşim 10 saniyede biter: Aç → Anla → Kaydet →
+  Kapat. His: pano değil, kaptanın yanında oturan güvenilir yoldaş. Bilgi
+  hiyerarşisi önce bugünün seferi, sonra sorunlar (Gün X/Y → varış → durum →
+  hızlı kayıt → açık gözlemler → ikmal → mürettebat → hava yer tutucusu).
+- **MVP disiplini:** sahte veri yok · çevrimiçi bağımlılık yok · çevrimdışı
+  çalışamayan özellik yok · hava durumu gelecek genişleme noktası ·
+  bulut-önce varsayım yok · gereksiz ayar yok.
+
 ## Durum ve yol haritası
 - Mevcut durum + sonraki faz: `docs/HANDOFF.md` (ÖNCE BUNU OKU)
 - Faz planı: `docs/TROVE-ROADMAP.md` · Para kazanma (KİLİTLİ): `docs/MONETIZATION.md`
