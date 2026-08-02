@@ -343,6 +343,18 @@ export const logEntries = sqliteTable("log_entries", {
   ...common,
 });
 
+// Faz 7: yazılı onay ("Signed by / Recorded at") — hukuki iddia taşımaz.
+export const tripSignoffs = sqliteTable("trip_signoffs", {
+  id: text("id").primaryKey(),
+  tripId: text("trip_id").notNull(),
+  inspectionId: text("inspection_id"),
+  role: text("role").notNull().default("skipper"),
+  name: text("name").notNull(),
+  note: text("note"),
+  signedAt: text("signed_at").notNull(),
+  ...common,
+});
+
 export const syncQueue = sqliteTable("sync_queue", {
   id: text("id").primaryKey(),
   entity: text("entity").notNull(),

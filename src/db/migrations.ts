@@ -334,6 +334,26 @@ CREATE INDEX idx_media_log_entry ON media_assets(log_entry_id);
 ALTER TABLE log_entries ADD COLUMN resolved_at TEXT;
 `,
   },
+  {
+    // TROVE Faz 7 (Complete): yazılı onay/imza kaydı. Mevcut `signatures`
+    // tablosu media_id NOT NULL ile ÇİZİLMİŞ imza görseli varsayar; çizim
+    // akışı yok ve çizim bağımlılığı onaysız. Bu tablo dürüst dili taşır:
+    // "Signed by <ad> · Recorded at <zaman>" — hukuki geçerlilik İDDİASI YOK.
+    id: 7,
+    sql: `
+CREATE TABLE trip_signoffs (
+  id TEXT PRIMARY KEY,
+  trip_id TEXT NOT NULL REFERENCES trips(id),
+  inspection_id TEXT REFERENCES inspections(id),
+  role TEXT NOT NULL DEFAULT 'skipper',
+  name TEXT NOT NULL,
+  note TEXT,
+  signed_at TEXT NOT NULL,
+  ${COMMON}
+);
+CREATE INDEX idx_signoffs_trip ON trip_signoffs(trip_id);
+`,
+  },
 ];
 
 /** Testlerin sürüm-atlamalı (ör. 4→5) yükseltmeyi kanıtlaması için salt okunur dışa aktarım. */

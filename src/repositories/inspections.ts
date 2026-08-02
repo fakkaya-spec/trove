@@ -335,6 +335,16 @@ export function upsertIssueForItem(
   return id;
 }
 
+/** Sorunu çözüldü/geri açıldı işaretler (Faz 7 tamamlama incelemesi). */
+export function setIssueResolved(issueId: string, resolved: boolean): void {
+  getDb()
+    .update(issues)
+    .set({ resolved: resolved ? 1 : 0, updatedAt: nowIso() })
+    .where(eq(issues.id, issueId))
+    .run();
+  enqueueSync("issues", issueId);
+}
+
 export function removeIssueForItem(inspectionId: string, templateItemId: string): void {
   const now = nowIso();
   getDb()
