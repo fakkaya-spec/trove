@@ -16,6 +16,15 @@ model (photo evidence = Premium)._
 | **P7** | Photo pipeline: compression + thumbnails via expo-image-manipulator (approved), offline queue, retention config | Context `gallery_import`; offline entitlement grace (rule 6); pipeline never loses local evidence (rule 10) | pending |
 | **P8** | Tests (incl. entitlement gates + sample isolation), typecheck/lint/migrations, device validation | Paywall context tracking verified | pending |
 
+Pre-public-beta requirements (release blockers, not phases):
+- **"Select and configure a privacy-safe centralized analytics solution
+  capable of measuring activated users and triggering the 100-user founder
+  milestone."** Contract & activation rule: `docs/ANALYTICS-EVENTS.md`.
+  The founder milestone system is a release-planning dependency, NOT a
+  mobile feature — no fake local counters in the consumer app; the alert
+  lives in a founder dashboard/email channel outside the app. Provider is
+  deliberately unchosen; no tracking code before consent UX exists.
+
 Standing decisions:
 - Settings = existing Profile screen as a stack page behind a gear icon in the
   Trip header. Never a bottom tab.

@@ -97,6 +97,10 @@ tazelenmesi; ardından cihaz doğrulama turu (R1-R17 + eski D listesi).
   yeniden başlatma, IAP derlemesi) hâlâ bekliyor.
 - `origin/main`'de diğer ajanın commit'leri var (e432242 alındı; 868131b
   ALINMADI — Faz 4 ekranlarının mükerrer kopyaları, birleştirilmeyecek).
+- Kurucu Kilometre Taşı Sistemi: uygulama-içi sürüm GERİ ALINDI (kurucu
+  kararı — tüketici uygulamasına ait değil; sahte yerel sayaç yasak).
+  Sözleşme + aktivasyon tanımı + gelecek mimari: docs/ANALYTICS-EVENTS.md;
+  beta öncesi analitik seçimi ROADMAP'te sürüm engeli olarak kayıtlı.
 - Örnek seferler karşılamadan hâlâ TripDetail'e açılır (eski görünüm);
   hub'a taşınmaları sonraki fazların işi. Hub yalnız gerçek seferlerde.
 - Örnek fotoğraflar `assets/samples/` (yerel, çevrimdışı); Unsplash URL'leri yalnız
