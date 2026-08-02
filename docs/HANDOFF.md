@@ -1,6 +1,6 @@
 # TROVE — Devir-Teslim / Güncel Durum
 
-_Son güncelleme: 2026-08-02 (Faz 4) · Taşıma: koskoraporweb → trove (geçmiş korunarak)_
+_Son güncelleme: 2026-08-02 (Faz 5 — Log dikey dilimi) · Dal: claude/trove-integration_
 
 ## Tamamlanan fazlar
 - **Faz 1** — TROVE marka geçişi: C0 `TroveMark`, DM Sans wordmark varlığı, app.json
@@ -26,19 +26,38 @@ _Son güncelleme: 2026-08-02 (Faz 4) · Taşıma: koskoraporweb → trove (geçm
     `trip_checkin` (tek `TripChecklistScreen`; bayrak+kamera düğmeleri, kritik
     maddeler tamamlamayı bloklar; örnek seferlerde denetim OLUŞTURULMAZ).
 
-## Sıradaki: FAZ 5 — Underway + Log
-- `log_entries` migration'ı (yalnız YENİ migration ID; eskiler değişmez),
-  `trip_underway` ekranı, `log` + `log_add` (metin her zaman ücretsiz;
-  foto `log_photo` bağlamıyla kapılı).
-Ardından: P6 Complete+expo-print PDF · P7 foto hattı (expo-image-manipulator) ·
-P8 testler+cihaz doğrulama.
+- **Faz 5 (Log dikey dilimi)** — Seyir defteri uçtan uca:
+  - Migration 5: `log_entries` + `media_assets` yeniden kurulumu
+    (inspection_id nullable, log_entry_id); migration runner artık standart
+    SQLite prosedürüyle FK'yı yeniden kurulum sırasında kapatır (cihazda
+    handover_pairs bağımlı satırları varken DROP patlamasın diye — testli).
+  - `src/domain/log.ts` + `src/repositories/log.ts` (izolasyon repository
+    katmanında; örnek kayda gerçek-yol mutasyonu SampleReadOnlyError;
+    örnekler sync kuyruğuna asla girmez) · seed v2: Serenity'ye 5 örnek kayıt.
+  - LogTab → LogScreen (repository-destekli, senkron dili 'bu cihazda
+    kayıtlı/senkron bekliyor'), AddLog modal (taslak koruması, foto
+    `log_photo` kapısıyla `useEntitlement.requestAccess` üstünden;
+    çekim mevcut medya hattıyla addLogMedia'ya bağlanır).
+  - `tests/log.test.ts` (10. paket): 4→5 migration + yeniden başlatma
+    kalıcılığı + izolasyon + kapı sözleşmesi + i18n bütünlüğü.
+
+## Sıradaki: FAZ 6+ (öncelik sırası kullanıcı onayında)
+- `trip_underway` ekranı (P5'in kalan yarısı) · P6 Complete+expo-print PDF ·
+  P7 foto hattı (sıkıştırma/thumbnail — Faz 10 borcu olarak belgeli) ·
+  P8 testler+cihaz doğrulama.
 
 ## Bilinmesi gerekenler
 - Eski repo `fakkaya-spec/koskoraporweb` ARŞİV; oraya push yok. PR #3 kapatılacak.
-- `npm test` = 8 paket (entitlement.test.ts eklendi); beklenen çıktılar birebir
+- `npm test` = 9 paket (entitlement + log eklendi); beklenen çıktılar birebir
   korunmalı (repos/trip-flow satırları).
-- Faz 4 ekran metinleri (`src/i18n/prepare.ts`, `entitlement.ts`) şimdilik
-  en+tr; diğer 7 dil İngilizce'ye düşer — çeviri borcu P8 öncesi kapanmalı.
+- Faz 4-5 ekran metinleri (`src/i18n/prepare.ts`, `entitlement.ts`, `log.ts`)
+  şimdilik en+tr; diğer 7 dil İngilizce'ye düşer — çeviri borcu P8 öncesi
+  kapanmalı.
+- Foto sıkıştırma/thumbnail YOK (Faz 10 borcu); log foto akışı mevcut hattı
+  (EXIF kapalı, göreli anahtar) kullanır. Native cihaz doğrulaması (kamera,
+  yeniden başlatma, IAP derlemesi) hâlâ bekliyor.
+- `origin/main`'de diğer ajanın commit'leri var (e432242 alındı; 868131b
+  ALINMADI — Faz 4 ekranlarının mükerrer kopyaları, birleştirilmeyecek).
 - Örnek seferler karşılamadan hâlâ TripDetail'e açılır (eski görünüm);
   hub'a taşınmaları sonraki fazların işi. Hub yalnız gerçek seferlerde.
 - Örnek fotoğraflar `assets/samples/` (yerel, çevrimdışı); Unsplash URL'leri yalnız

@@ -331,37 +331,38 @@ CREATE INDEX idx_media_log_entry ON media_assets(log_entry_id);
 export const MIGRATION_IDS: readonly number[] = MIGRATIONS.map((m) => m.id);
 
 export function migrateUpTo(db: SQLiteDatabase, maxId: number): void {
+  applyPending(db, maxId);
+}
+
+function applyPending(db: SQLiteDatabase, maxId: number): void {
   db.execSync(
     `CREATE TABLE IF NOT EXISTS schema_migrations (id INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);`
   );
   const appliedRows = db.getAllSync<{ id: number }>(`SELECT id FROM schema_migrations`);
   const applied = new Set(appliedRows.map((r) => r.id));
-  for (const m of MIGRATIONS) {
-    if (m.id > maxId || applied.has(m.id)) continue;
-    db.withTransactionSync(() => {
-      db.execSync(m.sql);
-      db.runSync(`INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)`, [
-        m.id,
-        new Date().toISOString(),
-      ]);
-    });
+  const pending = MIGRATIONS.filter((m) => m.id <= maxId && !applied.has(m.id));
+  if (pending.length === 0) return;
+  // Standart SQLite tablo-yeniden-kurulum prosedürü: FK zorlaması migration
+  // sırasında KAPALI olmalı (migration 5'in DROP/RENAME'i, media_assets'e
+  // bağlı handover_pairs satırları varken FK açıkken başarısız olurdu).
+  // PRAGMA transaction içinde etkisizdir; bu yüzden döngünün dışındadır.
+  // Veri birebir kopyalandığı için bütünlük korunur; sonda FK geri açılır.
+  db.execSync("PRAGMA foreign_keys = OFF;");
+  try {
+    for (const m of pending) {
+      db.withTransactionSync(() => {
+        db.execSync(m.sql);
+        db.runSync(`INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)`, [
+          m.id,
+          new Date().toISOString(),
+        ]);
+      });
+    }
+  } finally {
+    db.execSync("PRAGMA foreign_keys = ON;");
   }
 }
 
 export function migrate(db: SQLiteDatabase): void {
-  db.execSync(
-    `CREATE TABLE IF NOT EXISTS schema_migrations (id INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);`
-  );
-  const appliedRows = db.getAllSync<{ id: number }>(`SELECT id FROM schema_migrations`);
-  const applied = new Set(appliedRows.map((r) => r.id));
-  for (const m of MIGRATIONS) {
-    if (applied.has(m.id)) continue;
-    db.withTransactionSync(() => {
-      db.execSync(m.sql);
-      db.runSync(`INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)`, [
-        m.id,
-        new Date().toISOString(),
-      ]);
-    });
-  }
+  applyPending(db, Number.POSITIVE_INFINITY);
 }
