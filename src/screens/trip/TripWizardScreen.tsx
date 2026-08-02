@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,9 @@ import {
   SafeAreaView,
   TextInput,
   Switch,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -24,12 +27,20 @@ import {
   ShopAccess,
   TripType,
 } from "../../domain/types";
-import { colors, fonts, spacing, radius, touch } from "../../theme";
-import { RopeDivider, Button } from "../../components/ui";
+import { T, TSH, TICON, touch } from "../../theme";
+import { LIcon } from "../../components/LIcon";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
 import { boatTypeLabel, INSPECTION_STRINGS } from "../../i18n/inspection";
+import { VESSEL_STRINGS } from "../../i18n/vessel";
 import type { RootStackParamList } from "../../navigation";
+
+// Sefer sihirbazı — Faz 8 TROVE görünümü (sprint G4). Motor/veri davranışı
+// DEĞİŞMEDİ: aynı state, aynı createTrip/createVessel/generatePlan akışı.
+// Yenilenen: T token'ları, net adım sırası (tekne → kişiler → sefer →
+// kullanım profili), zorunlu/isteğe bağlı ayrımı (yalnız tekne seçimi +
+// ≥1 yetişkin zorunlu), uzun kullanım profili varsayılanlarıyla katlanır,
+// kirli formda geri koruması, klavye kaçınma.
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type WizardRoute = RouteProp<RootStackParamList, "TripWizard">;
@@ -57,18 +68,20 @@ function Stepper(props: {
       <View style={styles.stepper}>
         <Pressable
           onPress={() => props.onChange(Math.max(min, props.value - 1))}
-          hitSlop={8}
-          accessibilityLabel={`${props.label} -`}
+          accessibilityRole="button"
+          accessibilityLabel={`${props.label} −`}
+          style={({ pressed }) => [styles.stepBtn, pressed && { opacity: 0.7 }]}
         >
-          <Text style={styles.stepBtn}>−</Text>
+          <Text style={styles.stepGlyph}>−</Text>
         </Pressable>
         <Text style={styles.stepVal}>{props.value}</Text>
         <Pressable
           onPress={() => props.onChange(props.value + 1)}
-          hitSlop={8}
+          accessibilityRole="button"
           accessibilityLabel={`${props.label} +`}
+          style={({ pressed }) => [styles.stepBtn, pressed && { opacity: 0.7 }]}
         >
-          <Text style={styles.stepBtn}>＋</Text>
+          <LIcon name="plus" size={TICON.md} color={T.ink1} />
         </Pressable>
       </View>
     </View>
@@ -82,21 +95,27 @@ function Chips<T extends string>(props: {
 }) {
   return (
     <View style={styles.chipRow}>
-      {props.options.map((o) => (
-        <Pressable
-          key={o.key}
-          onPress={() => props.onChange(o.key)}
-          accessibilityRole="button"
-          accessibilityLabel={o.label}
-          style={[styles.chip, props.value === o.key && styles.chipActive]}
-        >
-          <Text style={[styles.chipText, props.value === o.key && styles.chipTextActive]}>
-            {o.label}
-          </Text>
-        </Pressable>
-      ))}
+      {props.options.map((o) => {
+        const on = props.value === o.key;
+        return (
+          <Pressable
+            key={o.key}
+            onPress={() => props.onChange(o.key)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: on }}
+            accessibilityLabel={o.label}
+            style={[styles.chip, on && styles.chipOn]}
+          >
+            <Text style={[styles.chipText, on && styles.chipTextOn]}>{o.label}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
+}
+
+function SectionLabel({ children, mt = 22 }: { children: string; mt?: number }) {
+  return <Text style={[styles.sectionLabel, { marginTop: mt }]}>{children}</Text>;
 }
 
 export default function TripWizardScreen() {
@@ -105,6 +124,7 @@ export default function TripWizardScreen() {
   const { locale } = useLocale();
   const s = TRIP_STRINGS[locale];
   const si = INSPECTION_STRINGS[locale];
+  const sv = VESSEL_STRINGS[locale];
 
   // 1) Tekne (Home hızlı aksiyonları sahiplik ön seçimi geçebilir)
   const [ownership, setOwnership] = useState<OwnershipContext>(
@@ -132,7 +152,8 @@ export default function TripWizardScreen() {
   const [pets, setPets] = useState(0);
   const [skipper, setSkipper] = useState("");
 
-  // 4) Kullanım profili
+  // 4) Kullanım profili (varsayılanlar makul — katlanır bölüm)
+  const [showProfile, setShowProfile] = useState(false);
   const [mooring, setMooring] = useState<MooringProfile>("mixed");
   const [breakfasts, setBreakfasts] = useState(2);
   const [lunches, setLunches] = useState(3);
@@ -145,6 +166,7 @@ export default function TripWizardScreen() {
   const [climate, setClimate] = useState<ClimateProfile>("moderate");
   const [style, setStyle] = useState<ProvisioningStyle>("balanced");
   const [allergies, setAllergies] = useState("");
+  const savedTripRef = useRef(false);
 
   function setNights(n: number) {
     setNightsRaw(n);
@@ -160,6 +182,29 @@ export default function TripWizardScreen() {
   const canCreate =
     (selectedBoat !== null || newBoatName.trim().length > 0 || ownership === "undecided") &&
     adults + children >= 1;
+
+  // Kirli sihirbaz geri tuşunda sorar (Android donanım geri dahil).
+  const dirty =
+    selectedBoat !== null ||
+    newBoatName.trim().length > 0 ||
+    name.trim().length > 0 ||
+    startAt.trim().length > 0 ||
+    destination.trim().length > 0;
+  useEffect(() => {
+    const sub = navigation.addListener("beforeRemove", (e) => {
+      if (!dirty || savedTripRef.current) return;
+      e.preventDefault();
+      Alert.alert(sv.discardTitle, sv.discardBody, [
+        { text: sv.keepEditing, style: "cancel" },
+        {
+          text: sv.discardConfirm,
+          style: "destructive",
+          onPress: () => navigation.dispatch(e.data.action),
+        },
+      ]);
+    });
+    return sub;
+  }, [navigation, dirty, sv]);
 
   function create() {
     let boatId: string | undefined = selectedBoat?.id;
@@ -205,6 +250,7 @@ export default function TripWizardScreen() {
     });
     // Hazırlık planının ikmal ayağını hemen üret (denetimler modül açılınca oluşur)
     generatePlan(trip, locale);
+    savedTripRef.current = true;
     navigation.replace("TripDetail", { tripId: trip.id });
   }
 
@@ -214,299 +260,389 @@ export default function TripWizardScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        {/* 1 — Tekne */}
-        <RopeDivider label={`1 · ${s.whichBoat.toUpperCase()}`} />
-        <Chips
-          options={[
-            { key: "own", label: s.ownBoat },
-            { key: "charter", label: s.charterBoat },
-            { key: "undecided", label: s.decideLater },
-          ]}
-          value={ownership}
-          onChange={(v) => {
-            setOwnership(v);
-            setSelectedBoat(null);
-          }}
-        />
-        {ownership !== "undecided" && (
-          <>
-            {ownBoats.length > 0 && (
-              <View style={[styles.chipRow, { marginTop: 8 }]}>
-                {ownBoats.map((v) => (
-                  <Pressable
-                    key={v.id}
-                    onPress={() => setSelectedBoat(selectedBoat?.id === v.id ? null : v)}
-                    style={[styles.chip, selectedBoat?.id === v.id && styles.chipActive]}
-                  >
-                    <Text
-                      style={[styles.chipText, selectedBoat?.id === v.id && styles.chipTextActive]}
-                    >
-                      {v.name}
-                    </Text>
-                  </Pressable>
-                ))}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          {/* 1 — Tekne (zorunlu) */}
+          <SectionLabel mt={0}>{s.whichBoat.toUpperCase()}</SectionLabel>
+          <Chips
+            options={[
+              { key: "own", label: s.ownBoat },
+              { key: "charter", label: s.charterBoat },
+              { key: "undecided", label: s.decideLater },
+            ]}
+            value={ownership}
+            onChange={(v) => {
+              setOwnership(v);
+              setSelectedBoat(null);
+            }}
+          />
+          {ownership !== "undecided" && (
+            <>
+              {ownBoats.length > 0 && (
+                <View style={[styles.chipRow, { marginTop: 8 }]}>
+                  {ownBoats.map((v) => {
+                    const on = selectedBoat?.id === v.id;
+                    return (
+                      <Pressable
+                        key={v.id}
+                        onPress={() => setSelectedBoat(on ? null : v)}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: on }}
+                        accessibilityLabel={v.name}
+                        style={[styles.chip, on && styles.chipBlue]}
+                      >
+                        <Text style={[styles.chipText, on && styles.chipTextOn]}>{v.name}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+              {!selectedBoat && (
+                <>
+                  <TextInput
+                    value={newBoatName}
+                    onChangeText={setNewBoatName}
+                    style={styles.input}
+                    placeholder={`${s.addBoat}: ${sv.namePlaceholder}`}
+                    placeholderTextColor={T.ink3}
+                    accessibilityLabel={s.addBoat}
+                  />
+                  {newBoatName.trim().length > 0 && (
+                    <View style={{ marginTop: 8 }}>
+                      <Chips
+                        options={BOAT_TYPES.map((b) => ({ key: b, label: boatTypeLabel(si, b) }))}
+                        value={newBoatType}
+                        onChange={setNewBoatType}
+                      />
+                    </View>
+                  )}
+                </>
+              )}
+            </>
+          )}
+
+          {/* 2 — Kişiler (zorunlu: en az 1 yetişkin/çocuk) */}
+          <SectionLabel>{s.crew.toUpperCase()}</SectionLabel>
+          <View style={styles.card}>
+            <Stepper label={s.adults} value={adults} min={0} onChange={setAdults} />
+            <Stepper label={s.children} value={children} onChange={setChildren} />
+            <Stepper label={s.infants} value={infants} onChange={setInfants} />
+            <Stepper label={s.pets} value={pets} onChange={setPets} />
+          </View>
+          <TextInput
+            value={skipper}
+            onChangeText={setSkipper}
+            style={styles.input}
+            placeholder={s.skipperName}
+            placeholderTextColor={T.ink3}
+            accessibilityLabel={s.skipperName}
+          />
+
+          {/* 3 — Sefer (hepsi isteğe bağlı; sonradan da doldurulur) */}
+          <SectionLabel>{s.newTrip.toUpperCase()}</SectionLabel>
+          <Text style={styles.optionalHint}>{sv.detailsHint}</Text>
+          <TextInput
+            value={name}
+            onChangeText={setName}
+            style={styles.input}
+            placeholder={s.tripName}
+            placeholderTextColor={T.ink3}
+            accessibilityLabel={s.tripName}
+          />
+          <View style={styles.row2}>
+            <TextInput
+              value={startAt}
+              onChangeText={setStartAt}
+              style={[styles.input, styles.inputMono, { flex: 1 }]}
+              placeholder={`${s.tripDates}: ${s.dateHint}`}
+              placeholderTextColor={T.ink3}
+              accessibilityLabel={s.tripDates}
+            />
+            <TextInput
+              value={endAt}
+              onChangeText={setEndAt}
+              style={[styles.input, styles.inputMono, { flex: 1 }]}
+              placeholder={s.dateHint}
+              placeholderTextColor={T.ink3}
+              accessibilityLabel={s.dateHint}
+            />
+          </View>
+          <View style={styles.row2}>
+            <TextInput
+              value={departure}
+              onChangeText={setDeparture}
+              style={[styles.input, { flex: 1 }]}
+              placeholder={s.departure}
+              placeholderTextColor={T.ink3}
+              accessibilityLabel={s.departure}
+            />
+            <TextInput
+              value={destination}
+              onChangeText={setDestination}
+              style={[styles.input, { flex: 1 }]}
+              placeholder={s.destination}
+              placeholderTextColor={T.ink3}
+              accessibilityLabel={s.destination}
+            />
+          </View>
+          <Text style={styles.fieldLabel}>{s.tripType}</Text>
+          <Chips
+            options={TRIP_TYPES.map((t) => ({
+              key: t,
+              label: s[(`tt_${t}`) as keyof TripStrings] as string,
+            }))}
+            value={tripType}
+            onChange={setTripType}
+          />
+          {!dayTrip && (
+            <View style={[styles.card, { marginTop: 10 }]}>
+              <Stepper label={s.nights} value={nights} onChange={setNights} />
+            </View>
+          )}
+
+          {/* 4 — Kullanım profili (katlanır; varsayılanlar makul) */}
+          <Pressable
+            onPress={() => setShowProfile((x) => !x)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showProfile }}
+            accessibilityLabel={s.usageProfile}
+            style={styles.profileToggle}
+          >
+            <Text style={styles.sectionLabelInline}>{s.usageProfile.toUpperCase()}</Text>
+            <LIcon
+              name={showProfile ? "chevron-down" : "chevron-right"}
+              size={TICON.sm}
+              color={T.ink3}
+            />
+          </Pressable>
+          {showProfile && (
+            <>
+              <Text style={styles.fieldLabel}>{s.mooring}</Text>
+              <Chips
+                options={[
+                  { key: "marina", label: s.m_marina },
+                  { key: "mixed", label: s.m_mixed },
+                  { key: "anchor", label: s.m_anchor },
+                ]}
+                value={mooring}
+                onChange={setMooring}
+              />
+              <Text style={styles.fieldLabel}>{s.mealsAboard}</Text>
+              <View style={styles.card}>
+                <Stepper
+                  label={s.breakfasts}
+                  value={breakfasts}
+                  onChange={(v) => {
+                    setMealsTouched(true);
+                    setBreakfasts(v);
+                  }}
+                />
+                <Stepper
+                  label={s.lunches}
+                  value={lunches}
+                  onChange={(v) => {
+                    setMealsTouched(true);
+                    setLunches(v);
+                  }}
+                />
+                <Stepper
+                  label={s.dinners}
+                  value={dinners}
+                  onChange={(v) => {
+                    setMealsTouched(true);
+                    setDinners(v);
+                  }}
+                />
+                <View style={styles.switchRow}>
+                  <Text style={styles.fieldText}>{s.snacksQ}</Text>
+                  <Switch value={snacks} onValueChange={setSnacks} trackColor={{ true: T.blue }} />
+                </View>
               </View>
-            )}
-            {!selectedBoat && (
-              <>
-                <TextInput
-                  value={newBoatName}
-                  onChangeText={setNewBoatName}
-                  style={styles.input}
-                  placeholder={`${s.addBoat}: S/Y Meltemi`}
-                  placeholderTextColor={colors.textSecondary}
-                />
-                <Chips
-                  options={BOAT_TYPES.map((b) => ({ key: b, label: boatTypeLabel(si, b) }))}
-                  value={newBoatType}
-                  onChange={setNewBoatType}
-                />
-              </>
-            )}
-          </>
-        )}
-
-        {/* 2 — Detaylar */}
-        <RopeDivider label={`2 · ${s.newTrip.toUpperCase()}`} />
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          style={styles.input}
-          placeholder={s.tripName}
-          placeholderTextColor={colors.textSecondary}
-        />
-        <View style={styles.row2}>
-          <TextInput
-            value={startAt}
-            onChangeText={setStartAt}
-            style={[styles.input, { flex: 1 }]}
-            placeholder={`${s.tripDates}: ${s.dateHint}`}
-            placeholderTextColor={colors.textSecondary}
-          />
-          <TextInput
-            value={endAt}
-            onChangeText={setEndAt}
-            style={[styles.input, { flex: 1 }]}
-            placeholder={s.dateHint}
-            placeholderTextColor={colors.textSecondary}
-          />
+              <Text style={styles.fieldLabel}>{s.shopAccess}</Text>
+              <Chips
+                options={[
+                  { key: "easy", label: s.sa_easy },
+                  { key: "limited", label: s.sa_limited },
+                  { key: "none", label: s.sa_none },
+                ]}
+                value={shopAccess}
+                onChange={setShopAccess}
+              />
+              <View style={[styles.card, { marginTop: 10 }]}>
+                <View style={styles.switchRow}>
+                  <Text style={styles.fieldText}>{s.watermaker}</Text>
+                  <Switch
+                    value={watermaker}
+                    onValueChange={setWatermaker}
+                    trackColor={{ true: T.blue }}
+                  />
+                </View>
+                <View style={styles.switchRow}>
+                  <Text style={styles.fieldText}>{s.refrigerator}</Text>
+                  <Switch value={fridge} onValueChange={setFridge} trackColor={{ true: T.blue }} />
+                </View>
+                <View style={styles.switchRow}>
+                  <Text style={styles.fieldText}>{s.freezer}</Text>
+                  <Switch value={freezer} onValueChange={setFreezer} trackColor={{ true: T.blue }} />
+                </View>
+              </View>
+              <Text style={styles.fieldLabel}>{s.climate}</Text>
+              <Chips
+                options={[
+                  { key: "cool", label: s.c_cool },
+                  { key: "moderate", label: s.c_moderate },
+                  { key: "hot", label: s.c_hot },
+                ]}
+                value={climate}
+                onChange={setClimate}
+              />
+              <Text style={styles.fieldLabel}>{s.styleLabel}</Text>
+              <Chips
+                options={[
+                  { key: "essential", label: s.st_essential },
+                  { key: "balanced", label: s.st_balanced },
+                  { key: "comfortable", label: s.st_comfortable },
+                ]}
+                value={style}
+                onChange={setStyle}
+              />
+              <TextInput
+                value={allergies}
+                onChangeText={setAllergies}
+                style={styles.input}
+                placeholder={s.allergies}
+                placeholderTextColor={T.ink3}
+                accessibilityLabel={s.allergies}
+              />
+            </>
+          )}
+        </ScrollView>
+        {/* Uzun formda birincil aksiyon sabit alt çubukta kalır */}
+        <View style={styles.bottomBar}>
+          <Pressable
+            onPress={create}
+            disabled={!canCreate}
+            accessibilityRole="button"
+            accessibilityLabel={s.createTrip}
+            accessibilityState={{ disabled: !canCreate }}
+            style={({ pressed }) => [
+              styles.cta,
+              !canCreate && { backgroundColor: T.surfaceEl },
+              pressed && canCreate && { opacity: 0.85 },
+            ]}
+          >
+            <Text style={[styles.ctaText, !canCreate && { color: T.ink3 }]}>{s.createTrip}</Text>
+          </Pressable>
         </View>
-        <View style={styles.row2}>
-          <TextInput
-            value={departure}
-            onChangeText={setDeparture}
-            style={[styles.input, { flex: 1 }]}
-            placeholder={s.departure}
-            placeholderTextColor={colors.textSecondary}
-          />
-          <TextInput
-            value={destination}
-            onChangeText={setDestination}
-            style={[styles.input, { flex: 1 }]}
-            placeholder={s.destination}
-            placeholderTextColor={colors.textSecondary}
-          />
-        </View>
-        <Text style={styles.fieldLabel}>{s.tripType}</Text>
-        <Chips
-          options={TRIP_TYPES.map((t) => ({
-            key: t,
-            label: s[(`tt_${t}`) as keyof TripStrings] as string,
-          }))}
-          value={tripType}
-          onChange={setTripType}
-        />
-        {!dayTrip && <Stepper label={s.nights} value={nights} onChange={setNights} />}
-
-        {/* 3 — Mürettebat */}
-        <RopeDivider label={`3 · ${s.crew.toUpperCase()}`} />
-        <Stepper label={s.adults} value={adults} min={0} onChange={setAdults} />
-        <Stepper label={s.children} value={children} onChange={setChildren} />
-        <Stepper label={s.infants} value={infants} onChange={setInfants} />
-        <Stepper label={s.pets} value={pets} onChange={setPets} />
-        <TextInput
-          value={skipper}
-          onChangeText={setSkipper}
-          style={styles.input}
-          placeholder={s.skipperName}
-          placeholderTextColor={colors.textSecondary}
-        />
-
-        {/* 4 — Kullanım profili */}
-        <RopeDivider label={`4 · ${s.usageProfile.toUpperCase()}`} />
-        <Text style={styles.fieldLabel}>{s.mooring}</Text>
-        <Chips
-          options={[
-            { key: "marina", label: s.m_marina },
-            { key: "mixed", label: s.m_mixed },
-            { key: "anchor", label: s.m_anchor },
-          ]}
-          value={mooring}
-          onChange={setMooring}
-        />
-        <Text style={styles.fieldLabel}>{s.mealsAboard}</Text>
-        <Stepper
-          label={s.breakfasts}
-          value={breakfasts}
-          onChange={(v) => {
-            setMealsTouched(true);
-            setBreakfasts(v);
-          }}
-        />
-        <Stepper
-          label={s.lunches}
-          value={lunches}
-          onChange={(v) => {
-            setMealsTouched(true);
-            setLunches(v);
-          }}
-        />
-        <Stepper
-          label={s.dinners}
-          value={dinners}
-          onChange={(v) => {
-            setMealsTouched(true);
-            setDinners(v);
-          }}
-        />
-        <View style={styles.switchRow}>
-          <Text style={styles.fieldText}>{s.snacksQ}</Text>
-          <Switch value={snacks} onValueChange={setSnacks} trackColor={{ true: colors.gold }} />
-        </View>
-        <Text style={styles.fieldLabel}>{s.shopAccess}</Text>
-        <Chips
-          options={[
-            { key: "easy", label: s.sa_easy },
-            { key: "limited", label: s.sa_limited },
-            { key: "none", label: s.sa_none },
-          ]}
-          value={shopAccess}
-          onChange={setShopAccess}
-        />
-        <View style={styles.switchRow}>
-          <Text style={styles.fieldText}>{s.watermaker}</Text>
-          <Switch value={watermaker} onValueChange={setWatermaker} trackColor={{ true: colors.gold }} />
-        </View>
-        <View style={styles.switchRow}>
-          <Text style={styles.fieldText}>{s.refrigerator}</Text>
-          <Switch value={fridge} onValueChange={setFridge} trackColor={{ true: colors.gold }} />
-        </View>
-        <View style={styles.switchRow}>
-          <Text style={styles.fieldText}>{s.freezer}</Text>
-          <Switch value={freezer} onValueChange={setFreezer} trackColor={{ true: colors.gold }} />
-        </View>
-        <Text style={styles.fieldLabel}>{s.climate}</Text>
-        <Chips
-          options={[
-            { key: "cool", label: s.c_cool },
-            { key: "moderate", label: s.c_moderate },
-            { key: "hot", label: s.c_hot },
-          ]}
-          value={climate}
-          onChange={setClimate}
-        />
-        <Text style={styles.fieldLabel}>{s.styleLabel}</Text>
-        <Chips
-          options={[
-            { key: "essential", label: s.st_essential },
-            { key: "balanced", label: s.st_balanced },
-            { key: "comfortable", label: s.st_comfortable },
-          ]}
-          value={style}
-          onChange={setStyle}
-        />
-        <TextInput
-          value={allergies}
-          onChangeText={setAllergies}
-          style={styles.input}
-          placeholder={s.allergies}
-          placeholderTextColor={colors.textSecondary}
-        />
-
-      </ScrollView>
-      {/* Uzun formda birincil aksiyon sabit alt çubukta kalır */}
-      <View style={styles.bottomBar}>
-        <Button label={s.createTrip} onPress={create} disabled={!canCreate} icon="checkmark" />
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.m, paddingBottom: spacing.xl },
+  safe: { flex: 1, backgroundColor: T.bg },
+  scroll: { padding: 16, paddingBottom: 32 },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: T.ink2,
+    letterSpacing: 0.4,
+    marginBottom: 8,
+  },
+  sectionLabelInline: { fontSize: 11, fontWeight: "600", color: T.ink2, letterSpacing: 0.4 },
+  optionalHint: { fontSize: 12, color: T.ink3, marginBottom: 8, marginTop: -2 },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
-    minHeight: 44,
+    minHeight: touch.min,
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: radius.pill,
+    borderColor: T.rule,
+    backgroundColor: T.surface,
+    borderRadius: 99,
     paddingHorizontal: 14,
-    paddingVertical: 10,
   },
-  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { fontFamily: fonts.body, fontSize: 14, color: colors.text },
-  chipTextActive: { color: colors.onPrimary, fontWeight: "600" },
+  chipOn: { backgroundColor: T.ink0, borderColor: T.ink0 },
+  chipBlue: { backgroundColor: T.blue, borderColor: T.blue },
+  chipText: { fontSize: 13, color: T.ink1 },
+  chipTextOn: { color: "#FFFFFF", fontWeight: "600" },
   input: {
-    backgroundColor: colors.surface,
+    backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.control,
-    color: colors.text,
-    fontFamily: fonts.body,
+    borderColor: T.ruleStr,
+    borderRadius: T.r2,
+    color: T.ink0,
     fontSize: 15,
     minHeight: touch.min,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: 14,
     marginTop: 8,
   },
+  inputMono: { fontFamily: T.mono, fontSize: 13 },
   row2: { flexDirection: "row", gap: 8 },
-  fieldLabel: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    color: colors.textSecondary,
-    marginTop: spacing.m,
-    marginBottom: 6,
+  card: {
+    backgroundColor: T.surface,
+    borderRadius: T.r2,
+    borderWidth: 1,
+    borderColor: T.rule,
+    paddingHorizontal: 14,
+    ...TSH.sh0,
   },
-  fieldText: { fontFamily: fonts.body, fontSize: 15, color: colors.text, flex: 1 },
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: T.ink2,
+    letterSpacing: 0.4,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  fieldText: { fontSize: 14, color: T.ink0, flex: 1 },
   stepperRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
-  stepper: { flexDirection: "row", alignItems: "center", gap: 14 },
+  stepper: { flexDirection: "row", alignItems: "center", gap: 12 },
   stepBtn: {
-    fontSize: 22,
-    color: colors.text,
-    fontWeight: "600",
-    width: touch.min,
-    height: touch.min,
-    textAlign: "center",
-    lineHeight: 46,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: touch.min / 2,
-    overflow: "hidden",
+    borderColor: T.rule,
+    backgroundColor: T.surfaceEl,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  stepVal: { fontFamily: fonts.mono, fontSize: 17, color: colors.text, minWidth: 28, textAlign: "center" },
+  stepGlyph: { fontSize: 20, fontWeight: "600", color: T.ink1, lineHeight: 22 },
+  stepVal: { fontFamily: T.mono, fontSize: 16, color: T.ink0, minWidth: 28, textAlign: "center" },
   switchRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     minHeight: touch.min,
-    paddingVertical: 8,
+    paddingVertical: 4,
+  },
+  profileToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    minHeight: touch.min,
+    marginTop: 18,
   },
   bottomBar: {
-    padding: spacing.m,
-    backgroundColor: colors.surface,
+    padding: 16,
+    backgroundColor: T.surface,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: T.rule,
   },
+  cta: {
+    backgroundColor: T.blue,
+    borderRadius: T.r,
+    minHeight: touch.min,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ctaText: { fontSize: 15, fontWeight: "700", color: "#FFFFFF", letterSpacing: -0.2 },
 });

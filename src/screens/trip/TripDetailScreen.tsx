@@ -24,13 +24,20 @@ import { getVesselById, listVessels } from "../../repositories/vessels";
 import { generatePlan, getPlanForTrip, planProgress } from "../../repositories/provisioning";
 import { nextAction, tripProgress, NextAction, TripModuleStates, isDone } from "../../domain/trip";
 import { InspectionStatus } from "../../domain/types";
-import { colors, fonts, spacing, radius, touch } from "../../theme";
-import { ProgressGauge, RopeDivider, Button } from "../../components/ui";
+import { T, TSH, TICON, touch } from "../../theme";
+import { LIcon, type LIconName } from "../../components/LIcon";
+import { Bar, SLabel, TDivider } from "../../components/trove/primitives";
 import { SampleBanner } from "../../components/trove/SampleBanner";
-import { Icon, type IconName } from "../../components/Icon";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
 import type { RootStackParamList } from "../../navigation";
+
+// Sefer detayı — Faz 8 TROVE görünümü (sprint G5). İKİNCİL bilgi/yönetim
+// ekranı: operasyonel yüzeylerle YARIŞMAZ (planlama→PrepareHub,
+// seyir→Underway, kapanış→TripComplete Trip sekmesinde yaşar). Buradaki
+// modül satırları o akışlara BAĞLANTIDIR, kopya değil. Davranış aynen
+// korundu (H1 dahil): örnekler salt okunur — durum çipi gösterim, tekne
+// seçici yok, silme yok; denetimler örnekte asla oluşturulmaz.
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, "TripDetail">;
@@ -104,30 +111,33 @@ export default function TripDetailScreen() {
 
   // Modül durumu: renk + ikon birlikte (yalnız renge güvenilmez).
   function statusIcon(st: InspectionStatus | null) {
-    if (st === null) return <Icon name="ellipse-outline" size={20} color={colors.textSecondary} />;
-    if (isDone(st)) return <Icon name="checkmark-circle" size={22} color={colors.success} />;
-    return <Icon name="time-outline" size={22} color={colors.warning} />;
+    if (st === null) return <LIcon name="chevron-right" size={TICON.sm} color={T.ink3} />;
+    if (isDone(st)) return <LIcon name="check-circle" size={TICON.lg} color={T.green} />;
+    return <LIcon name="clock" size={TICON.lg} color={T.amber} />;
   }
 
-  function moduleCard(
-    icon: IconName,
+  function moduleRow(
+    icon: LIconName,
     title: string,
     status: React.ReactNode,
     onPress: () => void,
-    extra?: string
+    last = false
   ) {
     return (
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={title}
-        style={({ pressed }) => [styles.module, pressed && { opacity: 0.85 }]}
+        style={({ pressed }) => [
+          styles.moduleRow,
+          !last && styles.moduleRowRule,
+          pressed && { opacity: 0.8 },
+        ]}
       >
-        <Icon name={icon} size={24} color={colors.text} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.moduleTitle}>{title}</Text>
-          {extra ? <Text style={styles.moduleExtra}>{extra}</Text> : null}
+        <View style={styles.moduleIcon}>
+          <LIcon name={icon} size={TICON.md} color={T.ink1} />
         </View>
+        <Text style={styles.moduleTitle}>{title}</Text>
         {status}
       </Pressable>
     );
@@ -139,18 +149,28 @@ export default function TripDetailScreen() {
     { key: "completed", label: s.completedTrip },
   ];
 
+  const crewSummary = [
+    trip.adults > 0 ? `${trip.adults} ${s.adults.toLowerCase()}` : null,
+    trip.children > 0 ? `${trip.children} ${s.children.toLowerCase()}` : null,
+    trip.skipperName,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         {trip.isSample && (
           <SampleBanner onCreate={() => navigation.navigate("Tabs", { screen: "VesselTab" })} />
         )}
-        {/* Durum + özet — örneklerde durum çipleri SALT GÖSTERİMDİR (H1) */}
+
+        {/* Özet kartı — durum, tekne, tarihler, kişiler */}
         <View style={styles.summaryCard}>
           <View style={styles.chipRow}>
             {trip.isSample ? (
-              <View style={[styles.chip, styles.chipActive]}>
-                <Text style={[styles.chipText, styles.chipTextActive]}>
+              /* H1: örneklerde durum SALT GÖSTERİM */
+              <View style={[styles.chip, styles.chipOn]}>
+                <Text style={[styles.chipText, styles.chipTextOn]}>
                   {statusOptions.find((o) => o.key === trip.status)?.label ?? trip.status}
                 </Text>
               </View>
@@ -163,27 +183,54 @@ export default function TripDetailScreen() {
                     refresh();
                   }}
                   accessibilityRole="button"
-                  style={[styles.chip, trip.status === o.key && styles.chipActive]}
+                  accessibilityState={{ selected: trip.status === o.key }}
+                  style={[styles.chip, trip.status === o.key && styles.chipOn]}
                 >
-                  <Text style={[styles.chipText, trip.status === o.key && styles.chipTextActive]}>
+                  <Text style={[styles.chipText, trip.status === o.key && styles.chipTextOn]}>
                     {o.label}
                   </Text>
                 </Pressable>
               ))
             )}
           </View>
-          <View style={styles.metaRow}>
-            <Icon name="boat-outline" size={15} color={colors.textSecondary} />
-            <Text style={styles.meta}>{boat ? boat.name : s.boatMissing}</Text>
-            <Icon name="person-outline" size={15} color={colors.textSecondary} />
-            <Text style={styles.meta}>{trip.adults + trip.children}</Text>
-            <Icon name="time-outline" size={15} color={colors.textSecondary} />
-            <Text style={styles.meta}>{trip.nights}</Text>
+
+          <View style={styles.metaCol}>
+            <View style={styles.metaRow}>
+              <LIcon name="sailboat" size={TICON.sm} color={T.ink2} />
+              <Text style={styles.meta}>{boat ? boat.name : s.boatMissing}</Text>
+            </View>
+            {trip.startAt || trip.endAt ? (
+              <View style={styles.metaRow}>
+                <LIcon name="calendar" size={TICON.sm} color={T.ink2} />
+                <Text style={[styles.meta, styles.metaMono]}>
+                  {[trip.startAt, trip.endAt].filter(Boolean).join(" – ")}
+                </Text>
+              </View>
+            ) : null}
+            {crewSummary ? (
+              <View style={styles.metaRow}>
+                <LIcon name="users" size={TICON.sm} color={T.ink2} />
+                <Text style={styles.meta}>{crewSummary}</Text>
+              </View>
+            ) : null}
+            {trip.nights > 0 ? (
+              <View style={styles.metaRow}>
+                <LIcon name="clock" size={TICON.sm} color={T.ink2} />
+                <Text style={styles.meta}>
+                  {trip.nights} {s.nights.toLowerCase()}
+                </Text>
+              </View>
+            ) : null}
           </View>
-          <ProgressGauge done={progress.modulesDone} total={progress.modulesTotal} />
+
+          <Bar
+            pct={progress.modulesTotal > 0 ? (progress.modulesDone / progress.modulesTotal) * 100 : 0}
+            h={3}
+            color={progress.modulesDone === progress.modulesTotal ? T.green : T.blue}
+          />
           {states.openCriticalIssues > 0 && (
             <View style={styles.criticalRow}>
-              <Icon name="warning-outline" size={16} color={colors.danger} />
+              <LIcon name="alert-triangle" size={TICON.sm} color={T.red} />
               <Text style={styles.critical}>
                 {states.openCriticalIssues} {s.criticalOpen}
               </Text>
@@ -191,14 +238,14 @@ export default function TripDetailScreen() {
           )}
           <View style={styles.nextBox}>
             <Text style={styles.nextText}>{s[NA_KEY[action]]}</Text>
-            <Icon name="arrow-forward" size={18} color={colors.onGold} />
+            <LIcon name="arrow-right" size={TICON.sm} color="#FFFFFF" />
           </View>
         </View>
 
         {/* Tekne seçici (eksikse; örneklerde asla — setTripBoat mutasyondur) */}
         {!trip.isSample && (!boat || showBoatPicker) && (
-          <View style={styles.boatPicker}>
-            <Text style={styles.fieldLabel}>{s.chooseBoatFirst}</Text>
+          <View style={{ marginTop: 16 }}>
+            <SLabel mt={0}>{s.chooseBoatFirst}</SLabel>
             <View style={styles.chipRow}>
               {listVessels().map((v) => (
                 <Pressable
@@ -209,6 +256,7 @@ export default function TripDetailScreen() {
                     refresh();
                   }}
                   accessibilityRole="button"
+                  accessibilityLabel={v.name}
                   style={styles.chip}
                 >
                   <Text style={styles.chipText}>{v.name}</Text>
@@ -218,62 +266,71 @@ export default function TripDetailScreen() {
           </View>
         )}
 
-        <RopeDivider />
-
-        {isCharter &&
-          moduleCard("clipboard-outline", s.checkIn, statusIcon(states.checkIn), () =>
-            openChecklist("check_in")
+        {/* Yönetim bağlantıları — operasyon ekranlarına GEÇİŞ, kopya değil */}
+        <View style={[styles.moduleCard, { marginTop: 20 }]}>
+          {isCharter &&
+            moduleRow("list", s.checkIn, statusIcon(states.checkIn), () =>
+              openChecklist("check_in")
+            )}
+          {moduleRow("sun", s.preDeparture, statusIcon(states.preDeparture), () =>
+            openChecklist("pre_departure")
           )}
-        {moduleCard("partly-sunny-outline", s.preDeparture, statusIcon(states.preDeparture), () =>
-          openChecklist("pre_departure")
-        )}
-        {moduleCard(
-          "cart-outline",
-          s.provisioning,
-          provisionPct === null ? (
-            <Icon name="ellipse-outline" size={20} color={colors.textSecondary} />
-          ) : (
-            <Text style={styles.modulePct}>{provisionPct}%</Text>
-          ),
-          openProvisioning
-        )}
-        {isCharter &&
-          moduleCard("swap-horizontal-outline", s.checkOut, statusIcon(states.checkOut), () =>
-            openChecklist("check_out")
+          {moduleRow(
+            "shopping-cart",
+            s.provisioning,
+            provisionPct === null ? (
+              <LIcon name="chevron-right" size={TICON.sm} color={T.ink3} />
+            ) : (
+              <Text style={styles.modulePct}>{provisionPct}%</Text>
+            ),
+            openProvisioning
           )}
-        {isCharter &&
-          states.checkIn !== null &&
-          moduleCard(
-            "git-compare-outline",
-            s.handoverReview,
-            <Icon name="chevron-forward" size={18} color={colors.textSecondary} />,
-            () => navigation.navigate("HandoverReview", { tripId: trip.id })
+          {isCharter &&
+            moduleRow("arrow-right", s.checkOut, statusIcon(states.checkOut), () =>
+              openChecklist("check_out")
+            )}
+          {isCharter &&
+            states.checkIn !== null &&
+            moduleRow(
+              "shield",
+              s.handoverReview,
+              <LIcon name="chevron-right" size={TICON.sm} color={T.ink3} />,
+              () => navigation.navigate("HandoverReview", { tripId: trip.id })
+            )}
+          {moduleRow(
+            "check-circle",
+            s.returnCheck,
+            statusIcon(states.returnCheck),
+            () => openChecklist("return_secure"),
+            true
           )}
-        {moduleCard("lock-closed-outline", s.returnCheck, statusIcon(states.returnCheck), () =>
-          openChecklist("return_secure")
-        )}
+        </View>
 
-        <RopeDivider />
-
+        {/* Tehlikeli bölge — yalnız gerçek seferler */}
         {!trip.isSample && (
-        <Button
-          label={s.deleteTrip}
-          variant="danger"
-          icon="close"
-          onPress={() =>
-            Alert.alert(s.deleteTrip, s.deleteTripConfirm, [
-              { text: s.cancel, style: "cancel" },
-              {
-                text: s.deleteTrip,
-                style: "destructive",
-                onPress: () => {
-                  deleteTrip(trip.id);
-                  navigation.goBack();
-                },
-              },
-            ])
-          }
-        />
+          <>
+            <TDivider />
+            <Pressable
+              onPress={() =>
+                Alert.alert(s.deleteTrip, s.deleteTripConfirm, [
+                  { text: s.cancel, style: "cancel" },
+                  {
+                    text: s.deleteTrip,
+                    style: "destructive",
+                    onPress: () => {
+                      deleteTrip(trip.id);
+                      navigation.goBack();
+                    },
+                  },
+                ])
+              }
+              accessibilityRole="button"
+              accessibilityLabel={s.deleteTrip}
+              style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.8 }]}
+            >
+              <Text style={styles.deleteText}>{s.deleteTrip}</Text>
+            </Pressable>
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -281,72 +338,73 @@ export default function TripDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.m, paddingBottom: spacing.xl },
+  safe: { flex: 1, backgroundColor: T.bg },
+  scroll: { padding: 16, paddingBottom: 32 },
   summaryCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.card,
-    padding: spacing.m,
-    gap: 10,
+    borderColor: T.rule,
+    borderRadius: T.r,
+    padding: 16,
+    gap: 12,
+    ...TSH.sh1,
   },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
-    minHeight: 44,
+    minHeight: touch.min,
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: radius.pill,
+    borderColor: T.rule,
+    backgroundColor: T.surface,
+    borderRadius: 99,
     paddingHorizontal: 14,
-    paddingVertical: 8,
   },
-  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { fontFamily: fonts.body, fontSize: 13, color: colors.text },
-  chipTextActive: { color: colors.onPrimary, fontWeight: "600" },
-  metaRow: { flexDirection: "row", alignItems: "center", gap: 4, flexWrap: "wrap" },
-  meta: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, marginRight: 8 },
+  chipOn: { backgroundColor: T.ink0, borderColor: T.ink0 },
+  chipText: { fontSize: 13, color: T.ink1 },
+  chipTextOn: { color: "#FFFFFF", fontWeight: "600" },
+  metaCol: { gap: 6 },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  meta: { fontSize: 13, color: T.ink1, flexShrink: 1 },
+  metaMono: { fontFamily: T.mono, fontSize: 12 },
   criticalRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  critical: { fontFamily: fonts.body, fontSize: 14, color: colors.danger, fontWeight: "600" },
+  critical: { fontSize: 13, color: T.red, fontWeight: "600" },
   nextBox: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: colors.gold,
-    borderRadius: radius.control,
-    padding: 12,
+    backgroundColor: T.blue,
+    borderRadius: T.r2,
+    paddingHorizontal: 14,
     minHeight: touch.min,
   },
-  nextText: {
-    flex: 1,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    fontWeight: "600",
-    color: colors.onGold,
+  nextText: { flex: 1, fontSize: 14, fontWeight: "600", color: "#FFFFFF" },
+  moduleCard: {
+    backgroundColor: T.surface,
+    borderRadius: T.r,
+    borderWidth: 1,
+    borderColor: T.rule,
+    paddingHorizontal: 14,
+    ...TSH.sh0,
   },
-  boatPicker: { marginTop: spacing.m },
-  fieldLabel: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    color: colors.textSecondary,
-    marginBottom: 6,
-  },
-  module: {
+  moduleRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.card,
-    padding: spacing.m,
-    marginBottom: spacing.s,
-    minHeight: 64,
+    minHeight: touch.row,
+    paddingVertical: 6,
   },
-  moduleTitle: { fontFamily: fonts.body, fontSize: 17, fontWeight: "600", color: colors.text },
-  moduleExtra: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, marginTop: 2 },
-  modulePct: { fontFamily: fonts.mono, fontSize: 15, color: colors.text, fontWeight: "600" },
+  moduleRowRule: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: T.rule },
+  moduleIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: T.surfaceEl,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  moduleTitle: { flex: 1, fontSize: 14, fontWeight: "500", color: T.ink0 },
+  modulePct: { fontFamily: T.mono, fontSize: 14, color: T.ink0, fontWeight: "600" },
+  deleteBtn: { minHeight: touch.min, alignItems: "center", justifyContent: "center" },
+  deleteText: { fontSize: 13, fontWeight: "600", color: T.red },
 });
