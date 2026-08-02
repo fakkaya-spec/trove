@@ -1,0 +1,20 @@
+{
+  "name": "@make-kits/trove",
+  "version": "0.0.3",
+  "type": "module",
+  "scripts": { "build": "vite build" },
+  "dependencies": {
+    "lucide-react": "0.487.0",
+    "motion": "12.23.24",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "tailwind-merge": "3.2.0"
+  },
+  "figma": {
+    "makeKit": { "kitType": "byods", "formatVersion": 1 }
+  },
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./style.css": "./dist/style.css"
+  }
+}

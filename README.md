@@ -1,125 +1,58 @@
-# TROVE — Your boating trip companion
+# TROVE
 
-Tekne seferi hazırlığı, seyir kaydı ve teslim belgeleme uygulaması (iOS + Android, offline-first).
+**Your boating trip companion.** Prepare → Underway → Complete.
 
-Sefer akışı: **Hazırlan → Seyirde → Tamamla**. Kontrol listeleri, ikmal planı, check-in/check-out denetimleri, foto kanıt ve teslim karşılaştırması tek uygulamada.
+Offline-first trip planning, provisioning, inspections, logbook and handover
+evidence for skippers, charterers and boat owners. iOS + Android (Expo /
+React Native).
 
-> Marka: TROVE — C0 sembolü (dört katman) + DM Sans wordmark, `src/components/brand/`.
-> Not: aşağıdaki bölümler ürünün önceki sürümlerinden kalmadır; TROVE mimarisi için `docs/` klasörüne bakın.
+## Product model (locked)
 
-## Neden?
+- Navigation: **Trip · Log · Vessel** (3 tabs; Settings via gear in the Trip header)
+- Trip tab is phase-aware; inspection/handover/report live inside trip phases,
+  never as navigation destinations
+- Offline is a sync state, not a screen
+- Photo evidence is Premium — see `docs/MONETIZATION.md` (locked rules)
+- Roadmap and phase status: `docs/TROVE-ROADMAP.md`
 
-Araştırma sonucu (ASA, RYA, charter operatörleri check-in prosedürleri):
+## Brand (locked — never redesign)
 
-- Tekne kiralama ihtilaflarının çoğu **teslim anında belgelenmeyen hasarlardan** çıkıyor; 1 numaralı ihtilaf kalemi bot (dinghy) ve dıştan takma motor pervanesi.
-- Mevcut uygulamalar (Floatist, SpeedyDock, Boatsetter…) hep **işletme tarafına** çalışıyor; kiracıya bağımsız, tekne tipine özel bir kontrol uygulaması **yok** — Türkçe hiç yok, gulet/sürat teknesi pazarını kapsayan hiç yok.
+C0 symbol (four centred strata) + "TROVE" wordmark in DM Sans Medium, 0.18em
+tracking. Source of truth: `src/components/brand/` + `scripts/generate-icons.mjs`.
+Colours: Ink `#111110` · Paper `#F8F7F4` · Depth `#1B3A4B`.
 
-## Diller
+## Design source of truth
 
-Uygulama **5 dilde** çalışır: 🇬🇧 İngilizce (varsayılan) · 🇹🇷 Türkçe · 🇩🇪 Almanca · 🇷🇺 Rusça · 🇪🇸 İspanyolca
+`design-reference/` contains the approved Figma Make export: the `T` token
+set, the primitive components and the full 13-screen reference
+(`design-reference/src/app/App.full.tsx`). UI tokens live in `src/theme.ts`
+(`T`, `TSH`, `TICON`); TROVE primitives in `src/components/trove/`.
 
-- **Varsayılan dil İngilizce**; cihaz dili destekleniyorsa otomatik ona geçer, ana ekrandan elle değiştirilebilir (seçim kalıcıdır).
-- Dil seçimi ilerlemeyi bozmaz: işaretler madde kimliğiyle saklanır, dil değişince aynen korunur.
-- Dil dosyaları: `src/data/checklists.ts` (TR, ana kaynak) + `checklists.{en,de,ru,es}.ts`; arayüz metinleri `src/i18n/strings.ts`.
-- Neden bu diller? İngilizce evrensel denizcilik dili; Akdeniz charter pazarının en büyük müşteri grubu Almanca konuşanlar; Türkiye kıyılarında Rusça konuşan turist yoğun; İspanyolca hem Balear Adaları (Mallorca/Ibiza — dünyanın en büyük charter merkezlerinden) hem Latin Amerika pazarını açar.
+## Stack
 
-## Özellikler
+Expo SDK 57 · React Native 0.86 · TypeScript strict · SQLite (expo-sqlite) +
+Drizzle ORM · hand-written versioned migrations · versioned seeds · 9-language
+i18n (en default) · offline-first writes with a sync queue skeleton.
 
-- **10 hazır kontrol defteri, ~570 madde:**
-  - Kiralık: Yelkenli (109), Motoryat (109), Katamaran (121), Gulet (23), Sürat Teknesi (29), Jet Ski (17), Kano/SUP (8)
-  - Tekne sahibi: Yola Çıkış / pre-departure — WOBBLE motor kontrolü dahil (56), Sezon Açılışı (51), Tekneden Ayrılırken (22)
-- **KRİTİK** ve **📷 FOTOĞRAFLA** rozetleri + madde bazlı ipuçları (neden önemli, neye mal olur)
-- **Foto & Depozito Rehberi:** en çok ihtilaf çıkan 12 nokta + 7 altın kural
-- İlerleme kalıcı olarak saklanır (AsyncStorage) — marina da internetsiz çalışır
-- Liste tamamlanınca "KONTROL TAMAM" damgası
-- Özgün "kaptanın seyir defteri" tasarımı: gece laciverti, krem kâğıt, pirinç detaylar, serif tipografi
-
-## Gelir Modeli
-
-İki ayak: **reklam (AdMob)** + **reklamsız Premium abonelik (aylık/yıllık)**.
-
-### 1) Reklamlar (AdMob)
-
-- Her ekranın altında uyarlanabilir **banner** reklam
-- Liste tamamlanınca **geçiş (interstitial)** reklamı
-- Geliştirmede otomatik olarak Google **test** reklamları gösterilir
-- Premium abonelerde tüm reklamlar otomatik gizlenir
-
-Yayına almadan önce:
-1. [AdMob](https://admob.google.com) hesabı aç, iOS ve Android uygulamalarını kaydet.
-2. `app.json` → `react-native-google-mobile-ads` eklentisindeki `androidAppId` / `iosAppId` değerlerini kendi **Uygulama Kimliklerinle** değiştir (şu an Google'ın test kimlikleri).
-3. `src/ads.tsx` içindeki `PROD_BANNER` / `PROD_INTERSTITIAL` değerlerini kendi **Reklam Birimi Kimliklerinle** değiştir.
-
-> ⚠️ Gerçek kimliklerle test tıklaması yapma — AdMob hesabını kapattırır. Geliştirmede `__DEV__` sayesinde hep test reklamı çıkar.
-
-### 2) Premium Abonelik (reklamsız kullanım)
-
-`react-native-iap` ile uygulama içi otomatik yenilenen abonelik. Ürün kimlikleri (`src/premium.tsx`):
-
-| Plan  | Ürün kimliği                  |
-|-------|-------------------------------|
-| Aylık | `marincheck_premium_monthly`  |
-| Yıllık| `marincheck_premium_yearly`   |
-
-Yayına almadan önce:
-1. **App Store Connect** → Abonelikler: yukarıdaki iki kimlikle auto-renewing subscription oluştur, fiyatları belirle (öneri: aylık ~$1.99, yıllık ~$9.99 — yıllıkta "2 ay bedava" algısı).
-2. **Google Play Console** → Ürünler → Abonelikler: aynı kimliklerle abonelik + base plan oluştur.
-3. Fiyatlar uygulamaya mağazadan gelir (`fetchProducts`), kodda fiyat yazmaya gerek yok.
-4. İleri seviye: makbuz doğrulamasını sunucuda yapmak istersen RevenueCat entegrasyonu en kolay yoldur; mevcut yapı cihaz üstü doğrulama yapar.
-
-Davranış: satın alma/geri yükleme sonrası tercih cihazda saklanır, banner + interstitial anında kapanır. Ana ekrandaki ⭐ kart Premium ekranına götürür; mağaza olmayan ortamlarda (web/Expo Go) satın alma kapalıdır, `__DEV__` derlemede "premium simüle et" düğmesiyle test edilebilir.
-
-## Geliştirme
+## Development
 
 ```bash
-cd marincheck
 npm install
-npx expo start          # Expo Go ile test (reklamlar görünmez, uygulama reklamsız çalışır)
-npx expo run:android    # reklamlar dahil gerçek derleme
-npx expo run:ios        # (macOS gerekir)
+npm run typecheck && npm run lint && npm test   # 7 suites on real SQLite
+npx expo start
 ```
 
-Not: `react-native-google-mobile-ads` yerel modül olduğu için **Expo Go'da ve web'de çalışmaz**; uygulama bu ortamlarda otomatik olarak reklamsız çalışır (`src/ads.web.tsx` + çalışma zamanı kontrolü).
+Rules that keep this codebase safe:
 
-## Mağazalara Yayınlama (Apple + Google)
+- Published migrations are never edited — new IDs only (`src/db/migrations.ts`)
+- Sample data (Serenity/Aurora/Nomad) is isolated via `is_sample` at the
+  repository layer and proven by `tests/samples.test.ts`
+- IBM Plex Mono is used ONLY for machine-measured values (timestamps, GPS,
+  meters, document IDs) — never for human assessments
+- The product name lives in `src/config/product.ts` — never hardcode it
 
-En kolay yol [EAS Build](https://docs.expo.dev/build/introduction/):
+## History
 
-```bash
-npm install -g eas-cli
-eas login                      # ücretsiz Expo hesabı
-eas build:configure
-eas build --platform android   # .aab üretir → Google Play Console'a yükle
-eas build --platform ios       # .ipa üretir → App Store Connect'e yükle (Apple Developer üyeliği $99/yıl)
-eas submit                     # mağazalara otomatik gönderim
-```
-
-- Google Play: tek seferlik $25 geliştirici kaydı
-- Apple: $99/yıl geliştirici üyeliği
-- Paket adları: `com.kosko.marincheck` (app.json içinde)
-
-## Dosya Yapısı
-
-```
-marincheck/
-├── App.tsx                     # Navigasyon + reklam başlatma
-├── app.json                    # Expo yapılandırması + AdMob eklentisi
-└── src/
-    ├── theme.ts                # Seyir defteri tasarım dili (renk/font)
-    ├── navigation.ts           # Ekran tipleri
-    ├── storage.ts              # Kalıcı ilerleme (AsyncStorage)
-    ├── ads.tsx / ads.web.tsx   # AdMob banner + interstitial (web'de kapalı)
-    ├── components/ui.tsx       # Halat ayraç, pirinç rozet, ilerleme, etiketler
-    ├── i18n/
-    │   ├── strings.ts          # Arayüz metinleri (TR/EN/DE/RU)
-    │   └── index.tsx           # Dil algılama + kalıcı seçim (context)
-    ├── data/
-    │   ├── types.ts            # Veri modeli
-    │   ├── index.ts            # Dile göre veri seçici
-    │   ├── checklists.ts       # TR ana kaynak: 10 defter, ~570 madde
-    │   └── checklists.{en,de,ru}.ts  # Çeviriler (aynı kimlikler)
-    └── screens/
-        ├── HomeScreen.tsx      # Tekne seçimi (kiralık / sahip) + dil seçici
-        ├── ChecklistScreen.tsx # İşaretlenebilir kontrol listesi
-        └── GuideScreen.tsx     # Foto & depozito rehberi
-```
+This repository was extracted (with full history) from
+`fakkaya-spec/koskoraporweb` — the app previously lived in its `marincheck/`
+folder under the working name BoatCheck. That repo remains as an archive.
