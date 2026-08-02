@@ -15,7 +15,7 @@ Sıralı, işaretlenebilir. ☐ = yapılacak · ⚠ = karar gerektirir.
 
 ## 2. Kimlikler ve konfig
 - ☐ (Reklamlı çıkışta) app.json'daki AdMob **test** kimliklerini gerçek Uygulama Kimlikleriyle değiştir; `src/ads.tsx` PROD_BANNER/PROD_INTERSTITIAL birimlerini doldur
-- ☐ (IAP'li çıkışta) App Store Connect + Play Console'da abonelikler: `marincheck_premium_monthly`, `marincheck_premium_yearly`
+- ☐ (IAP'li çıkışta) App Store Connect + Play Console'da abonelikler: `trove_premium_monthly`, `trove_premium_yearly`
 - ☑ Sürümler: iOS buildNumber "1", Android versionCode 1 (EAS `autoIncrement` açık)
 - ☑ Kamera/foto izin metinleri (app.json → expo-image-picker plugin)
 - ☑ Splash + ikonlar (`node scripts/generate-icons.mjs` ile yeniden üretilebilir)

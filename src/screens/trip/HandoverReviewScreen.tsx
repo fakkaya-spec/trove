@@ -30,6 +30,7 @@ import {
   MeterComparisonRow,
 } from "../../domain/handover";
 import { capturePhoto } from "../../media/photos";
+import { useEntitlement } from "../../entitlement";
 import { PRODUCT_NAME } from "../../config/product";
 import { colors, fonts, spacing, radius } from "../../theme";
 import { RopeDivider, Button, EmptyState } from "../../components/ui";
@@ -44,6 +45,7 @@ export default function HandoverReviewScreen() {
   const route = useRoute<Route>();
   const { locale } = useLocale();
   const s = TRIP_STRINGS[locale];
+  const { requestAccess } = useEntitlement();
 
   const [version, setVersion] = useState(0);
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
@@ -99,6 +101,8 @@ export default function HandoverReviewScreen() {
 
   async function retake(pair: PairRow, sess: HandoverSessionRow) {
     if (!checkOut) return; // check-out denetimi açılmadan yeniden çekim yok
+    // KİLİTLİ kural: foto çifti Premium; kapı bağlamı handover_pair.
+    if (!(await requestAccess("handover_pair"))) return;
     const uri = await capturePhoto();
     if (!uri) return;
     const mediaId = addMedia(checkOut, { localUri: uri });

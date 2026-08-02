@@ -16,8 +16,8 @@ import { premiumStore } from "./premiumState";
 // YAYINA ALMADAN ÖNCE:
 // 1. App Store Connect ve Google Play Console'da aşağıdaki kimliklerle iki
 //    "auto-renewing subscription" ürünü oluşturun (fiyatları mağazada belirleyin):
-//      - marincheck_premium_monthly  (aylık)
-//      - marincheck_premium_yearly   (yıllık)
+//      - trove_premium_monthly  (aylık)
+//      - trove_premium_yearly   (yıllık)
 // 2. Google Play'de her aboneliğe bir "base plan" ekleyin.
 // 3. Gerçek doğrulama için satın alma makbuzlarını sunucuda doğrulamak en
 //    sağlıklısıdır; bu sürüm cihaz üstü (client-side) doğrulama yapar.
@@ -26,8 +26,10 @@ import { premiumStore } from "./premiumState";
 // satın alma ekranı bilgilendirme gösterir, uygulama reklamlı çalışır.
 // ---------------------------------------------------------------------------
 
-export const SKU_MONTHLY = "marincheck_premium_monthly";
-export const SKU_YEARLY = "marincheck_premium_yearly";
+// TROVE SKU'ları — eski marincheck_* kimlikleri hiçbir mağaza konsolunda
+// oluşturulmadı; yeniden adlandırma serbestti (MONETIZATION denetimi).
+export const SKU_MONTHLY = "trove_premium_monthly";
+export const SKU_YEARLY = "trove_premium_yearly";
 const SKUS = [SKU_MONTHLY, SKU_YEARLY];
 
 const STORAGE_KEY = "marincheck:premium";

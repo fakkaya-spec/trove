@@ -2,7 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
-import { DefaultTheme, NavigationContainer, useNavigation } from "@react-navigation/native";
+import {
+  DefaultTheme,
+  NavigationContainer,
+  createNavigationContainerRef,
+  useNavigation,
+} from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -33,6 +38,8 @@ import { LocaleProvider, useLocale } from "./src/i18n";
 import { INSPECTION_STRINGS } from "./src/i18n/inspection";
 import { TRIP_STRINGS } from "./src/i18n/trip";
 import { PremiumProvider } from "./src/premium";
+import { EntitlementProvider, type PaywallContext } from "./src/entitlement";
+import PaywallScreen from "./src/screens/PaywallScreen";
 import { initDb } from "./src/db/client";
 import { markDbReady } from "./src/db/state";
 import { features } from "./src/config/features";
@@ -40,6 +47,14 @@ import type { RootStackParamList, TabParamList } from "./src/navigation";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
+
+// Entitlement servisi paywall'ı ekran ağacının dışından açar (kural 7:
+// ekranlar abonelik değil kapasite sorar; kapıyı servis yönetir).
+const navigationRef = createNavigationContainerRef<RootStackParamList>();
+
+function openPaywall(context: PaywallContext) {
+  if (navigationRef.isReady()) navigationRef.navigate("Paywall", { context });
+}
 
 const theme = {
   ...DefaultTheme,
@@ -165,7 +180,7 @@ function Root() {
   const si = INSPECTION_STRINGS[locale];
   const s = TRIP_STRINGS[locale];
   return (
-    <NavigationContainer theme={theme}>
+    <NavigationContainer ref={navigationRef} theme={theme}>
       <StatusBar style="dark" />
       <Stack.Navigator
         screenOptions={{
@@ -206,6 +221,11 @@ function Root() {
           name="InspectionSummary"
           component={SummaryScreen}
           options={{ title: si.summary }}
+        />
+        <Stack.Screen
+          name="Paywall"
+          component={PaywallScreen}
+          options={{ headerShown: false, presentation: "modal" }}
         />
 
         {/* Legacy checklist modu (feature flag) */}
@@ -263,7 +283,9 @@ export default function App() {
   return (
     <LocaleProvider>
       <PremiumProvider>
-        <Root />
+        <EntitlementProvider onPaywall={openPaywall}>
+          <Root />
+        </EntitlementProvider>
       </PremiumProvider>
     </LocaleProvider>
   );

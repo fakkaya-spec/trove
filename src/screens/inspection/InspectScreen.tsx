@@ -47,6 +47,7 @@ import type {
   TemplateSectionDef,
 } from "../../domain/types";
 import { capturePhoto } from "../../media/photos";
+import { useEntitlement } from "../../entitlement";
 import { colors, fonts, spacing, radius, touch } from "../../theme";
 import { Icon, type IconName } from "../../components/Icon";
 import { Tag } from "../../components/ui";
@@ -372,6 +373,7 @@ function IssueSheet(props: {
   onClose: (saved: boolean) => void;
 }) {
   const { inspection, item, status, locale, s } = props;
+  const { requestAccess } = useEntitlement();
   const existingIssue = useMemo(
     () => listIssues(inspection.id).find((i) => i.templateItemId === item.id),
     [inspection.id, item.id]
@@ -402,6 +404,8 @@ function IssueSheet(props: {
   }
 
   async function onAddPhoto() {
+    // KİLİTLİ kural (MONETIZATION 1): foto kapılı, metin kaydı asla değil.
+    if (!(await requestAccess("inspection_photo"))) return;
     const uri = await capturePhoto();
     if (!uri) return;
     const issueId = savedIssueId ?? persistIssue();

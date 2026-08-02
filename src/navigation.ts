@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
+import type { PaywallContext } from "./entitlement/policy";
 
 export type RootStackParamList = {
   /** Alt sekmeler (Trip / Log / Vessel) — KİLİTLİ TROVE navigasyonu */
@@ -24,6 +25,14 @@ export type RootStackParamList = {
   Checklist: { vesselId: string };
   Guide: undefined;
   Premium: undefined;
+  /** Premium foto kanıtı kapısı — bağlam takibiyle açılır (MONETIZATION 2/9) */
+  Paywall: { context: PaywallContext };
+  /** Faz 4 — Trip Prepare ekranları (onaylı TROVE tasarımı) */
+  TripCrew: { tripId: string };
+  TripProvisions: { tripId: string };
+  TripShopping: { tripId: string };
+  TripPredep: { tripId: string };
+  TripCheckin: { tripId: string };
 };
 
 export type TabParamList = {
