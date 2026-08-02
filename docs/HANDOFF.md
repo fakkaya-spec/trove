@@ -1,6 +1,6 @@
 # TROVE — Devir-Teslim / Güncel Durum
 
-_Son güncelleme: 2026-08-02 (Faz 5 — Log dikey dilimi) · Dal: claude/trove-integration_
+_Son güncelleme: 2026-08-02 (Faz 6 — Underway) · Dal: claude/trove-integration_
 
 ## Tamamlanan fazlar
 - **Faz 1** — TROVE marka geçişi: C0 `TroveMark`, DM Sans wordmark varlığı, app.json
@@ -41,16 +41,30 @@ _Son güncelleme: 2026-08-02 (Faz 5 — Log dikey dilimi) · Dal: claude/trove-i
   - `tests/log.test.ts` (9. paket): 4→5 migration + yeniden başlatma
     kalıcılığı + izolasyon + kapı sözleşmesi + i18n bütünlüğü.
 
-## Sıradaki: FAZ 6+ (öncelik sırası kullanıcı onayında)
-- `trip_underway` ekranı (P5'in kalan yarısı) · P6 Complete+expo-print PDF ·
-  P7 foto hattı (sıkıştırma/thumbnail — Faz 10 borcu olarak belgeli) ·
-  P8 testler+cihaz doğrulama.
+- **Faz 6 (Underway)** — Trip sekmesi tam faz-farkındalı:
+  planning→PrepareHub · active→**UnderwayScreen** · completed→TripCompleteState.
+  - Migration 6: `log_entries.resolved_at` (açık gözlem izleme listesi;
+    çöz/yeniden aç, örnek korumalı, sync kuyruklu).
+  - UnderwayScreen: Gün X/Y (domain/tripDayOf, yerel takvim, kıskaçlı,
+    "dönüş günü geçti" sakin notu) → varış → hızlı kayıt → açık gözlemler
+    (✓ çözüldü) → alışveriş ilerlemesi (plan varsa) → mürettebat → seferi
+    bitir. Hava durumu BİLİNÇLİ yok (sahte veri yasak; hero genişleme noktası).
+  - Bitirme: kendi tekne → `TripReturn` (TripChecklistScreen yeniden
+    kullanımı, return_secure) → status completed; charter → Faz 7'ye dek
+    TripDetail'deki check-out/handover akışı.
+  - Hub "Begin trip" artık gerçek geçiş (uyarı kalktı).
+  - AGENTS.md'ye KALICI ÜRÜN İLKELERİ eklendi (kaptan-bugün süzgeci,
+    3 sn/10 sn Underway hedefi, MVP disiplini).
+
+## Sıradaki: FAZ 7 — Complete/handover/rapor (TROVE görünümü + expo-print PDF)
+Ardından: foto hattı (sıkıştırma/thumbnail) · çeviri borcu · cihaz doğrulama.
 
 ## Bilinmesi gerekenler
 - Eski repo `fakkaya-spec/koskoraporweb` ARŞİV; oraya push yok. PR #3 kapatılacak.
-- `npm test` = 9 paket (entitlement + log eklendi); beklenen çıktılar birebir
-  korunmalı (repos/trip-flow satırları).
-- Faz 4-5 ekran metinleri (`src/i18n/prepare.ts`, `entitlement.ts`, `log.ts`)
+- `npm test` = 10 paket (entitlement + log + underway eklendi); beklenen
+  çıktılar birebir korunmalı (repos/trip-flow satırları).
+- Faz 4-6 ekran metinleri (`src/i18n/prepare.ts`, `entitlement.ts`, `log.ts`,
+  `underway.ts`)
   şimdilik en+tr; diğer 7 dil İngilizce'ye düşer — çeviri borcu P8 öncesi
   kapanmalı.
 - Foto sıkıştırma/thumbnail YOK (Faz 10 borcu); log foto akışı mevcut hattı

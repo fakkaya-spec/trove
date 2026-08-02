@@ -6,7 +6,13 @@ import { T, TICON } from "../../../theme";
 import { LIcon } from "../../../components/LIcon";
 import { Bar, KeelLine, Pill } from "../../../components/trove/primitives";
 import { SampleBanner } from "../../../components/trove/SampleBanner";
-import { ensureTripInspection, getTrip, listTripInspections, TripRow } from "../../../repositories/trips";
+import {
+  ensureTripInspection,
+  getTrip,
+  listTripInspections,
+  updateTripStatus,
+  TripRow,
+} from "../../../repositories/trips";
 import { getVesselById } from "../../../repositories/vessels";
 import {
   addMedia,
@@ -38,8 +44,14 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function TripChecklistScreen() {
   const navigation = useNavigation<Nav>();
-  const route = useRoute<RouteProp<RootStackParamList, "TripPredep" | "TripCheckin">>();
-  const kind = route.name === "TripCheckin" ? "check_in" : "pre_departure";
+  const route =
+    useRoute<RouteProp<RootStackParamList, "TripPredep" | "TripCheckin" | "TripReturn">>();
+  const kind =
+    route.name === "TripCheckin"
+      ? "check_in"
+      : route.name === "TripReturn"
+        ? "return_secure"
+        : "pre_departure";
   const { locale } = useLocale();
   const s = TRIP_STRINGS[locale];
   const p = PREPARE_STRINGS[locale];
@@ -176,6 +188,10 @@ export default function TripChecklistScreen() {
       completeInspection(data.inspection.id);
       if (kind === "pre_departure" && trip?.ownershipContext === "charter") {
         navigation.replace("TripCheckin", { tripId: trip.id });
+      } else if (kind === "return_secure" && trip) {
+        // Dönüş listesi seferi kapatır; Trip sekmesi tamamlandı durumunu çizer.
+        updateTripStatus(trip.id, "completed");
+        navigation.goBack();
       } else {
         navigation.goBack();
       }
@@ -193,9 +209,11 @@ export default function TripChecklistScreen() {
   const ctaLabel =
     kind === "check_in"
       ? p.completeCheckinCta
-      : trip.ownershipContext === "charter"
-        ? p.continueCheckinCta
-        : p.completeChecklistCta;
+      : kind === "return_secure"
+        ? p.completeChecklistCta
+        : trip.ownershipContext === "charter"
+          ? p.continueCheckinCta
+          : p.completeChecklistCta;
 
   return (
     <SafeAreaView style={styles.safe}>

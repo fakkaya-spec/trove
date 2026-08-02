@@ -7,6 +7,8 @@ import { listTrips, getTripModuleStates, TripRow } from "../../repositories/trip
 import { listVessels } from "../../repositories/vessels";
 import WelcomeScreen from "../WelcomeScreen";
 import { TripPrepareHub } from "./prepare/TripPrepareHub";
+import { UnderwayScreen } from "./underway/UnderwayScreen";
+import { TripCompleteState } from "./underway/TripCompleteState";
 import { listInspections } from "../../repositories/inspections";
 import { nextAction, tripProgress, NextAction, TripModuleStates } from "../../domain/trip";
 import { colors, fonts, spacing, radius, touch } from "../../theme";
@@ -44,24 +46,24 @@ export default function TripHomeScreen() {
   // KİLİTLİ şart: gerçek tekne yoksa Trip sekmesi karşılama ekranıdır.
   const [welcomeMode, setWelcomeMode] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!dbReady) return;
-      setWelcomeMode(listVessels().length === 0);
-      const trips = listTrips().filter((t) => t.status !== "archived");
-      const primary =
-        trips.find((t) => t.status === "active") ??
-        trips.find((t) => t.status === "planning") ??
-        trips[0] ??
-        null;
-      setTrip(primary);
-      setStates(primary ? getTripModuleStates(primary) : null);
-      const draft = listInspections().find(
-        (i) => i.status === "draft" || i.status === "in_progress"
-      );
-      setDraftInspectionId(draft?.id ?? null);
-    }, [dbReady])
-  );
+  const load = useCallback(() => {
+    if (!dbReady) return;
+    setWelcomeMode(listVessels().length === 0);
+    const trips = listTrips().filter((t) => t.status !== "archived");
+    const primary =
+      trips.find((t) => t.status === "active") ??
+      trips.find((t) => t.status === "planning") ??
+      trips[0] ??
+      null;
+    setTrip(primary);
+    setStates(primary ? getTripModuleStates(primary) : null);
+    const draft = listInspections().find(
+      (i) => i.status === "draft" || i.status === "in_progress"
+    );
+    setDraftInspectionId(draft?.id ?? null);
+  }, [dbReady]);
+
+  useFocusEffect(load);
 
   // Karşılamada sekme başlığı gizlenir (ekran kendi koyu hero başlığını taşır).
   useLayoutEffect(() => {
@@ -70,9 +72,15 @@ export default function TripHomeScreen() {
 
   if (dbReady && welcomeMode) return <WelcomeScreen />;
 
-  // Faz 4: gerçek sefer varken Trip sekmesi hazırlık hub'ıdır (trip_plan).
-  if (dbReady && trip && (trip.status === "planning" || trip.status === "active")) {
-    return <TripPrepareHub trip={trip} />;
+  // Faz-farkındalı Trip sekmesi (Faz 6): sekme kaptanın gününü takip eder.
+  if (dbReady && trip && trip.status === "planning") {
+    return <TripPrepareHub trip={trip} onChanged={load} />;
+  }
+  if (dbReady && trip && trip.status === "active") {
+    return <UnderwayScreen trip={trip} />;
+  }
+  if (dbReady && trip && trip.status === "completed") {
+    return <TripCompleteState trip={trip} />;
   }
 
   const isCharter = trip?.ownershipContext === "charter";

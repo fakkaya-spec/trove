@@ -33,6 +33,8 @@ export type RootStackParamList = {
   TripShopping: { tripId: string };
   TripPredep: { tripId: string };
   TripCheckin: { tripId: string };
+  /** Faz 6 — dönüş & kapatma listesi (TripChecklistScreen yeniden kullanımı) */
+  TripReturn: { tripId: string };
   /** Seyir defteri — yeni kayıt ekleme (modal; yerel-önce kalıcı) */
   AddLog: undefined;
 };

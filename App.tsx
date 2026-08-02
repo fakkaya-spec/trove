@@ -266,6 +266,11 @@ function Root() {
           component={TripChecklistScreen}
           options={{ title: sp.checkinInspection }}
         />
+        <Stack.Screen
+          name="TripReturn"
+          component={TripChecklistScreen}
+          options={{ title: s.returnCheck }}
+        />
 
         {/* Legacy checklist modu (feature flag) */}
         {features.legacyChecklists && (

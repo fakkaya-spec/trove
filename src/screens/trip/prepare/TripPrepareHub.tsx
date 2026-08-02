@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView, Alert } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { T, TSH, TICON } from "../../../theme";
@@ -36,7 +36,14 @@ interface SetupCard {
   onPress: () => void;
 }
 
-export function TripPrepareHub({ trip }: { trip: TripRow }) {
+export function TripPrepareHub({
+  trip,
+  onChanged,
+}: {
+  trip: TripRow;
+  /** Sefer durumu değişince ebeveyni (faz yönlendirmesi) tazeler. */
+  onChanged?: () => void;
+}) {
   const navigation = useNavigation<Nav>();
   const { locale } = useLocale();
   const s = TRIP_STRINGS[locale];
@@ -135,10 +142,10 @@ export function TripPrepareHub({ trip }: { trip: TripRow }) {
   const heroMeta = [boat?.name, dates].filter(Boolean).join(" · ");
   const statusLabel = trip.status === "active" ? s.active : s.planning;
 
+  // Gerçek geçiş (Faz 6): sefer aktifleşir, Trip sekmesi Underway'i çizer.
   function beginTrip() {
     updateTripStatus(trip.id, "active");
-    Alert.alert(p.beganTitle, p.beganBody);
-    setStates(getTripModuleStates(trip));
+    onChanged?.();
   }
 
   return (
