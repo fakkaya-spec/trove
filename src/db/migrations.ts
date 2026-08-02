@@ -275,7 +275,78 @@ CREATE INDEX idx_vessels_sample ON vessels(is_sample);
 CREATE INDEX idx_trips_sample ON trips(is_sample);
 `,
   },
+  {
+    // TROVE Faz 5: seyir defteri (log_entries) + medyanın log kayıtlarına
+    // bağlanması. media_assets kanonik medya tablosu kalır; ikili (binary)
+    // çoğaltılmaz. inspection_id'nin NOT NULL kısıtı log medyası için tablo
+    // yeniden kurulumuyla gevşetilir (SQLite ALTER kısıt düşüremez; veri
+    // birebir taşınır, yayımlanmış migration'lara dokunulmaz).
+    id: 5,
+    sql: `
+CREATE TABLE log_entries (
+  id TEXT PRIMARY KEY,
+  trip_id TEXT REFERENCES trips(id),
+  vessel_id TEXT,
+  type TEXT NOT NULL DEFAULT 'note',
+  title TEXT NOT NULL,
+  description TEXT,
+  place TEXT,
+  severity TEXT,
+  occurred_at TEXT NOT NULL,
+  author_name TEXT,
+  is_sample INTEGER NOT NULL DEFAULT 0,
+  ${COMMON}
+);
+CREATE INDEX idx_log_entries_trip ON log_entries(trip_id);
+CREATE INDEX idx_log_entries_sample ON log_entries(is_sample);
+
+CREATE TABLE media_assets_v5 (
+  id TEXT PRIMARY KEY, inspection_id TEXT REFERENCES inspections(id),
+  issue_id TEXT, meter_reading_id TEXT,
+  log_entry_id TEXT REFERENCES log_entries(id),
+  kind TEXT NOT NULL DEFAULT 'photo',
+  local_uri TEXT NOT NULL, sha256 TEXT,
+  taken_at TEXT NOT NULL, lat REAL, lng REAL,
+  upload_state TEXT NOT NULL DEFAULT 'pending', ${COMMON}
+);
+INSERT INTO media_assets_v5 (
+  id, inspection_id, issue_id, meter_reading_id, log_entry_id, kind,
+  local_uri, sha256, taken_at, lat, lng, upload_state,
+  created_at, updated_at, deleted_at
+)
+SELECT
+  id, inspection_id, issue_id, meter_reading_id, NULL, kind,
+  local_uri, sha256, taken_at, lat, lng, upload_state,
+  created_at, updated_at, deleted_at
+FROM media_assets;
+DROP TABLE media_assets;
+ALTER TABLE media_assets_v5 RENAME TO media_assets;
+CREATE INDEX idx_media_inspection ON media_assets(inspection_id);
+CREATE INDEX idx_media_log_entry ON media_assets(log_entry_id);
+`,
+  },
 ];
+
+/** Testlerin sürüm-atlamalı (ör. 4→5) yükseltmeyi kanıtlaması için salt okunur dışa aktarım. */
+export const MIGRATION_IDS: readonly number[] = MIGRATIONS.map((m) => m.id);
+
+export function migrateUpTo(db: SQLiteDatabase, maxId: number): void {
+  db.execSync(
+    `CREATE TABLE IF NOT EXISTS schema_migrations (id INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);`
+  );
+  const appliedRows = db.getAllSync<{ id: number }>(`SELECT id FROM schema_migrations`);
+  const applied = new Set(appliedRows.map((r) => r.id));
+  for (const m of MIGRATIONS) {
+    if (m.id > maxId || applied.has(m.id)) continue;
+    db.withTransactionSync(() => {
+      db.execSync(m.sql);
+      db.runSync(`INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)`, [
+        m.id,
+        new Date().toISOString(),
+      ]);
+    });
+  }
+}
 
 export function migrate(db: SQLiteDatabase): void {
   db.execSync(

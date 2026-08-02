@@ -7,6 +7,7 @@ import {
   inspections,
   inspectionItemResults,
   issues,
+  logEntries,
   meterReadings,
   handoverSessions,
   seedVersions,
@@ -24,7 +25,9 @@ import { getBestTemplate } from "../../repositories/templates";
 // ---------------------------------------------------------------------------
 
 export const SAMPLES_SEED_KEY = "samples";
-export const SAMPLES_VERSION = 1;
+// v2 (Faz 5): Serenity örnek seferine seyir defteri kayıtları eklendi.
+// Sürüm blokları ekseldir: v1 kurulu cihazda yalnız v2 bloğu çalışır.
+export const SAMPLES_VERSION = 2;
 
 export const SAMPLE_IDS = {
   serenity: "smp-vessel-serenity",
@@ -57,8 +60,18 @@ function markSeedVersion(db: Db, key: string, version: number): void {
 const S = () => ({ createdAt: nowIso(), updatedAt: nowIso() });
 
 export function seedSamples(db: Db): void {
-  if (seedVersion(db, SAMPLES_SEED_KEY) >= SAMPLES_VERSION) return;
+  const version = seedVersion(db, SAMPLES_SEED_KEY);
+  if (version >= SAMPLES_VERSION) return;
 
+  // Sürüm blokları SIRAYLA uygulanır (v2 log kayıtları v1 seferlerine FK ile
+  // bağlıdır); v1 kurulu cihazda yalnız eksik bloklar çalışır.
+  if (version < 1) seedSamplesV1(db);
+  if (version < 2) seedSampleLogEntries(db);
+  markSeedVersion(db, SAMPLES_SEED_KEY, SAMPLES_VERSION);
+}
+
+// --- v1: tekneler + seferler + Serenity check-in denetimi -------------------
+function seedSamplesV1(db: Db): void {
   // --- Tekneler -------------------------------------------------------------
   db.insert(vessels)
     .values([
@@ -269,7 +282,72 @@ export function seedSamples(db: Db): void {
       .run();
   }
 
-  markSeedVersion(db, SAMPLES_SEED_KEY, SAMPLES_VERSION);
+}
+
+// --- v2: Serenity örnek seyir defteri (onaylı tasarımdaki log içeriği) ------
+function seedSampleLogEntries(db: Db): void {
+  db.insert(logEntries)
+    .values([
+      {
+        id: "smp-log-winch",
+        tripId: SAMPLE_IDS.tripSerenity,
+        vesselId: SAMPLE_IDS.serenity,
+        type: "observation",
+        title: "Port winch — grinding noise under load",
+        description: "Noticeable under load while trimming the genoa.",
+        place: "Cockpit",
+        severity: "minor",
+        occurredAt: "2026-07-20T10:28:00.000Z",
+        isSample: 1,
+        ...S(),
+      },
+      {
+        id: "smp-log-anchor",
+        tripId: SAMPLE_IDS.tripSerenity,
+        vesselId: SAMPLE_IDS.serenity,
+        type: "anchorage",
+        title: "Anchored in Lojena bay",
+        place: "44.1°N 15.2°E",
+        occurredAt: "2026-07-20T14:00:00.000Z",
+        isSample: 1,
+        ...S(),
+      },
+      {
+        id: "smp-log-navlight",
+        tripId: SAMPLE_IDS.tripSerenity,
+        vesselId: SAMPLE_IDS.serenity,
+        type: "observation",
+        title: "Navigation light flickering at speed",
+        place: "Bow · Port",
+        severity: "minor",
+        occurredAt: "2026-07-19T14:15:00.000Z",
+        isSample: 1,
+        ...S(),
+      },
+      {
+        id: "smp-log-fuel",
+        tripId: SAMPLE_IDS.tripSerenity,
+        vesselId: SAMPLE_IDS.serenity,
+        type: "note",
+        title: "Fuelled up at Murter marina",
+        place: "Murter",
+        occurredAt: "2026-07-18T11:30:00.000Z",
+        isSample: 1,
+        ...S(),
+      },
+      {
+        id: "smp-log-checkin",
+        tripId: SAMPLE_IDS.tripSerenity,
+        vesselId: SAMPLE_IDS.serenity,
+        type: "general",
+        title: "Check-in inspection complete",
+        place: "Serenity",
+        occurredAt: "2026-07-18T09:42:00.000Z",
+        isSample: 1,
+        ...S(),
+      },
+    ])
+    .run();
 }
 
 /**
@@ -277,6 +355,7 @@ export function seedSamples(db: Db): void {
  * kayıtları siler, sonra yeniden seed'ler. Gerçek veriye dokunAMAZ (testli).
  */
 export function resetSamples(db: Db): void {
+  db.delete(logEntries).where(eq(logEntries.isSample, 1)).run();
   db.delete(handoverSessions).where(like(handoverSessions.id, "smp-%")).run();
   db.delete(meterReadings).where(like(meterReadings.id, "smp-%")).run();
   db.delete(issues).where(like(issues.id, "smp-%")).run();

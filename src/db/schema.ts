@@ -242,11 +242,14 @@ export const issues = sqliteTable("issues", {
   ...common,
 });
 
+// Faz 5 (migration 5): inspection_id artık nullable — log medyası denetimsiz
+// yaşayabilir; log_entry_id log kaydına bağlar. İkili çoğaltılmaz.
 export const mediaAssets = sqliteTable("media_assets", {
   id: text("id").primaryKey(),
-  inspectionId: text("inspection_id").notNull(),
+  inspectionId: text("inspection_id"),
   issueId: text("issue_id"),
   meterReadingId: text("meter_reading_id"),
+  logEntryId: text("log_entry_id"),
   kind: text("kind").notNull().default("photo"),
   localUri: text("local_uri").notNull(),
   sha256: text("sha256"),
@@ -319,6 +322,22 @@ export const reports = sqliteTable("reports", {
   contentHash: text("content_hash"),
   pdfPath: text("pdf_path"),
   generatedAt: text("generated_at"),
+  ...common,
+});
+
+// Faz 5: seyir defteri kayıtları (trip'in kronolojik kaydı).
+export const logEntries = sqliteTable("log_entries", {
+  id: text("id").primaryKey(),
+  tripId: text("trip_id"),
+  vesselId: text("vessel_id"),
+  type: text("type").notNull().default("note"),
+  title: text("title").notNull(),
+  description: text("description"),
+  place: text("place"),
+  severity: text("severity"),
+  occurredAt: text("occurred_at").notNull(),
+  authorName: text("author_name"),
+  isSample: integer("is_sample").notNull().default(0),
   ...common,
 });
 
