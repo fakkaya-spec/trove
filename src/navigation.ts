@@ -13,7 +13,7 @@ export type RootStackParamList = {
   HandoverReview: { tripId: string };
   /** Şablon kütüphanesi (Ayarlar'dan erişilir; artık sekme değil) */
   Library: undefined;
-  /** Ayarlar (eski Profil ekranı) — Trip başlığındaki dişliden açılır */
+  /** Ayarlar (eski Profil ekranı) — Trip başlığındaki dişiden açılır */
   Settings: undefined;
   /** Bağımsız hızlı charter check-in girişi */
   NewInspection: undefined;
@@ -24,6 +24,8 @@ export type RootStackParamList = {
   Checklist: { vesselId: string };
   Guide: undefined;
   Premium: undefined;
+  /** Seyir defteri — yeni kaydı ekleme */
+  AddLog: undefined;
 };
 
 export type TabParamList = {
