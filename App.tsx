@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
+import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { DefaultTheme, NavigationContainer, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -230,6 +231,14 @@ function Root() {
 }
 
 export default function App() {
+  // IBM Plex Mono — TROVE tasarım dilinin ölçüm fontu (OFL, assets/fonts/).
+  // Aile adları theme.T.mono* ile birebir aynı anahtarlardır.
+  const [fontsLoaded] = useFonts({
+    IBMPlexMono_400Regular: require("./assets/fonts/IBMPlexMono_400Regular.ttf"),
+    IBMPlexMono_500Medium: require("./assets/fonts/IBMPlexMono_500Medium.ttf"),
+    IBMPlexMono_600SemiBold: require("./assets/fonts/IBMPlexMono_600SemiBold.ttf"),
+  });
+
   // DB açılışı senkron; başarısızsa (ör. web'de sqlite yapılandırılmadıysa)
   // uygulama çökmez, yeni akış "kullanılamıyor" bildirimi gösterir.
   useState(() => {
@@ -246,6 +255,10 @@ export default function App() {
   useEffect(() => {
     initAds(); // yalnızca legacy mod ekranları banner gösterir
   }, []);
+
+  // Splash, fontlar hazır olana dek ekranda kalır (mono ölçüm değerlerinin
+  // sistem fontuyla "zıplamaması" için).
+  if (!fontsLoaded) return null;
 
   return (
     <LocaleProvider>

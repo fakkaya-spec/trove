@@ -8,6 +8,75 @@ export const brand = {
   depth: "#1B3A4B",
 };
 
+// ---------------------------------------------------------------------------
+// TROVE tasarım tokenları — kaynak: design-reference/src/app/App.full.tsx `T`.
+// Onaylı görsel dilin BİREBİR değerleri; yeni (TROVE) ekranlar yalnız bunları
+// kullanır. Eski ekranlar `colors` ile kalır ve fazlar ilerledikçe taşınır.
+// ---------------------------------------------------------------------------
+export const T = {
+  bg: "#F5F5F8", // sayfa zemini
+  surface: "#FFFFFF",
+  surfaceEl: "#EAEAEF",
+
+  ink0: "#0C0C14", // birincil metin
+  ink1: "#3C3C4E",
+  ink2: "#7A7A90",
+  ink3: "#ABABC0",
+
+  rule: "rgba(0,0,0,0.06)",
+  ruleStr: "rgba(0,0,0,0.12)",
+
+  blue: "#005FCC", // etkileşim
+  blueL: "#EBF1FF",
+  green: "#00875A",
+  greenL: "#E6F7F1",
+  amber: "#C96A00",
+  amberL: "#FFF4E0",
+  red: "#C82222",
+  redL: "#FEF0F0",
+
+  vessel: "#090C18", // koyu tekne yüzeyleri
+
+  r: 14,
+  r2: 10,
+  r3: 7,
+
+  // IBM Plex Mono — YALNIZ makine-ölçümü veriler (saat damgası, GPS, belge no,
+  // motor saati, yakıt %, ölçüler). İnsan değerlendirmelerinde kullanılmaz.
+  mono: "IBMPlexMono_400Regular",
+  monoMedium: "IBMPlexMono_500Medium",
+  monoSemiBold: "IBMPlexMono_600SemiBold",
+} as const;
+
+// Gölgeler (web sh0/sh1/sh2 karşılığı): iOS shadow* + Android elevation.
+// Kural: kart ya gölge ya çizgi taşır; sh1/sh2 tasarımda 1px hatla birlikte
+// geldiği için kenarlık ayrıca stilde verilir.
+export const TSH = {
+  sh0: {
+    shadowColor: "#000000",
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
+  sh1: {
+    shadowColor: "#000000",
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+  },
+  sh2: {
+    shadowColor: "#000000",
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+} as const;
+
+export const TICON = { xs: 10, sm: 13, md: 15, lg: 20, xl: 22 } as const;
+
 // AÇIK TEMA (varsayılan) — güneşli güvertede okunabilirlik önceliklidir.
 // Kontrastlar WCAG AA+ hedefiyle seçildi (text/bg 15.8:1).
 // KURAL: gold (#C9A227) açık zeminde ASLA metin rengi olarak kullanılmaz;
