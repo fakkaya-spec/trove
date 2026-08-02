@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useFocusEffect, useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { T, TSH, TICON } from "../../../theme";
+import { T, TSH, TICON, touch } from "../../../theme";
 import { LIcon } from "../../../components/LIcon";
 import { BackBtn, KeelLine, Pill, SLabel, TDivider } from "../../../components/trove/primitives";
 import {
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    minHeight: 56,
+    minHeight: touch.row,
   },
   stepCircle: {
     width: 22,
@@ -420,8 +420,8 @@ const styles = StyleSheet.create({
   obsTitle: { fontSize: 13, fontWeight: "500", color: T.ink0, lineHeight: 18, marginBottom: 3 },
   obsMeta: { fontSize: 11, color: T.ink2 },
   resolveBtn: {
-    minWidth: 44,
-    minHeight: 44,
+    minWidth: touch.min,
+    minHeight: touch.min,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
@@ -472,11 +472,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: T.ruleStr,
     paddingHorizontal: 14,
-    minHeight: 44,
+    minHeight: touch.min,
   },
   signAddBtn: {
-    width: 44,
-    height: 44,
+    width: touch.min,
+    height: touch.min,
     borderRadius: T.r2,
     backgroundColor: T.blueL,
     alignItems: "center",
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
   roleRow: { flexDirection: "row", gap: 6, marginTop: 8 },
   roleChip: {
     paddingHorizontal: 12,
-    minHeight: 36,
+    minHeight: touch.min,
     justifyContent: "center",
     borderRadius: T.r3,
     backgroundColor: T.surfaceEl,
@@ -497,11 +497,11 @@ const styles = StyleSheet.create({
     borderRadius: T.r,
     paddingVertical: 15,
     alignItems: "center",
-    minHeight: 48,
+    minHeight: touch.min,
     justifyContent: "center",
   },
   ctaText: { fontSize: 14, fontWeight: "700", letterSpacing: -0.2 },
   blockedNote: { fontSize: 11, color: T.ink3, textAlign: "center", marginTop: 8 },
-  skipBtn: { minHeight: 44, alignItems: "center", justifyContent: "center", marginTop: 4 },
+  skipBtn: { minHeight: touch.min, alignItems: "center", justifyContent: "center", marginTop: 4 },
   skipText: { fontSize: 12, fontWeight: "600", color: T.ink2 },
 });

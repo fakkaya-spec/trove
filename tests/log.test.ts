@@ -98,8 +98,10 @@ seedIfNeeded(db);
 
 import { createVessel } from "../src/repositories/vessels";
 import { createTrip } from "../src/repositories/trips";
+import { eq } from "drizzle-orm";
 import {
   addLogMedia,
+  countLogMediaByEntry,
   createLogEntry,
   deleteLogEntry,
   getLogEntry,
@@ -179,6 +181,32 @@ assert.equal(media[0].id, mediaId);
 assert.equal(media[0].localUri, "media/winch.jpg");
 assert.equal(media[0].inspectionId, null, "log medyası denetimsiz yaşar");
 
+// --- M3) Toplu medya sayımı — TEK sorgu (GROUP BY), N+1 yok -----------------
+const e4 = createLogEntry({
+  tripId: trip.id,
+  type: "note",
+  title: "Older with photo",
+  occurredAt: "2026-07-01T09:00:00.000Z",
+});
+const m2 = addLogMedia(e2.id, "media/winch2.jpg");
+addLogMedia(e4.id, "media/other.jpg");
+let counts = countLogMediaByEntry(trip.id);
+assert.equal(counts.get(e2.id), 2, "birden çok medya doğru sayılır");
+assert.equal(counts.get(e4.id), 1, "tek medya doğru sayılır");
+assert.equal(counts.get(e1.id) ?? 0, 0, "medyasız kayıt → 0 (haritada yer almaz)");
+// Soft-delete edilen medya sayılmaz (listLogMedia sözleşmesiyle birebir)
+db.update(schema.mediaAssets)
+  .set({ deletedAt: new Date().toISOString() })
+  .where(eq(schema.mediaAssets.id, m2))
+  .run();
+counts = countLogMediaByEntry(trip.id);
+assert.equal(counts.get(e2.id), 1, "soft-delete medya sayımdan düşer");
+assert.deepEqual(
+  counts.get(e2.id),
+  listLogMedia(e2.id).length,
+  "toplu sayım ile tekil sözleşme aynı"
+);
+
 // --- 6) Soft delete ---------------------------------------------------------
 const e3 = createLogEntry({ tripId: trip.id, type: "general", title: "Will be deleted" });
 deleteLogEntry(e3.id);
@@ -216,7 +244,7 @@ migrate(expoLikeAdapter(sqlite)); // açılış migration'ı idempotent
 db = drizzle(sqlite, { schema }) as unknown as Db;
 __setDbForTesting(db);
 list = listLogEntries(trip.id);
-assert.equal(list.length, 2, "kayıtlar yeniden başlatmadan sağ çıkar");
+assert.equal(list.length, 3, "kayıtlar yeniden başlatmadan sağ çıkar (e1, e2, e4)");
 assert.equal(getLogEntry(e1.id)!.place, "Murter marina", "güncelleme kalıcı");
 assert.equal(listLogMedia(e2.id).length, 1, "medya bağı kalıcı");
 assert.equal(listSampleLogEntries(SAMPLE_IDS.tripSerenity).length, 5, "örnekler kalıcı");

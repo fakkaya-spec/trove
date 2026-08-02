@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, newId, nowIso, stamps } from "../db/client";
 import { logEntries, mediaAssets, syncQueue, trips } from "../db/schema";
@@ -271,6 +271,30 @@ export function addLogMedia(logEntryId: string, localUri: string): string {
     .run();
   enqueueSync("media_assets", id);
   return id;
+}
+
+/**
+ * Seferin TÜM kayıtları için medya sayıları — TEK sorgu (GROUP BY).
+ * Liste ekranı bunu kullanır; kayıt başına listLogMedia çağrısı (N+1) yasak.
+ * Soft-delete edilmiş medya ve kayıtlar sayılmaz (listLogMedia sözleşmesiyle aynı).
+ */
+export function countLogMediaByEntry(tripId: string): Map<string, number> {
+  const rows = getDb()
+    .select({ logEntryId: mediaAssets.logEntryId, n: count(mediaAssets.id) })
+    .from(mediaAssets)
+    .innerJoin(logEntries, eq(mediaAssets.logEntryId, logEntries.id))
+    .where(
+      and(
+        eq(logEntries.tripId, tripId),
+        isNull(mediaAssets.deletedAt),
+        isNull(logEntries.deletedAt)
+      )
+    )
+    .groupBy(mediaAssets.logEntryId)
+    .all();
+  return new Map(
+    rows.filter((r) => r.logEntryId !== null).map((r) => [r.logEntryId as string, r.n])
+  );
 }
 
 export function listLogMedia(logEntryId: string) {

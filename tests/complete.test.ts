@@ -94,6 +94,7 @@ import { collectTripReport, makeReportLabels, saveReportRecord, getReportForTrip
 import { generateTripReport, ReportUnavailableError } from "../src/report/generate";
 import { DEFAULT_TRIP_PROFILE } from "../src/domain/types";
 import { COMPLETE_STRINGS } from "../src/i18n/complete";
+import { PREPARE_STRINGS } from "../src/i18n/prepare";
 
 // --- 2-4) Temel/Tam seçim + kritikler ---------------------------------------
 const returnTplRef = getBestTemplate("sailing", "return_secure")!;
@@ -341,6 +342,33 @@ for (const loc of ["tr", "de", "ru", "es", "hr", "it", "el", "fr"] as const)
   assert.deepEqual(Object.keys(COMPLETE_STRINGS[loc]).sort(), enKeys, `${loc} anahtarları tam`);
 for (const [k, v] of Object.entries(COMPLETE_STRINGS.tr))
   assert.ok(typeof v === "string" && v.length > 0, `tr.${k} boş olamaz`);
+
+// --- M4) PREPARE_STRINGS anahtar paritesi (eksik olan modül eklendi) --------
+const prepEnKeys = Object.keys(PREPARE_STRINGS.en).sort();
+for (const loc of ["tr", "de", "ru", "es", "hr", "it", "el", "fr"] as const)
+  assert.deepEqual(
+    Object.keys(PREPARE_STRINGS[loc]).sort(),
+    prepEnKeys,
+    `prepare.${loc} anahtarları tam`
+  );
+for (const [k, v] of Object.entries(PREPARE_STRINGS.en))
+  assert.ok(typeof v === "string" && v.length > 0, `prepare.en.${k} boş olamaz`);
+for (const [k, v] of Object.entries(PREPARE_STRINGS.tr))
+  assert.ok(typeof v === "string" && v.length > 0, `prepare.tr.${k} boş olamaz`);
+
+// --- M2) Dokunma hedefi sözleşmesi (Faz 6/7 ekranları) ----------------------
+for (const rel of [
+  ["src", "screens", "trip", "complete", "TripCompleteScreen.tsx"],
+  ["src", "screens", "trip", "underway", "TripCompleteState.tsx"],
+] as const) {
+  const src = readFileSync(join(root, ...rel), "utf8");
+  const name = rel[rel.length - 1];
+  assert.ok(src.includes("touch.min"), `${name} paylaşılan dokunma token'ını kullanır`);
+  assert.ok(
+    !/minHeight: 3\d\b/.test(src) && !/minHeight: 40\b/.test(src),
+    `${name} standart altı etkileşimli hedef içermez`
+  );
+}
 
 // --- 11 devam) Yeniden başlatma kalıcılığı (onay + rapor kaydı) -------------
 sqlite.close();

@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { View, Text, StyleSheet, Pressable, SafeAreaView, ScrollView, Alert } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { T, TSH, TICON } from "../../../theme";
+import { T, TSH, TICON, touch } from "../../../theme";
 import { LIcon } from "../../../components/LIcon";
 import { Pill } from "../../../components/trove/primitives";
 import { TripRow } from "../../../repositories/trips";
@@ -192,12 +192,12 @@ const styles = StyleSheet.create({
     borderRadius: T.r,
     paddingVertical: 15,
     alignItems: "center",
-    minHeight: 48,
+    minHeight: touch.min,
     justifyContent: "center",
     marginBottom: 8,
   },
   primaryText: { fontSize: 14, fontWeight: "700", color: "#FFFFFF" },
-  linkBtn: { minHeight: 40, alignItems: "center", justifyContent: "center", marginBottom: 8 },
+  linkBtn: { minHeight: touch.min, alignItems: "center", justifyContent: "center", marginBottom: 8 },
   linkText: { fontSize: 12, color: T.blue },
   secondaryBtn: {
     backgroundColor: T.surface,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    minHeight: 48,
+    minHeight: touch.min,
     marginBottom: 8,
   },
   secondaryText: { fontSize: 13, fontWeight: "600", color: T.ink1 },

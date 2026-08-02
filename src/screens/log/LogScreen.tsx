@@ -15,8 +15,8 @@ import { LIcon, type LIconName } from "../../components/LIcon";
 import { isDbReady } from "../../db/state";
 import { currentTrip, TripRow } from "../../repositories/trips";
 import {
+  countLogMediaByEntry,
   listLogEntries,
-  listLogMedia,
   LogEntryRow,
   pendingLogSyncIds,
 } from "../../repositories/log";
@@ -68,7 +68,8 @@ export default function LogScreen() {
       const list = t ? listLogEntries(t.id) : [];
       setEntries(list);
       setPending(pendingLogSyncIds());
-      setMediaCounts(new Map(list.map((e) => [e.id, listLogMedia(e.id).length])));
+      // Tek sorgu (GROUP BY) — kayıt başına ayrı sorgu (N+1) yapılmaz (M3).
+      setMediaCounts(t ? countLogMediaByEntry(t.id) : new Map());
     }, [])
   );
 
