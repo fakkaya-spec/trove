@@ -26,6 +26,12 @@ export type RootStackParamList = {
   Premium: undefined;
   /** Seyir defteri — yeni kaydı ekleme */
   AddLog: undefined;
+  /** Gemi ile sefer hazırlığı — TROVE ekranları */
+  Crew: { tripId: string };
+  Shopping: { tripId: string };
+  Underway: { tripId: string };
+  Checkout: { tripId: string };
+  TripReport: { tripId: string };
 };
 
 export type TabParamList = {
