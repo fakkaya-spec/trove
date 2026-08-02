@@ -38,8 +38,6 @@ export type RootStackParamList = {
   /** Faz 7 — rehberli sefer kapanışı + charter check-out */
   TripComplete: { tripId: string };
   TripCheckout: { tripId: string };
-  /** Kurucu Modu — normal kullanıcıya görünmez (Ayarlar'daki gizli hareket) */
-  Founder: undefined;
   /** Seyir defteri — yeni kayıt ekleme (modal; yerel-önce kalıcı) */
   AddLog: undefined;
 };

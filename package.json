@@ -45,7 +45,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "tsx tests/domain.test.ts && tsx tests/provisioning.test.ts && tsx tests/repos.test.ts && tsx tests/trip-flow.test.ts && tsx tests/handover.test.ts && tsx tests/navigation.test.ts && tsx tests/samples.test.ts && tsx tests/entitlement.test.ts && tsx tests/log.test.ts && tsx tests/underway.test.ts && tsx tests/complete.test.ts && tsx tests/monetization.test.ts && tsx tests/founder.test.ts",
+    "test": "tsx tests/domain.test.ts && tsx tests/provisioning.test.ts && tsx tests/repos.test.ts && tsx tests/trip-flow.test.ts && tsx tests/handover.test.ts && tsx tests/navigation.test.ts && tsx tests/samples.test.ts && tsx tests/entitlement.test.ts && tsx tests/log.test.ts && tsx tests/underway.test.ts && tsx tests/complete.test.ts && tsx tests/monetization.test.ts",
     "lint": "expo lint"
   },
   "private": true

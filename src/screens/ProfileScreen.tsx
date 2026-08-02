@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView, Linking, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -12,8 +12,6 @@ import { TroveWordmark } from "../components/brand/TroveWordmark";
 import { LOCALES, useLocale } from "../i18n";
 import { TRIP_STRINGS } from "../i18n/trip";
 import { ENTITLEMENT_STRINGS } from "../i18n/entitlement";
-import { FOUNDER_STRINGS } from "../i18n/founder";
-import { loadFounderState, setFounderEnabled } from "../founder/store";
 import type { RootStackParamList } from "../navigation";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -23,20 +21,6 @@ export default function ProfileScreen() {
   const { locale, setLocale, t } = useLocale();
   const s = TRIP_STRINGS[locale];
   const e = ENTITLEMENT_STRINGS[locale];
-  const f = FOUNDER_STRINGS[locale];
-  const [founderEnabled, setFounderEnabledState] = useState(false);
-
-  useEffect(() => {
-    void loadFounderState().then((st) => setFounderEnabledState(st.enabled));
-  }, []);
-
-  // Gizli kurucu girişi: sürüm metnine uzun bas — normal kullanıcı keşfetmez;
-  // görünür geri bildirim, beliren/kaybolan "Kurucu" satırının kendisidir.
-  async function toggleFounder() {
-    const next = !founderEnabled;
-    await setFounderEnabled(next);
-    setFounderEnabledState(next);
-  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -133,30 +117,10 @@ export default function ProfileScreen() {
           </View>
           <Icon name="chevron-forward" size={18} color={colors.textSecondary} />
         </Pressable>
-        {founderEnabled && (
-          <>
-            <RopeDivider />
-            <Pressable
-              onPress={() => navigation.navigate("Founder")}
-              accessibilityRole="button"
-              accessibilityLabel={f.title}
-              style={({ pressed }) => [styles.linkCard, pressed && { opacity: 0.8 }]}
-            >
-              <View style={styles.linkLeft}>
-                <Icon name="speedometer-outline" size={20} color={colors.text} />
-                <Text style={styles.linkText}>{f.title}</Text>
-              </View>
-              <Icon name="chevron-forward" size={18} color={colors.textSecondary} />
-            </Pressable>
-          </>
-        )}
-
-        <Pressable onLongPress={() => void toggleFounder()} delayLongPress={1200}>
-          <Text style={styles.about}>
-            {PRODUCT_NAME} v1.0 — offline-first. {"\n"}
-            {s.provEstimateNote}
-          </Text>
-        </Pressable>
+        <Text style={styles.about}>
+          {PRODUCT_NAME} v1.0 — offline-first. {"\n"}
+          {s.provEstimateNote}
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );

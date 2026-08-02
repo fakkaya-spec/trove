@@ -44,7 +44,6 @@ import TripProvisionsScreen from "./src/screens/trip/prepare/TripProvisionsScree
 import TripShoppingScreen from "./src/screens/trip/prepare/TripShoppingScreen";
 import TripChecklistScreen from "./src/screens/trip/prepare/TripChecklistScreen";
 import TripCompleteScreen from "./src/screens/trip/complete/TripCompleteScreen";
-import FounderScreen from "./src/screens/FounderScreen";
 import { PremiumProvider } from "./src/premium";
 import { EntitlementProvider, type PaywallContext } from "./src/entitlement";
 import PaywallScreen from "./src/screens/PaywallScreen";
@@ -283,7 +282,6 @@ function Root() {
           component={TripCompleteScreen}
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="Founder" component={FounderScreen} options={{ title: "Founder" }} />
 
         {/* Legacy checklist modu (feature flag) */}
         {features.legacyChecklists && (
