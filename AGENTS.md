@@ -20,6 +20,38 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
   çalışamayan özellik yok · hava durumu gelecek genişleme noktası ·
   bulut-önce varsayım yok · gereksiz ayar yok.
 
+### Ürün felsefesi (Faz 6 sonrası reset — kalıcı)
+- TROVE bir denetim uygulaması DEĞİLDİR; denetim yalnız bir andır. TROVE
+  seferden önce, sefer sırasında ve sonrasında denizciliği kolaylaştırır.
+  Keyfi artırmayan özellik var olmamalıdır.
+- **Çift test:** her özellik hem (a) günlük kullanıcı değeri (bugün teknede
+  işe yarar mı? insan bunun için TROVE'u açar mı?) hem (b) şirket değeri
+  (tutundurma / ağ etkisi / özmülk veri / yinelenen gelir / savunulabilirlik)
+  testinden geçer. Yalnız birinden geçiyorsa OTOMATİK YAPILMAZ — önce
+  kullanıcıyla tartışılır.
+- **Sadelik kazanır:** ekran 30 saniyede anlaşılır mı, tek elle kullanılır
+  mı, 10 saniyede biter mi, bir şey ÇIKARabilir miyiz, Apple bunu çıkarır
+  mıydı? TROVE'un hissi Notes'tur, SAP değil: pano/KPI duvarı/kurumsal
+  terminoloji yok. Filo/sigorta/ERP/uyumluluk hissi veren her şeye itiraz
+  edilir — bir kez fazla ileri gidildi, bir daha olmayacak.
+- **Küresel ürün:** yalnız Akdeniz değil — Karayipler, ABD/Kanada,
+  Avustralya/YZ, İskandinavya, UK, Asya. Yalnız Hırvatistan/Yunanistan'da
+  anlamlı varsayım yapılmaz (birimler, tarih biçimleri, sezon varsayımları).
+- **12 ay kullanım:** yalnız 1 haftalık charter müşterisi yetmez; tekne
+  sahibi, hafta sonu denizcisi, balıkçı, motoryat, aile, profesyonel kaptan
+  ve tekneyi kışın da yaşatan kullanıcı düşünülür.
+- **Para kazanma (hipotez, KODLANMAZ):** gelir önemli, büyüme daha önemli;
+  ilk deneyim güven inşa eder. Metin daima ücretsiz. Premium, TROVE'a
+  gerçekten maliyet üreten yetenekleri açar (bulut depolama, AI, gelişmiş
+  rapor, büyük kanıt paketleri, işbirliği) — keyfî kısıt değil. Fiyat
+  hipotezi (~$14.99 ay / ~$39 çeyrek / ~$99 yıl; yıllık bariz seçim
+  hissetmeli) UYGULANMAZ, sürekli sorgulanır. Bu bölüm MONETIZATION.md'nin
+  kilitli kurallarını değiştirmez; değişiklik ürün sahibi onayı ister.
+- **Her faz öncesi iç sorular:** Jobs bunu tutar mıydı? Linear bunu
+  gemiye alır mıydı? Notion sadeleştirir miydi? Airbnb ekranın yarısını
+  çıkarır mıydı? Bu, birine TROVE'u tavsiye ettirir mi? Hayırsa: kod
+  yazmadan önce dur ve özelliğe itiraz et.
+
 ## Durum ve yol haritası
 - Mevcut durum + sonraki faz: `docs/HANDOFF.md` (ÖNCE BUNU OKU)
 - Faz planı: `docs/TROVE-ROADMAP.md` · Para kazanma (KİLİTLİ): `docs/MONETIZATION.md`
