@@ -1,6 +1,6 @@
 # TROVE — Devir-Teslim / Güncel Durum
 
-_Son güncelleme: 2026-08-02 · Taşıma: koskoraporweb → trove (geçmiş korunarak)_
+_Son güncelleme: 2026-08-02 (Faz 4) · Taşıma: koskoraporweb → trove (geçmiş korunarak)_
 
 ## Tamamlanan fazlar
 - **Faz 1** — TROVE marka geçişi: C0 `TroveMark`, DM Sans wordmark varlığı, app.json
@@ -13,24 +13,34 @@ _Son güncelleme: 2026-08-02 · Taşıma: koskoraporweb → trove (geçmiş koru
   (`src/screens/WelcomeScreen.tsx`, gerçek tekne yokken Trip sekmesi içeriği) ·
   örnek bandı (`SampleBanner`).
 
-## Sıradaki: FAZ 4 — Trip Prepare deneyimi
-Onaylı tasarımdan (design-reference/src/app/App.full.tsx) birebir RN'e:
-1. `trip_plan` — foto hero + hazırlık listesi + "Begin trip" CTA (TripHome/TripDetail
-   mantığının üstüne; mevcut domain/tripProgress + nextAction yeniden kullanılır)
-2. `trip_crew` — trips.crewNamesJson + skipperName üzerine ekran
-3. `trip_provisions` + `trip_shopping` — mevcut provisioning motoru/planı üstüne
-   yeni görünüm (akordeon, mono miktarlar, renkli kategori başlıkları)
-4. `trip_predep` + `trip_checkin` — mevcut denetim motoru üstüne yeni görünüm
-   (KeelLine tamamlanma işaretleri, madde başına bayrak+kamera düğmeleri)
-5. **Entitlement servisi + paywall** (`src/entitlement/`): kapasite bayrakları
-   (canCapturePhoto…), bağlam takibi (inspection_photo…), Option A = mevcut
-   react-native-iap PremiumProvider taşıyıcı. MONETIZATION.md kuralları KİLİTLİ.
-Ardından: P5 Underway+Log (log_entries migration'ı) · P6 Complete+expo-print PDF ·
-P7 foto hattı (expo-image-manipulator) · P8 testler+cihaz doğrulama.
+- **Faz 4** — Trip Prepare deneyimi:
+  - `src/entitlement/` — merkezî entitlement servisi (kapasite bayrakları,
+    14 gün çevrimdışı grace, bağlam takibi) + `PaywallScreen` (kilitli fayda
+    metni). SKU'lar `trove_premium_monthly/yearly`. InspectScreen +
+    HandoverReview kamera noktaları kapıdan geçer.
+  - `trip_plan` hub'ı (`src/screens/trip/prepare/TripPrepareHub.tsx`) — gerçek
+    sefer planning/active iken Trip sekmesi içeriği; "Ready to depart X/N" +
+    Begin trip CTA (status → active; seyir ekranı Faz 5).
+  - `trip_crew` (updateTripCrew) · `trip_provisions` + `trip_shopping` (mevcut
+    ikmal motoru üstüne akordeon/check-off görünümleri) · `trip_predep` +
+    `trip_checkin` (tek `TripChecklistScreen`; bayrak+kamera düğmeleri, kritik
+    maddeler tamamlamayı bloklar; örnek seferlerde denetim OLUŞTURULMAZ).
+
+## Sıradaki: FAZ 5 — Underway + Log
+- `log_entries` migration'ı (yalnız YENİ migration ID; eskiler değişmez),
+  `trip_underway` ekranı, `log` + `log_add` (metin her zaman ücretsiz;
+  foto `log_photo` bağlamıyla kapılı).
+Ardından: P6 Complete+expo-print PDF · P7 foto hattı (expo-image-manipulator) ·
+P8 testler+cihaz doğrulama.
 
 ## Bilinmesi gerekenler
 - Eski repo `fakkaya-spec/koskoraporweb` ARŞİV; oraya push yok. PR #3 kapatılacak.
-- `npm test` = 7 paket; beklenen çıktılar birebir korunmalı (repos/trip-flow satırları).
+- `npm test` = 8 paket (entitlement.test.ts eklendi); beklenen çıktılar birebir
+  korunmalı (repos/trip-flow satırları).
+- Faz 4 ekran metinleri (`src/i18n/prepare.ts`, `entitlement.ts`) şimdilik
+  en+tr; diğer 7 dil İngilizce'ye düşer — çeviri borcu P8 öncesi kapanmalı.
+- Örnek seferler karşılamadan hâlâ TripDetail'e açılır (eski görünüm);
+  hub'a taşınmaları sonraki fazların işi. Hub yalnız gerçek seferlerde.
 - Örnek fotoğraflar `assets/samples/` (yerel, çevrimdışı); Unsplash URL'leri yalnız
   design-reference içinde kalır.
 - react-native-iap RN 0.86 native derlemesi HENÜZ doğrulanmadı — entitlement fazında
