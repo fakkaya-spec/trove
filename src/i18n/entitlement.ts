@@ -13,6 +13,10 @@ export interface EntitlementStrings {
   ctx_handover_pair: string;
   ctx_gallery_import: string;
   ctx_report_photo: string;
+  ctx_settings: string;
+  /** Ayarlar'daki gönüllü Premium girişi (fayda-dilli; karanlık desen yok) */
+  settingsEntry: string;
+  settingsEntrySub: string;
   featTimestamped: string;
   featComparePairs: string;
   featVisualRecord: string;
@@ -36,6 +40,9 @@ const en: EntitlementStrings = {
   ctx_handover_pair: "Guided photo pairs document handover condition.",
   ctx_gallery_import: "You tried to import a photo from the gallery.",
   ctx_report_photo: "You tried to add photo evidence to a report.",
+  ctx_settings: "See what Premium adds to your boat's record.",
+  settingsEntry: "TROVE Premium",
+  settingsEntrySub: "Add photo evidence and keep a richer record of every trip.",
   featTimestamped: "Timestamped photo evidence on inspections and issues",
   featComparePairs: "Guided check-in / check-out photo pairs",
   featVisualRecord: "A visual condition record of your boat over time",
@@ -58,6 +65,9 @@ const tr: EntitlementStrings = {
   ctx_handover_pair: "Rehberli foto çiftleri teslim durumunu belgeler.",
   ctx_gallery_import: "Galeriden fotoğraf içe aktarmayı denedin.",
   ctx_report_photo: "Rapora foto kanıtı eklemeyi denedin.",
+  ctx_settings: "Premium'un tekne kaydına neler kattığını gör.",
+  settingsEntry: "TROVE Premium",
+  settingsEntrySub: "Foto kanıtı ekle, her seferin daha zengin kaydını tut.",
   featTimestamped: "Denetim ve sorunlarda zaman damgalı foto kanıtı",
   featComparePairs: "Rehberli check-in / check-out foto çiftleri",
   featVisualRecord: "Teknenin zaman içindeki görsel durum kaydı",

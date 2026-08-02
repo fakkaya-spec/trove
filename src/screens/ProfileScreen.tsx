@@ -11,6 +11,7 @@ import { TroveMark } from "../components/brand/TroveMark";
 import { TroveWordmark } from "../components/brand/TroveWordmark";
 import { LOCALES, useLocale } from "../i18n";
 import { TRIP_STRINGS } from "../i18n/trip";
+import { ENTITLEMENT_STRINGS } from "../i18n/entitlement";
 import type { RootStackParamList } from "../navigation";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -19,6 +20,7 @@ export default function ProfileScreen() {
   const navigation = useNavigation<Nav>();
   const { locale, setLocale, t } = useLocale();
   const s = TRIP_STRINGS[locale];
+  const e = ENTITLEMENT_STRINGS[locale];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -47,6 +49,25 @@ export default function ProfileScreen() {
             </Pressable>
           ))}
         </View>
+
+        {/* Premium keşif girişi — gönüllü; temel iş akışını kesintiye uğratmaz.
+            Ekran abonelik durumunu sorgulamaz; paywall tek gerçek kaynaktır. */}
+        <RopeDivider />
+        <Pressable
+          onPress={() => navigation.navigate("Paywall", { context: "settings" })}
+          accessibilityRole="button"
+          accessibilityLabel={e.settingsEntry}
+          style={({ pressed }) => [styles.linkCard, pressed && { opacity: 0.8 }]}
+        >
+          <View style={styles.linkLeft}>
+            <Icon name="image-outline" size={20} color={colors.text} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.linkText}>{e.settingsEntry}</Text>
+              <Text style={styles.linkSub}>{e.settingsEntrySub}</Text>
+            </View>
+          </View>
+          <Icon name="chevron-forward" size={18} color={colors.textSecondary} />
+        </Pressable>
 
         {features.legacyChecklists && (
           <>
@@ -146,6 +167,7 @@ const styles = StyleSheet.create({
   },
   linkLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
   linkText: { fontFamily: fonts.body, fontSize: 15, fontWeight: "600", color: colors.text },
+  linkSub: { fontFamily: fonts.body, fontSize: 12, color: colors.textSecondary, marginTop: 2 },
   about: {
     fontFamily: fonts.body,
     fontSize: 12,

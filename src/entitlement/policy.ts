@@ -8,13 +8,15 @@
 //    doğrulama zamanından itibaren grace penceresi boyunca çevrimdışı çalışır
 //    (kural 6). Pencere dışına düşmek kanıtı silmez/gizlemez.
 
-/** Paywall'a giriş bağlamları (kural 9) — yerel takip, ileride analitik. */
+/** Paywall'a giriş bağlamları (kural 9) — yerel takip, ileride analitik.
+ *  `settings`: kapı reddi değil, Ayarlar'daki gönüllü keşif girişi. */
 export const PAYWALL_CONTEXTS = [
   "inspection_photo",
   "log_photo",
   "handover_pair",
   "gallery_import",
   "report_photo",
+  "settings",
 ] as const;
 
 export type PaywallContext = (typeof PAYWALL_CONTEXTS)[number];
@@ -70,6 +72,7 @@ export const CONTEXT_CAPABILITY: Record<PaywallContext, keyof Capabilities> = {
   handover_pair: "canCreatePhotoPair",
   gallery_import: "canImportPhoto",
   report_photo: "canAttachPhoto",
+  settings: "canCapturePhoto",
 };
 
 /** Bağlam sayaçlarını artırır (saf: yeni nesne döner; saklama çağıranda). */

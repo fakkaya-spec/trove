@@ -56,7 +56,8 @@ const stale = capabilitiesFor(
 assert.equal(stale.canCapturePhoto, false, "grace dışı yeni çekim kapalı");
 
 // --- Bağlam eşlemesi tam ve tanımlı -------------------------------------------
-assert.equal(PAYWALL_CONTEXTS.length, 5);
+// 5 kapı bağlamı + Ayarlar'daki gönüllü keşif girişi (settings)
+assert.equal(PAYWALL_CONTEXTS.length, 6);
 for (const ctx of PAYWALL_CONTEXTS) {
   assert.ok(CONTEXT_CAPABILITY[ctx], `context '${ctx}' bir kapasiteye eşlenmeli`);
 }

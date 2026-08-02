@@ -1,5 +1,29 @@
 # TROVE Monetization — LOCKED product requirement
 
+## Decision record — monetization philosophy (LOCKED 2026-08-02)
+
+_Frozen until real beta data, new user research, or an explicit owner request
+reopens it. Recorded here so no session re-debates it._
+
+1. **Free must be genuinely useful.** Every important module (trips,
+   provisioning, shopping, checklists, inspections, text log, crew, basic
+   trip record) works end-to-end without paying. TROVE never monetizes by
+   making the free product useless.
+2. **Premium is the professional version, not a locked door.** It improves
+   intelligence, detail, speed, convenience, confidence, professional
+   quality, automation or security of the SAME experience.
+3. **Each module has its own natural upgrade moment** — shown when the user
+   asks for a meaningfully better result, never interrupting basic work.
+   Benefit-led copy; no dark patterns, countdowns or fake urgency.
+4. **Metering unit and limits are deliberately undecided** (free photo
+   count, trip/inspection/report metering, Trip Pass, prices, rewarded ads,
+   cloud/AI quotas). No arbitrary limits or prices may be coded before beta
+   evidence. Store prices come only from the store.
+5. Current v1 gate: photo evidence capture/import/attach via the central
+   entitlement service (contexts below + `settings` discovery entry).
+   Reading existing records is never gated.
+
+
 _Status: locked by product owner (2026-07-31). Applies from the photo/entitlement
 phases onward (Roadmap P4–P8). Nothing here is implemented in Phase 1._
 
