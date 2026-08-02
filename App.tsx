@@ -43,6 +43,7 @@ import TripCrewScreen from "./src/screens/trip/prepare/TripCrewScreen";
 import TripProvisionsScreen from "./src/screens/trip/prepare/TripProvisionsScreen";
 import TripShoppingScreen from "./src/screens/trip/prepare/TripShoppingScreen";
 import TripChecklistScreen from "./src/screens/trip/prepare/TripChecklistScreen";
+import TripCompleteScreen from "./src/screens/trip/complete/TripCompleteScreen";
 import { PremiumProvider } from "./src/premium";
 import { EntitlementProvider, type PaywallContext } from "./src/entitlement";
 import PaywallScreen from "./src/screens/PaywallScreen";
@@ -270,6 +271,16 @@ function Root() {
           name="TripReturn"
           component={TripChecklistScreen}
           options={{ title: s.returnCheck }}
+        />
+        <Stack.Screen
+          name="TripCheckout"
+          component={TripChecklistScreen}
+          options={{ title: s.checkOut }}
+        />
+        <Stack.Screen
+          name="TripComplete"
+          component={TripCompleteScreen}
+          options={{ headerShown: false }}
         />
 
         {/* Legacy checklist modu (feature flag) */}

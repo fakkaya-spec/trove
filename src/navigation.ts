@@ -35,6 +35,9 @@ export type RootStackParamList = {
   TripCheckin: { tripId: string };
   /** Faz 6 — dönüş & kapatma listesi (TripChecklistScreen yeniden kullanımı) */
   TripReturn: { tripId: string };
+  /** Faz 7 — rehberli sefer kapanışı + charter check-out */
+  TripComplete: { tripId: string };
+  TripCheckout: { tripId: string };
   /** Seyir defteri — yeni kayıt ekleme (modal; yerel-önce kalıcı) */
   AddLog: undefined;
 };

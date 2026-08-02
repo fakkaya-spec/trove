@@ -10,9 +10,10 @@ import {
   ensureTripInspection,
   getTrip,
   listTripInspections,
-  updateTripStatus,
   TripRow,
 } from "../../../repositories/trips";
+import { essentialItemIds } from "../../../domain/completion";
+import { COMPLETE_STRINGS, fmt } from "../../../i18n/complete";
 import { getVesselById } from "../../../repositories/vessels";
 import {
   addMedia,
@@ -42,25 +43,34 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 // Motor değişmedi: durumlar/sorunlar/medya repositories/inspections'ta.
 // Ayrıntılı akış (önem derecesi, notlar, sayaçlar) InspectScreen'de yaşar.
 
+const ROUTE_KIND = {
+  TripPredep: "pre_departure",
+  TripCheckin: "check_in",
+  TripReturn: "return_secure",
+  TripCheckout: "check_out",
+} as const;
+
 export default function TripChecklistScreen() {
   const navigation = useNavigation<Nav>();
   const route =
-    useRoute<RouteProp<RootStackParamList, "TripPredep" | "TripCheckin" | "TripReturn">>();
-  const kind =
-    route.name === "TripCheckin"
-      ? "check_in"
-      : route.name === "TripReturn"
-        ? "return_secure"
-        : "pre_departure";
+    useRoute<
+      RouteProp<RootStackParamList, "TripPredep" | "TripCheckin" | "TripReturn" | "TripCheckout">
+    >();
+  const kind = ROUTE_KIND[route.name];
   const { locale } = useLocale();
   const s = TRIP_STRINGS[locale];
   const p = PREPARE_STRINGS[locale];
+  const c = COMPLETE_STRINGS[locale];
   const { requestAccess } = useEntitlement();
 
   const [trip, setTrip] = useState<TripRow | null>(null);
   const [data, setData] = useState<ChecklistData | null>(null);
   const [results, setResults] = useState<ItemResult[]>([]);
   const [flagged, setFlagged] = useState<Set<string>>(new Set());
+  // Temel Kontrol (Faz 7): 57-100 maddelik duvar yerine gerçekçi varsayılan.
+  // Yalnız SUNUM filtresi — gizli maddeler asla "tamam" sayılmaz; kritikler
+  // temel kümede daima görünür ve atlanamaz (domain/essentialItemIds).
+  const [showFull, setShowFull] = useState(false);
 
   const load = useCallback(() => {
     const t = getTrip(route.params.tripId);
@@ -116,10 +126,21 @@ export default function TripChecklistScreen() {
   const completed = inspectionDone(inspection.status);
   const resultMap = toResultMap(results);
 
+  const essentialIds = essentialItemIds(sections);
+  const totalStatusCount = sections.reduce(
+    (acc, sec) => acc + sec.items.filter((i) => i.inputKind === "status").length,
+    0
+  );
+  // Temel küme zaten tüm listeyse geçiş anlamsız — filtre kapalı kalır.
+  const essentialApplies = essentialIds.size < totalStatusCount;
+  const useEssential = essentialApplies && !showFull;
+
   const statusSections = sections
     .map((sec) => ({
       section: sec,
-      items: sec.items.filter((i) => i.inputKind === "status"),
+      items: sec.items.filter(
+        (i) => i.inputKind === "status" && (!useEssential || essentialIds.has(i.id))
+      ),
     }))
     .filter((x) => x.items.length > 0);
   const allItems = statusSections.flatMap((x) => x.items);
@@ -188,11 +209,9 @@ export default function TripChecklistScreen() {
       completeInspection(data.inspection.id);
       if (kind === "pre_departure" && trip?.ownershipContext === "charter") {
         navigation.replace("TripCheckin", { tripId: trip.id });
-      } else if (kind === "return_secure" && trip) {
-        // Dönüş listesi seferi kapatır; Trip sekmesi tamamlandı durumunu çizer.
-        updateTripStatus(trip.id, "completed");
-        navigation.goBack();
       } else {
+        // Faz 7: sefer durumu artık BURADA kapanmaz — tamamlama, rehberli
+        // Complete akışının son adımıdır (TripCompleteScreen).
         navigation.goBack();
       }
     };
@@ -209,11 +228,9 @@ export default function TripChecklistScreen() {
   const ctaLabel =
     kind === "check_in"
       ? p.completeCheckinCta
-      : kind === "return_secure"
-        ? p.completeChecklistCta
-        : trip.ownershipContext === "charter"
-          ? p.continueCheckinCta
-          : p.completeChecklistCta;
+      : kind === "pre_departure" && trip.ownershipContext === "charter"
+        ? p.continueCheckinCta
+        : p.completeChecklistCta;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -232,6 +249,27 @@ export default function TripChecklistScreen() {
           )}
         </View>
         <Bar pct={pct} h={3} color={pct === 100 ? T.green : T.blue} />
+        {essentialApplies && (
+          <Pressable
+            onPress={() => setShowFull((v) => !v)}
+            accessibilityRole="button"
+            accessibilityLabel={
+              useEssential
+                ? fmt(c.showFullList, { n: totalStatusCount })
+                : fmt(c.showEssentialList, { n: essentialIds.size })
+            }
+            style={styles.scopeToggle}
+          >
+            <Text style={styles.scopeLabel}>
+              {useEssential ? c.essentialLabel : c.fullLabel}
+            </Text>
+            <Text style={styles.scopeAction}>
+              {useEssential
+                ? fmt(c.showFullList, { n: totalStatusCount })
+                : fmt(c.showEssentialList, { n: essentialIds.size })}
+            </Text>
+          </Pressable>
+        )}
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
@@ -360,6 +398,15 @@ const styles = StyleSheet.create({
   },
   progressText: { fontSize: 11, color: T.ink2 },
   progressPct: { fontFamily: T.monoSemiBold, fontSize: 13, color: T.blue },
+  scopeToggle: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 8,
+    minHeight: 32,
+  },
+  scopeLabel: { fontSize: 11, fontWeight: "600", color: T.ink1 },
+  scopeAction: { fontSize: 11, color: T.blue },
   sectionTitle: {
     fontSize: 10,
     fontWeight: "700",

@@ -8,10 +8,9 @@ import {
   ReviewCategory,
   SignoffRole,
 } from "../domain/completion";
-import { OPEN_OBSERVATION_TYPES, SampleReadOnlyError } from "./log";
+import { OPEN_OBSERVATION_TYPES, resolveLogEntry, SampleReadOnlyError } from "./log";
 import { listTripInspections } from "./trips";
 import { setIssueResolved } from "./inspections";
-import { resolveLogEntry } from "./log";
 import { enqueueSync } from "./sync";
 
 // ---------------------------------------------------------------------------

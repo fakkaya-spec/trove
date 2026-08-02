@@ -36,9 +36,9 @@ const en: UnderwayStrings = {
   shoppingHint: "Tap to check off items at the market",
   endTrip: "Ready to end the trip?",
   endTripConfirmTitle: "End the trip?",
-  endTripBodyOwn: "The return & secure checklist completes the trip.",
+  endTripBodyOwn: "The guided close-out walks through the return checklist and your trip record.",
   endTripBodyCharter:
-    "Charter check-out and handover live in the trip detail until the next phase.",
+    "The guided close-out walks through check-out, comparison and your trip record.",
   endTripGo: "Continue",
   tripCompletedTitle: "Trip completed",
   tripCompletedBody:
@@ -59,9 +59,9 @@ const tr: UnderwayStrings = {
   shoppingHint: "Markette kalemleri işaretlemek için dokun",
   endTrip: "Seferi bitirmeye hazır mısın?",
   endTripConfirmTitle: "Sefer bitirilsin mi?",
-  endTripBodyOwn: "Dönüş & kapatma listesi seferi tamamlar.",
+  endTripBodyOwn: "Rehberli kapanış: dönüş listesi ve sefer kaydın.",
   endTripBodyCharter:
-    "Charter check-out ve teslim, sonraki faza dek sefer detayında.",
+    "Rehberli kapanış: check-out, karşılaştırma ve sefer kaydın.",
   endTripGo: "Devam",
   tripCompletedTitle: "Sefer tamamlandı",
   tripCompletedBody:

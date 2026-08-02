@@ -11,7 +11,7 @@ export interface ChecklistProgress {
   total: number;
 }
 
-export type ChecklistKind = "pre_departure" | "check_in";
+export type ChecklistKind = "pre_departure" | "check_in" | "check_out" | "return_secure";
 
 /** Trip'e bağlı denetimin madde ilerlemesi; denetim yoksa null. */
 export function tripChecklistProgress(

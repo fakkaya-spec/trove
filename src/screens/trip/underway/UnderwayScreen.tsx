@@ -74,15 +74,13 @@ export function UnderwayScreen({ trip }: { trip: TripRow }) {
   }
 
   function onEndTrip() {
+    // Faz 7: her iki mülkiyet tipi de rehberli kapanışa gider.
     const isCharter = trip.ownershipContext === "charter";
     Alert.alert(u.endTripConfirmTitle, isCharter ? u.endTripBodyCharter : u.endTripBodyOwn, [
       { text: s.cancel, style: "cancel" },
       {
         text: u.endTripGo,
-        onPress: () =>
-          isCharter
-            ? navigation.navigate("TripDetail", { tripId: trip.id })
-            : navigation.navigate("TripReturn", { tripId: trip.id }),
+        onPress: () => navigation.navigate("TripComplete", { tripId: trip.id }),
       },
     ]);
   }
