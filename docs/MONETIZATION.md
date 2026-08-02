@@ -23,6 +23,30 @@ reopens it. Recorded here so no session re-debates it._
    entitlement service (contexts below + `settings` discovery entry).
    Reading existing records is never gated.
 
+### Alignment update (owner decision, 2026-08-02)
+
+6. **Premium is DEPTH, not features.** Every major workflow is complete and
+   genuinely useful for free; Premium makes the SAME workflow deeper,
+   smarter, more professional — never replaces it. Applies consistently:
+   provisioning (free: days+people→complete list · premium: dietary/allergy/
+   children profiles, meal planning, marina re-supply, budget), reports
+   (free: complete report · premium: professional formatting, multilingual,
+   richer evidence, signatures), inspection (free: complete · premium:
+   richer evidence, comparisons, better documentation).
+7. **Beta = no monetization.** The first ~100 real beta users experience the
+   complete product with NO monetization, to observe real behaviour before
+   deciding what becomes Premium and where upgrade moments belong.
+   _Implementation note (deferred, one-line thanks to the central seam):
+   before the beta build ships, the entitlement policy gets a beta-full-
+   access switch so the existing photo gate does not fire for beta users.
+   Not implemented yet — beta-readiness item._
+8. **Partner openness.** Architecture stays open for future integrations
+   (Boatsy, Click&Boat, SamBoat, Borrow A Boat, marina reservation,
+   insurance partners) — long-term business options, NOT MVP features.
+   Satisfied today by the platform-capability discipline (pure engines +
+   typed repositories, UI-detachable); no partner UI/code before a partner
+   exists.
+
 
 _Status: locked by product owner (2026-07-31). Applies from the photo/entitlement
 phases onward (Roadmap P4–P8). Nothing here is implemented in Phase 1._
