@@ -67,6 +67,14 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
   Figma yalnız şunlarda: tamamen yeni ekran · büyük UX kararı doğrulaması ·
   belirsizlik çözümü. Varsayılan kaynak: onaylı tasarım sistemi
   (design-reference + src/theme T tokenları + trove primitives).
+- **Platform yeteneği testi:** her yeni özellikte sor — "bu tek başına bir
+  iş olabilir mi?" (ikmal, kanıt, sefer raporları, AI denizci asistanı,
+  bakım geçmişi: evet). Evetse yalnız bir ekran olarak değil, PLATFORM
+  YETENEĞİ olarak tasarla: saf domain motoru + repository + tipli veri,
+  UI'dan bağımsız — gelecekteki isteğe bağlı ürünler, API'ler, ortaklıklar
+  ve B2B fırsatları için dikiş yeri bırak. Bugün AŞIRI İNŞA ETME (erken
+  API/kurumsal katman yok — defter kuralı geçerli); ama köşeye de sıkışma:
+  yetenek ekrandan ayrılabilir kalsın.
 - **Her faz öncesi iç sorular:** Jobs bunu tutar mıydı? Linear bunu
   gemiye alır mıydı? Notion sadeleştirir miydi? Airbnb ekranın yarısını
   çıkarır mıydı? Bu, birine TROVE'u tavsiye ettirir mi? Hayırsa: kod
