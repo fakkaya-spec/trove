@@ -6,6 +6,7 @@ import { isDbReady } from "../../db/state";
 import { listTrips, getTripModuleStates, TripRow } from "../../repositories/trips";
 import { listVessels } from "../../repositories/vessels";
 import WelcomeScreen from "../WelcomeScreen";
+import { TripPrepareHub } from "./prepare/TripPrepareHub";
 import { listInspections } from "../../repositories/inspections";
 import { nextAction, tripProgress, NextAction, TripModuleStates } from "../../domain/trip";
 import { colors, fonts, spacing, radius, touch } from "../../theme";
@@ -68,6 +69,11 @@ export default function TripHomeScreen() {
   }, [navigation, dbReady, welcomeMode]);
 
   if (dbReady && welcomeMode) return <WelcomeScreen />;
+
+  // Faz 4: gerçek sefer varken Trip sekmesi hazırlık hub'ıdır (trip_plan).
+  if (dbReady && trip && (trip.status === "planning" || trip.status === "active")) {
+    return <TripPrepareHub trip={trip} />;
+  }
 
   const isCharter = trip?.ownershipContext === "charter";
   const progress = states && trip ? tripProgress(states, isCharter) : null;
