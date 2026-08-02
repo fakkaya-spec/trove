@@ -119,3 +119,31 @@ Hedef ≤ 7 dk. Aşarsa: nedenleri not et — hedefi tutturmak için testi eğip
 | K Performans | | |
 
 **GO ancak şu şartla verilebilir:** A, B, C, D1-D2, E, F, G, H'nin tamamı geçti; bilinen veri kaybı yok; engelleyici çökme yok.
+
+---
+
+## FAZ 7 EKİ — Complete/Rapor cihaz doğrulaması (BEKLEMEDE)
+
+_Kod kapıları yeşil; aşağıdakiler gerçek cihazda doğrulanmadan Faz 7
+"tam doğrulandı" SAYILMAZ. Komutlar: `npx expo prebuild && npx expo run:ios`
+(veya `run:android`); uçak modu testleri ayarlardan._
+
+| # | Adım | iOS | Android |
+|---|---|---|---|
+| R1 | Aktif sefer aç (Underway görünür) | | |
+| R2 | "Seferi bitir" → rehberli kapanış açılır | | |
+| R3 | Dönüş listesi: Temel Kontrol varsayılan, "Tam listeyi göster (22)" çalışır | | |
+| R4 | Check-out denetimi (charter senaryosu) tamamlanır | | |
+| R5 | Foto kanıtı ekle/görüntüle (kamera izni istenir; ücretsizde paywall) | | |
+| R6 | Check-in / check-out karşılaştırması açılır | | |
+| R7 | Onay ekle (tek elle, isim + rol) | | |
+| R8 | **Uçak modunda** PDF üret — başarı | | |
+| R9 | PDF açılır (paylaşım sayfasından "Aç") | | |
+| R10 | Native paylaşım sayfası açılır; dosya adı TROVE_..._Report.pdf | | |
+| R11 | Paylaşımı İPTAL et → hata/sahte mesaj YOK, sefer tamamlandı kalır | | |
+| R12 | Uygulamayı kapat/aç → tamamlanma + rapor + onay kalıcı | | |
+| R13 | Parlak ekranda okunabilirlik (rapor durumu, açık maddeler) | | |
+| R14 | Tamamlama akışı tek elle bitirilebilir | | |
+| R15 | Android donanım geri: kapanış akışında güvenli | | |
+| R16 | iOS çentik/safe-area: hero + alt CTA taşmaz | | |
+| R17 | Rapor yeniden üret → aynı dosya güncellenir, kayıt çoğalmaz | | |

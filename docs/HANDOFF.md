@@ -1,6 +1,6 @@
 # TROVE — Devir-Teslim / Güncel Durum
 
-_Son güncelleme: 2026-08-02 (Faz 6 — Underway) · Dal: claude/trove-integration_
+_Son güncelleme: 2026-08-02 (Faz 7 — Complete/Rapor) · Dal: claude/trove-integration_
 
 ## Tamamlanan fazlar
 - **Faz 1** — TROVE marka geçişi: C0 `TroveMark`, DM Sans wordmark varlığı, app.json
@@ -56,15 +56,40 @@ _Son güncelleme: 2026-08-02 (Faz 6 — Underway) · Dal: claude/trove-integrati
   - AGENTS.md'ye KALICI ÜRÜN İLKELERİ eklendi (kaptan-bugün süzgeci,
     3 sn/10 sn Underway hedefi, MVP disiplini).
 
-## Sıradaki: FAZ 7 — Complete/handover/rapor (TROVE görünümü + expo-print PDF)
-Ardından: foto hattı (sıkıştırma/thumbnail) · çeviri borcu · cihaz doğrulama.
+- **Faz 7 (Complete/Rapor)** — "güvenilir kayıtla ayrıl" vaadi:
+  - Migration 7: `trip_signoffs` (yazılı onay — hukuki iddia dili YOK).
+  - `TripComplete` rehberli kapanış: dönüş listesi/check-out (zorunlu) →
+    karşılaştırma (charter) → açık maddeler (çözmeye zorlama yok) → onay
+    (isteğe bağlı) → rapor + kapanış. Sefer YALNIZ burada `completed` olur.
+  - **Temel Kontrol** sunum katmanı (domain/essentialItemIds — kritikler +
+    sıraya tamamlama, 12/22; gizli madde asla tamam sayılmaz; kritik
+    atlanamaz). Şablon verisi değişmedi.
+  - Açık madde okuma modeli: denetim sorunları + log gözlemleri TEK kavram
+    (repositories/completion); veri modelleri birleştirilmedi.
+  - Rapor motoru: saf model+HTML (domain/report) → yerel PDF (expo-print)
+    → native paylaşım (expo-sharing; kural 9 gerekçesi commit 68cb01f'te).
+    Çevrimdışı, ağsız, sistem fontlu; foto data-URI (≤6); reports tablosu
+    migration'sız yeniden kullanıldı; iptal ≠ hata; üretim hatası veri
+    kaybetmez (testli).
+  - `tests/complete.test.ts` (11. paket, 23 kapsam maddesi).
+  - **Cihaz doğrulaması BEKLEMEDE** — docs/store/DEVICE-TEST.md "FAZ 7 EKİ"
+    (R1-R17) koşulmadan faz "tam doğrulandı" sayılmaz.
+
+## İlk-kullanım tasarım borcu (Faz 7 denetimi — Faz 8 önerisi)
+Yeni kullanıcının ilk 5 dakikası hâlâ eski görsel dilde: Karşılama →
+"İlk tekneni ekle" → **BoatsScreen (eski)** · TripWizard (eski) · hub/hero →
+**TripDetailScreen (eski)** · Complete akışında karşılaştırma adımı →
+**HandoverReviewScreen (eski)**. Faz 7'de yalnız belgelendi (kapsam şişirilmedi).
+**FAZ 8 ÖNERİSİ:** "İlk beş dakika" dikeyi — Karşılama→tekne ekleme→
+TripWizard→TripDetail'in TROVE görünümüne taşınması + HandoverReview
+tazelenmesi; ardından cihaz doğrulama turu (R1-R17 + eski D listesi).
 
 ## Bilinmesi gerekenler
 - Eski repo `fakkaya-spec/koskoraporweb` ARŞİV; oraya push yok. PR #3 kapatılacak.
-- `npm test` = 10 paket (entitlement + log + underway eklendi); beklenen
-  çıktılar birebir korunmalı (repos/trip-flow satırları).
-- Faz 4-6 ekran metinleri (`src/i18n/prepare.ts`, `entitlement.ts`, `log.ts`,
-  `underway.ts`)
+- `npm test` = 11 paket (entitlement + log + underway + complete eklendi);
+  beklenen çıktılar birebir korunmalı (repos/trip-flow satırları).
+- Faz 4-7 ekran metinleri (`src/i18n/prepare.ts`, `entitlement.ts`, `log.ts`,
+  `underway.ts`, `complete.ts`)
   şimdilik en+tr; diğer 7 dil İngilizce'ye düşer — çeviri borcu P8 öncesi
   kapanmalı.
 - Foto sıkıştırma/thumbnail YOK (Faz 10 borcu); log foto akışı mevcut hattı
