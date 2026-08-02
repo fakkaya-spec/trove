@@ -7,6 +7,7 @@ import {
   Pressable,
   SafeAreaView,
   TextInput,
+  Alert,
 } from "react-native";
 import { useFocusEffect, useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -31,6 +32,11 @@ import {
 import { OpenItem, SignoffRole } from "../../../domain/completion";
 import { formatOccurredAt } from "../../../domain/log";
 import { tripChecklistProgress } from "../prepare/checklistData";
+import {
+  generateTripReport,
+  ReportUnavailableError,
+  sharePdf,
+} from "../../../report/generate";
 import { useLocale } from "../../../i18n";
 import { TRIP_STRINGS } from "../../../i18n/trip";
 import { PREPARE_STRINGS } from "../../../i18n/prepare";
@@ -65,6 +71,7 @@ export default function TripCompleteScreen() {
   const [checkProgress, setCheckProgress] = useState<{ done: number; total: number } | null>(null);
   const [signName, setSignName] = useState("");
   const [signRole, setSignRole] = useState<SignoffRole>("skipper");
+  const [busy, setBusy] = useState(false);
 
   const load = useCallback(() => {
     const t = getTrip(route.params.tripId);
@@ -102,6 +109,38 @@ export default function TripCompleteScreen() {
     if (!trip || !canComplete) return;
     updateTripStatus(trip.id, "completed");
     navigation.navigate("Tabs", { screen: "TripTab" });
+  }
+
+  // Sıra: rapor yerel üretilir → sefer kapanır → paylaşım sayfası açılır.
+  // Paylaşımın iptali başarısızlık DEĞİLDİR; PDF hatasında sefer verisi
+  // olduğu gibi kalır ve yeniden denenebilir (sahte başarı mesajı yok).
+  async function onGenerateAndComplete() {
+    if (!trip || !canComplete || busy) return;
+    setBusy(true);
+    try {
+      const { relPath } = await generateTripReport(trip.id, locale);
+      updateTripStatus(trip.id, "completed");
+      try {
+        await sharePdf(relPath);
+      } catch {
+        // paylaşım yüzeyi yoksa/iptalse tamamlama geri alınmaz
+      }
+      navigation.navigate("Tabs", { screen: "TripTab" });
+    } catch (e) {
+      if (e instanceof ReportUnavailableError) {
+        Alert.alert(c.reportFailedTitle, c.reportUnavailable, [
+          { text: s.cancel, style: "cancel" },
+          { text: c.completeCta, onPress: onComplete },
+        ]);
+      } else {
+        Alert.alert(c.reportFailedTitle, c.reportFailedBody, [
+          { text: s.cancel, style: "cancel" },
+          { text: c.retry, onPress: () => void onGenerateAndComplete() },
+        ]);
+      }
+    } finally {
+      setBusy(false);
+    }
   }
 
   const stepDoneIcon = (done: boolean) => (
@@ -275,24 +314,35 @@ export default function TripCompleteScreen() {
 
           <TDivider />
 
-          {/* Son eylem — sefer ancak burada kapanır */}
+          {/* Son eylem — rapor + kapanış; sefer ancak burada kapanır */}
           <Pressable
-            onPress={onComplete}
-            disabled={!canComplete}
+            onPress={() => void onGenerateAndComplete()}
+            disabled={!canComplete || busy}
             accessibilityRole="button"
-            accessibilityLabel={c.completeCta}
-            accessibilityState={{ disabled: !canComplete }}
+            accessibilityLabel={c.generateReport}
+            accessibilityState={{ disabled: !canComplete || busy }}
             style={({ pressed }) => [
               styles.cta,
-              { backgroundColor: canComplete ? T.blue : T.surfaceEl },
+              { backgroundColor: canComplete && !busy ? T.blue : T.surfaceEl },
               pressed && canComplete && { opacity: 0.85 },
             ]}
           >
-            <Text style={[styles.ctaText, { color: canComplete ? "#FFFFFF" : T.ink3 }]}>
-              {c.completeCta}
+            <Text style={[styles.ctaText, { color: canComplete && !busy ? "#FFFFFF" : T.ink3 }]}>
+              {c.generateReport}
             </Text>
           </Pressable>
           {!canComplete && <Text style={styles.blockedNote}>{c.completeBlockedNote}</Text>}
+          {canComplete && (
+            <Pressable
+              onPress={onComplete}
+              disabled={busy}
+              accessibilityRole="button"
+              accessibilityLabel={c.completeCta}
+              style={({ pressed }) => [styles.skipBtn, pressed && { opacity: 0.7 }]}
+            >
+              <Text style={styles.skipText}>{c.completeCta}</Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -452,4 +502,6 @@ const styles = StyleSheet.create({
   },
   ctaText: { fontSize: 14, fontWeight: "700", letterSpacing: -0.2 },
   blockedNote: { fontSize: 11, color: T.ink3, textAlign: "center", marginTop: 8 },
+  skipBtn: { minHeight: 44, alignItems: "center", justifyContent: "center", marginTop: 4 },
+  skipText: { fontSize: 12, fontWeight: "600", color: T.ink2 },
 });
