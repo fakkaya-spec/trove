@@ -20,20 +20,34 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
   çalışamayan özellik yok · hava durumu gelecek genişleme noktası ·
   bulut-önce varsayım yok · gereksiz ayar yok.
 
-### Ürün felsefesi (Faz 6 sonrası reset — kalıcı)
-- TROVE bir denetim uygulaması DEĞİLDİR; denetim yalnız bir andır. TROVE
-  seferden önce, sefer sırasında ve sonrasında denizciliği kolaylaştırır.
-  Keyfi artırmayan özellik var olmamalıdır.
+### Ürün felsefesi (kalıcı — Faz 6 sonrası reset + misyon güncellemesi)
+- **Misyon:** TROVE denizciliği her seferden önce, sefer sırasında ve sonra
+  daha kolay, daha sakin ve daha keyifli yapar. Denetim yalnız bir andır;
+  TROVE denetim/filo/sigorta/ERP/uyumluluk yazılımı DEĞİLDİR. Denizciliği
+  iyileştirmeyen özellik sorgulanır.
 - **Çift test:** her özellik hem (a) günlük kullanıcı değeri (bugün teknede
   işe yarar mı? insan bunun için TROVE'u açar mı?) hem (b) şirket değeri
   (tutundurma / ağ etkisi / özmülk veri / yinelenen gelir / savunulabilirlik)
   testinden geçer. Yalnız birinden geçiyorsa OTOMATİK YAPILMAZ — önce
   kullanıcıyla tartışılır.
-- **Sadelik kazanır:** ekran 30 saniyede anlaşılır mı, tek elle kullanılır
-  mı, 10 saniyede biter mi, bir şey ÇIKARabilir miyiz, Apple bunu çıkarır
-  mıydı? TROVE'un hissi Notes'tur, SAP değil: pano/KPI duvarı/kurumsal
-  terminoloji yok. Filo/sigorta/ERP/uyumluluk hissi veren her şeye itiraz
-  edilir — bir kez fazla ileri gidildi, bir daha olmayacak.
+- **Sadelik kuralları:** 8 SANİYE — marinada, parlak güneşte, tek elle açan
+  biri anında "neredeyim / ne önemli / sırada ne var?" sorularını
+  yanıtlayabilmeli; gerisi gürültüdür. 30 SANİYE — yeni kullanıcı her
+  ekranı 30 saniyede kavrar, kavrayamıyorsa sadeleştir. 10 SANİYE — her
+  ekranın birincil işi 10 saniyede biter; "tamamlanmış görünsün" diye iş
+  akışı üretilmez. Bir şey ÇIKARabilir miyiz sorusu her zaman sorulur.
+- **Defter kuralı:** TROVE güzel bir defteri açmak gibi hissettirir —
+  Apple Notes / Things / Linear / Notion; sakin, minimal, kendinden emin.
+  ASLA SAP/ERP/filo/sigorta hissi değil. Bir kez fazla ileri gidildi
+  (denetim→operasyon→sigorta→filo sürüklenmesi); bir daha OLMAYACAK.
+- **Pano sendromu yok:** "47 Sefer · 821 Foto" tarzı istatistik kartları
+  yok — insanlar TROVE'u sayı seyretmek için değil bir şey YAPMAK için açar.
+- **Bilgi hiyerarşisi:** her ekran önce en önemli soruyu yanıtlar; her şeye
+  eşit görsel ağırlık verilmez — TEK şey baskındır, gerisi onu destekler.
+- **Underway felsefesi:** pano değil, teknenden gelen SABAH BRİFİNGİ.
+  Kullanıcı her şeyi zaten planladı; şimdi güvence ister. Ekran yalnız şunu
+  yanıtlar: nereye gidiyoruz · gün kaç · ters giden var mı · kimler gemide ·
+  kaydedecek bir şey var mı. Fazlası eklenmez.
 - **Küresel ürün:** yalnız Akdeniz değil — Karayipler, ABD/Kanada,
   Avustralya/YZ, İskandinavya, UK, Asya. Yalnız Hırvatistan/Yunanistan'da
   anlamlı varsayım yapılmaz (birimler, tarih biçimleri, sezon varsayımları).
@@ -43,10 +57,16 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
 - **Para kazanma (hipotez, KODLANMAZ):** gelir önemli, büyüme daha önemli;
   ilk deneyim güven inşa eder. Metin daima ücretsiz. Premium, TROVE'a
   gerçekten maliyet üreten yetenekleri açar (bulut depolama, AI, gelişmiş
-  rapor, büyük kanıt paketleri, işbirliği) — keyfî kısıt değil. Fiyat
-  hipotezi (~$14.99 ay / ~$39 çeyrek / ~$99 yıl; yıllık bariz seçim
-  hissetmeli) UYGULANMAZ, sürekli sorgulanır. Bu bölüm MONETIZATION.md'nin
-  kilitli kurallarını değiştirmez; değişiklik ürün sahibi onayı ister.
+  rapor, büyük kanıt paketleri, işbirliği) — keyfî kısıt asla. Fiyat
+  hipotezi (~$14.99 ay / ~$39 çeyrek / ~$55 6 ay (tartışmada) / ~$99 yıl;
+  yıllık bariz seçim hissetmeli) UYGULANMAZ, sürekli sorgulanır. Sıralama:
+  gelir önemli < büyüme daha önemli < GÜVEN en önemli. Bu bölüm
+  MONETIZATION.md'nin kilitli kurallarını değiştirmez; değişiklik ürün
+  sahibi onayı ister.
+- **Figma politikası:** sürekli piksel doğrulaması YAPILMAZ (kredi pahalı).
+  Figma yalnız şunlarda: tamamen yeni ekran · büyük UX kararı doğrulaması ·
+  belirsizlik çözümü. Varsayılan kaynak: onaylı tasarım sistemi
+  (design-reference + src/theme T tokenları + trove primitives).
 - **Her faz öncesi iç sorular:** Jobs bunu tutar mıydı? Linear bunu
   gemiye alır mıydı? Notion sadeleştirir miydi? Airbnb ekranın yarısını
   çıkarır mıydı? Bu, birine TROVE'u tavsiye ettirir mi? Hayırsa: kod
