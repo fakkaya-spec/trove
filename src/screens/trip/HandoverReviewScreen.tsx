@@ -32,12 +32,19 @@ import {
 import { capturePhoto } from "../../media/photos";
 import { useEntitlement } from "../../entitlement";
 import { PRODUCT_NAME } from "../../config/product";
-import { colors, fonts, spacing, radius } from "../../theme";
-import { RopeDivider, Button, EmptyState } from "../../components/ui";
-import { Icon } from "../../components/Icon";
+import { T, TSH, TICON, touch } from "../../theme";
+import { LIcon } from "../../components/LIcon";
+import { Pill, SLabel } from "../../components/trove/primitives";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
 import type { RootStackParamList } from "../../navigation";
+
+// Teslim karşılaştırması — Faz 8 TROVE görünümü (sprint G6). Veri/davranış
+// aynen: sayaç karşılaştırması, check-in/out gözlemleri, foto çiftleri,
+// yeniden çekim (handover_pair kapısından), inceleme bayrağı, metin rapor
+// paylaşımı. Erişilebilirlik: sütunlar ↑/↓ ok + metin etiketli (yalnız
+// renk değil); negatif delta amber (dikkat) — kırmızı yalnız gerçek hata.
+// Hukuki/sigorta iddiası YOK (factsDisclaimer aynen).
 
 type Route = RouteProp<RootStackParamList, "HandoverReview">;
 
@@ -91,7 +98,10 @@ export default function HandoverReviewScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
-          <EmptyState icon="git-compare-outline" title={s.noCheckinYet} />
+          <View style={styles.emptyIcon}>
+            <LIcon name="shield" size={TICON.xl} color={T.ink3} />
+          </View>
+          <Text style={styles.emptyTitle}>{s.noCheckinYet}</Text>
         </View>
       </SafeAreaView>
     );
@@ -148,104 +158,117 @@ export default function HandoverReviewScreen() {
 
   const statusLabel = s[(`hs_${status}`) as keyof TripStrings] as string;
 
+  const issueLine = (i: { id: string; severity: string; title: string }) => (
+    <View key={i.id} style={styles.issueRow}>
+      <View style={styles.issueAccent} />
+      <Text style={styles.issueText}>
+        [{i.severity}] {i.title}
+      </Text>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.statusRow}>
-          <View style={styles.statusPill}>
-            <Icon name="git-compare-outline" size={15} color={colors.info} />
-            <Text style={styles.statusText}>{statusLabel}</Text>
-          </View>
+          <Pill text={statusLabel} type="info" />
         </View>
 
         {/* Sayaç karşılaştırması */}
         {meters.length > 0 && (
           <>
-            <RopeDivider label={s.metersCompare.toUpperCase()} />
-            <View style={styles.meterHead}>
-              <Text style={[styles.meterCell, styles.meterHeadText]}></Text>
-              {/* Tasarım sistemi v1.0 (A-4): sütunlar yalnız renkle değil
-                  yön okuyla da ayrışır (WCAG AA). */}
-              <Text style={[styles.meterCell, styles.meterHeadText]}>{`↑ ${s.checkIn}`}</Text>
-              <Text style={[styles.meterCell, styles.meterHeadText]}>{`↓ ${s.checkOut}`}</Text>
-              <Text style={[styles.meterCell, styles.meterHeadText]}>Δ</Text>
-            </View>
-            {meters.map((m: MeterComparisonRow) => (
-              <View key={m.kind} style={styles.meterRow}>
-                <Text style={[styles.meterCell, styles.meterName]}>
-                  {s[(`meter_${m.kind}`) as keyof TripStrings] as string}
-                </Text>
-                <Text style={styles.meterCell}>
-                  {m.checkIn !== null ? `${m.checkIn}` : "—"}
-                </Text>
-                <Text style={styles.meterCell}>
-                  {m.checkOut !== null ? `${m.checkOut}` : "—"}
-                </Text>
-                <Text
-                  style={[
-                    styles.meterCell,
-                    m.delta !== null && m.delta < 0 ? { color: colors.signal } : null,
-                  ]}
-                >
-                  {m.delta !== null ? `${m.delta > 0 ? "+" : ""}${m.delta}` : "—"}
-                </Text>
+            <SLabel mt={16}>{s.metersCompare}</SLabel>
+            <View style={styles.meterCard}>
+              <View style={[styles.meterRow, styles.meterHeadRow]}>
+                <Text style={[styles.meterCell, styles.meterHeadText]}></Text>
+                {/* Tasarım sistemi v1.0 (A-4): sütunlar yalnız renkle değil
+                    yön okuyla da ayrışır (WCAG AA). */}
+                <Text style={[styles.meterCell, styles.meterHeadText]}>{`↑ ${s.checkIn}`}</Text>
+                <Text style={[styles.meterCell, styles.meterHeadText]}>{`↓ ${s.checkOut}`}</Text>
+                <Text style={[styles.meterCell, styles.meterHeadText]}>Δ</Text>
               </View>
-            ))}
+              {meters.map((m: MeterComparisonRow, idx) => (
+                <View
+                  key={m.kind}
+                  style={[styles.meterRow, idx < meters.length - 1 && styles.meterRowRule]}
+                >
+                  <Text style={[styles.meterCell, styles.meterName]}>
+                    {s[(`meter_${m.kind}`) as keyof TripStrings] as string}
+                  </Text>
+                  <Text style={[styles.meterCell, styles.meterMono]}>
+                    {m.checkIn !== null ? `${m.checkIn}` : "—"}
+                  </Text>
+                  <Text style={[styles.meterCell, styles.meterMono]}>
+                    {m.checkOut !== null ? `${m.checkOut}` : "—"}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.meterCell,
+                      styles.meterMono,
+                      m.delta !== null && m.delta < 0 && { color: T.amber, fontWeight: "600" },
+                    ]}
+                  >
+                    {m.delta !== null ? `${m.delta > 0 ? "+" : ""}${m.delta}` : "—"}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </>
         )}
 
         {/* Check-in gözlemleri */}
         {checkInIssues.length > 0 && (
           <>
-            <RopeDivider label={`${s.existingObservations.toUpperCase()} (${checkInIssues.length})`} />
-            {checkInIssues.map((i) => (
-              <Text key={i.id} style={styles.issueLine}>
-                • [{i.severity}] {i.title}
-              </Text>
-            ))}
+            <SLabel mt={20}>{`${s.existingObservations} (${checkInIssues.length})`}</SLabel>
+            {checkInIssues.map(issueLine)}
           </>
         )}
 
         {/* Check-out gözlemleri */}
         {checkOutIssues.length > 0 && (
           <>
-            <RopeDivider label={`${s.newObservations.toUpperCase()} (${checkOutIssues.length})`} />
-            {checkOutIssues.map((i) => (
-              <Text key={i.id} style={styles.issueLine}>
-                • [{i.severity}] {i.title}
-              </Text>
-            ))}
+            <SLabel mt={20}>{`${s.newObservations} (${checkOutIssues.length})`}</SLabel>
+            {checkOutIssues.map(issueLine)}
           </>
         )}
 
         {/* Foto eşleştirmeleri */}
         {pairs.length > 0 && (
           <>
-            <RopeDivider label={`${s.photoPairs.toUpperCase()} (${pairs.length})`} />
+            <SLabel mt={20}>{`${s.photoPairs} (${pairs.length})`}</SLabel>
             {pairs.map((pair) => (
               <View key={pair.id} style={styles.pairCard}>
                 {pair.label ? <Text style={styles.pairLabel}>{pair.label}</Text> : null}
                 <View style={styles.pairImages}>
                   <View style={styles.pairSide}>
                     <Text style={styles.pairSideLabel}>{`↑ ${s.checkIn}`}</Text>
-                    <Image source={{ uri: pair.checkinUri }} style={styles.pairImage} />
+                    <Image
+                      source={{ uri: pair.checkinUri }}
+                      style={styles.pairImage}
+                      accessibilityLabel={`${s.checkIn}: ${pair.label ?? ""}`}
+                    />
                   </View>
                   <View style={styles.pairSide}>
                     <Text style={styles.pairSideLabel}>{`↓ ${s.checkOut}`}</Text>
                     {pair.checkoutUri ? (
-                      <Image source={{ uri: pair.checkoutUri }} style={styles.pairImage} />
+                      <Image
+                        source={{ uri: pair.checkoutUri }}
+                        style={styles.pairImage}
+                        accessibilityLabel={`${s.checkOut}: ${pair.label ?? ""}`}
+                      />
                     ) : (
                       <Pressable
                         onPress={() => retake(pair, session)}
                         disabled={!checkOut}
                         accessibilityRole="button"
                         accessibilityLabel={s.retakePhoto}
+                        accessibilityState={{ disabled: !checkOut }}
                         style={({ pressed }) => [
                           styles.retakeBtn,
                           (!checkOut || pressed) && { opacity: checkOut ? 0.8 : 0.4 },
                         ]}
                       >
-                        <Icon name="camera-outline" size={22} color={colors.info} />
+                        <LIcon name="camera" size={TICON.lg} color={T.blue} />
                         <Text style={styles.retakeText}>{s.retakePhoto}</Text>
                       </Pressable>
                     )}
@@ -253,7 +276,7 @@ export default function HandoverReviewScreen() {
                 </View>
                 <View style={styles.reviewRow}>
                   <View style={styles.reviewLabelRow}>
-                    <Icon name="warning-outline" size={16} color={colors.warning} />
+                    <LIcon name="alert-triangle" size={TICON.md} color={T.amber} />
                     <Text style={styles.reviewLabel}>{s.requiresReviewLabel}</Text>
                   </View>
                   <Switch
@@ -262,7 +285,8 @@ export default function HandoverReviewScreen() {
                       setPairReview(pair.id, v);
                       refresh();
                     }}
-                    trackColor={{ true: colors.gold }}
+                    accessibilityLabel={s.requiresReviewLabel}
+                    trackColor={{ true: T.blue }}
                   />
                 </View>
               </View>
@@ -272,104 +296,131 @@ export default function HandoverReviewScreen() {
 
         <Text style={styles.disclaimer}>{s.factsDisclaimer}</Text>
 
-        <Button label={s.shareReport} icon="share-outline" onPress={shareReport} />
+        <Pressable
+          onPress={() => void shareReport()}
+          accessibilityRole="button"
+          accessibilityLabel={s.shareReport}
+          style={({ pressed }) => [styles.shareBtn, pressed && { opacity: 0.85 }]}
+        >
+          <LIcon name="share-2" size={TICON.md} color="#FFFFFF" />
+          <Text style={styles.shareText}>{s.shareReport}</Text>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.m, paddingBottom: spacing.xl },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.l },
-  statusRow: { alignItems: "center", marginBottom: spacing.s },
-  statusPill: {
-    flexDirection: "row",
+  safe: { flex: 1, backgroundColor: T.bg },
+  scroll: { padding: 16, paddingBottom: 32 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
+  emptyIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: T.surfaceEl,
     alignItems: "center",
-    gap: 6,
-    backgroundColor: colors.infoBg,
-    borderRadius: radius.pill,
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  emptyTitle: { fontSize: 14, color: T.ink2, textAlign: "center" },
+  statusRow: { alignItems: "center" },
+  meterCard: {
+    backgroundColor: T.surface,
+    borderRadius: T.r2,
+    borderWidth: 1,
+    borderColor: T.rule,
     paddingHorizontal: 14,
-    paddingVertical: 7,
+    ...TSH.sh0,
   },
-  statusText: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    color: colors.info,
-  },
-  meterHead: { flexDirection: "row", paddingVertical: 4 },
-  meterHeadText: {
-    fontFamily: fonts.body,
-    fontSize: 11,
-    fontWeight: "600",
-    color: colors.textSecondary,
-    letterSpacing: 0.5,
-  },
-  meterRow: {
+  meterRow: { flexDirection: "row", paddingVertical: 10, alignItems: "center" },
+  meterHeadRow: { borderBottomWidth: 1, borderBottomColor: T.ruleStr },
+  meterRowRule: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: T.rule },
+  meterHeadText: { fontSize: 10, fontWeight: "600", color: T.ink2, letterSpacing: 0.3 },
+  meterCell: { flex: 1, fontSize: 13, color: T.ink0 },
+  meterMono: { fontFamily: T.mono, fontSize: 12 },
+  meterName: { color: T.ink1 },
+  issueRow: {
     flexDirection: "row",
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    backgroundColor: T.surface,
+    borderRadius: T.r3,
+    borderWidth: 1,
+    borderColor: T.rule,
+    marginBottom: 6,
+    overflow: "hidden",
   },
-  meterCell: { flex: 1, fontFamily: fonts.mono, fontSize: 13, color: colors.text },
-  meterName: { textTransform: "capitalize", fontFamily: fonts.body },
-  issueLine: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.text,
-    paddingVertical: 3,
-    lineHeight: 20,
+  issueAccent: { width: 2, backgroundColor: T.amber },
+  issueText: {
+    flex: 1,
+    fontSize: 13,
+    color: T.ink0,
+    lineHeight: 19,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
   },
   pairCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.card,
-    padding: spacing.m,
-    marginBottom: spacing.m,
+    borderColor: T.rule,
+    borderRadius: T.r,
+    padding: 14,
+    marginBottom: 10,
+    ...TSH.sh0,
   },
-  pairLabel: { fontFamily: fonts.body, fontSize: 14, fontWeight: "600", color: colors.text, marginBottom: 6 },
+  pairLabel: { fontSize: 13, fontWeight: "600", color: T.ink0, marginBottom: 8 },
   pairImages: { flexDirection: "row", gap: 8 },
   pairSide: { flex: 1 },
   pairSideLabel: {
-    fontFamily: fonts.body,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "600",
-    color: colors.textSecondary,
-    letterSpacing: 0.5,
+    color: T.ink2,
+    letterSpacing: 0.3,
     marginBottom: 4,
   },
-  pairImage: { width: "100%", aspectRatio: 4 / 3, borderRadius: 8, backgroundColor: colors.border },
+  pairImage: {
+    width: "100%",
+    aspectRatio: 4 / 3,
+    borderRadius: T.r3,
+    backgroundColor: T.surfaceEl,
+  },
   retakeBtn: {
     width: "100%",
     aspectRatio: 4 / 3,
-    borderRadius: 8,
+    borderRadius: T.r3,
     borderWidth: 1,
-    borderColor: colors.info,
+    borderColor: "rgba(0,95,204,0.4)",
     borderStyle: "dashed",
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
     padding: 8,
+    backgroundColor: T.blueL,
   },
-  retakeText: { fontFamily: fonts.body, fontSize: 12, color: colors.info, textAlign: "center" },
+  retakeText: { fontSize: 12, color: T.blue, textAlign: "center", fontWeight: "500" },
   reviewRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginTop: 10,
-    minHeight: 44,
+    minHeight: touch.min,
   },
   reviewLabelRow: { flexDirection: "row", alignItems: "center", gap: 6, flex: 1 },
-  reviewLabel: { fontFamily: fonts.body, fontSize: 14, color: colors.text },
+  reviewLabel: { fontSize: 13, color: T.ink0 },
   disclaimer: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.textSecondary,
+    fontSize: 11,
+    color: T.ink3,
     lineHeight: 17,
-    marginVertical: spacing.m,
+    marginVertical: 16,
     textAlign: "center",
   },
+  shareBtn: {
+    backgroundColor: T.blue,
+    borderRadius: T.r,
+    minHeight: touch.min,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  shareText: { fontSize: 15, fontWeight: "700", color: "#FFFFFF", letterSpacing: -0.2 },
 });
