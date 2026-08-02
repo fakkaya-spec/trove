@@ -176,6 +176,24 @@ export function setTripBoat(id: string, boatId: string): void {
   enqueueSync("trips", id);
 }
 
+/** Mürettebat düzenlemesi (trip_crew ekranı) — skipper + isim listesi. */
+export function updateTripCrew(
+  id: string,
+  input: { skipperName: string | null; crewNames: string[] }
+): void {
+  const names = input.crewNames.map((n) => n.trim()).filter((n) => n.length > 0);
+  getDb()
+    .update(trips)
+    .set({
+      skipperName: input.skipperName?.trim() || null,
+      crewNamesJson: JSON.stringify(names),
+      updatedAt: nowIso(),
+    })
+    .where(eq(trips.id, id))
+    .run();
+  enqueueSync("trips", id);
+}
+
 export function updateTripProfile(id: string, profile: TripUsageProfile): void {
   getDb()
     .update(trips)

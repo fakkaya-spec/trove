@@ -37,6 +37,11 @@ import { initAds } from "./src/ads";
 import { LocaleProvider, useLocale } from "./src/i18n";
 import { INSPECTION_STRINGS } from "./src/i18n/inspection";
 import { TRIP_STRINGS } from "./src/i18n/trip";
+import { PREPARE_STRINGS } from "./src/i18n/prepare";
+import TripCrewScreen from "./src/screens/trip/prepare/TripCrewScreen";
+import TripProvisionsScreen from "./src/screens/trip/prepare/TripProvisionsScreen";
+import TripShoppingScreen from "./src/screens/trip/prepare/TripShoppingScreen";
+import TripChecklistScreen from "./src/screens/trip/prepare/TripChecklistScreen";
 import { PremiumProvider } from "./src/premium";
 import { EntitlementProvider, type PaywallContext } from "./src/entitlement";
 import PaywallScreen from "./src/screens/PaywallScreen";
@@ -179,6 +184,7 @@ function Root() {
   const { locale, t } = useLocale();
   const si = INSPECTION_STRINGS[locale];
   const s = TRIP_STRINGS[locale];
+  const sp = PREPARE_STRINGS[locale];
   return (
     <NavigationContainer ref={navigationRef} theme={theme}>
       <StatusBar style="dark" />
@@ -226,6 +232,32 @@ function Root() {
           name="Paywall"
           component={PaywallScreen}
           options={{ headerShown: false, presentation: "modal" }}
+        />
+        {/* Faz 4 — Trip Prepare ekranları */}
+        <Stack.Screen
+          name="TripCrew"
+          component={TripCrewScreen}
+          options={{ title: sp.crewGuests }}
+        />
+        <Stack.Screen
+          name="TripProvisions"
+          component={TripProvisionsScreen}
+          options={{ title: s.provisioning }}
+        />
+        <Stack.Screen
+          name="TripShopping"
+          component={TripShoppingScreen}
+          options={{ title: sp.shoppingList }}
+        />
+        <Stack.Screen
+          name="TripPredep"
+          component={TripChecklistScreen}
+          options={{ title: sp.predepChecklist }}
+        />
+        <Stack.Screen
+          name="TripCheckin"
+          component={TripChecklistScreen}
+          options={{ title: sp.checkinInspection }}
         />
 
         {/* Legacy checklist modu (feature flag) */}
