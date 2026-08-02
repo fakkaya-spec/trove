@@ -13,6 +13,7 @@ import {
 import { tripDays , TripModuleStates } from "../domain/trip";
 import { getBestTemplate, TemplateKind } from "./templates";
 import { ensureSessionForTrip, linkInspectionToSession } from "./handover";
+import { SampleReadOnlyError } from "./log";
 import { enqueueSync } from "./sync";
 
 // --- Modül durumları (Home / TripDetail kartları için) ----------------------
@@ -180,12 +181,32 @@ export function listSampleTrips(): TripRow[] {
     .map(toRow);
 }
 
+/**
+ * İZOLASYON KORUMASI (H1): örnek sefere gerçek-yol mutasyonu repository
+ * katmanında reddedilir (log.ts'teki desenle aynı tipli hata). Koruma her
+ * yazımdan ÖNCE koşar — örnekler sync_queue'ya asla giremez. Kayıt yoksa
+ * mevcut davranış korunur (sessiz no-op; yalnız örnekler reddedilir).
+ * NOT: createTrip koruma GEREKTİRMEZ — kimliği kendisi üretir (newId) ve
+ * is_sample varsayılanı 0'dır; var olan bir örnek kimliğini hedefleyemez.
+ */
+function assertMutableTrip(id: string): void {
+  const [r] = getDb()
+    .select({ isSample: trips.isSample })
+    .from(trips)
+    .where(eq(trips.id, id))
+    .limit(1)
+    .all();
+  if (r && r.isSample === 1) throw new SampleReadOnlyError(`trip ${id}`);
+}
+
 export function updateTripStatus(id: string, status: TripStatus): void {
+  assertMutableTrip(id);
   getDb().update(trips).set({ status, updatedAt: nowIso() }).where(eq(trips.id, id)).run();
   enqueueSync("trips", id);
 }
 
 export function setTripBoat(id: string, boatId: string): void {
+  assertMutableTrip(id);
   getDb().update(trips).set({ boatId, updatedAt: nowIso() }).where(eq(trips.id, id)).run();
   enqueueSync("trips", id);
 }
@@ -195,6 +216,7 @@ export function updateTripCrew(
   id: string,
   input: { skipperName: string | null; crewNames: string[] }
 ): void {
+  assertMutableTrip(id);
   const names = input.crewNames.map((n) => n.trim()).filter((n) => n.length > 0);
   getDb()
     .update(trips)
@@ -209,6 +231,7 @@ export function updateTripCrew(
 }
 
 export function updateTripProfile(id: string, profile: TripUsageProfile): void {
+  assertMutableTrip(id);
   getDb()
     .update(trips)
     .set({ profileJson: JSON.stringify(profile), updatedAt: nowIso() })
@@ -219,6 +242,7 @@ export function updateTripProfile(id: string, profile: TripUsageProfile): void {
 
 /** Silme onayı UI'da; burada soft delete. */
 export function deleteTrip(id: string): void {
+  assertMutableTrip(id);
   const now = nowIso();
   getDb().update(trips).set({ deletedAt: now, updatedAt: now }).where(eq(trips.id, id)).run();
   enqueueSync("trips", id, "delete");
@@ -297,6 +321,10 @@ export function ensureTripInspection(
 ): string {
   const existing = listTripInspections(trip.id).find((i) => i.kind === kind);
   if (existing) return existing.id;
+  // Var olan örnek denetim yukarıda dönebilir (salt okunur keşif); ancak
+  // örnek sefer için YENİ denetim asla oluşturulmaz (smp- öneksiz satır
+  // gerçek listelere sızardı).
+  if (trip.isSample) throw new SampleReadOnlyError(`trip ${trip.id}`);
 
   const template = getBestTemplate(boatType, KIND_TO_TEMPLATE[kind]);
   if (!template) throw new Error(`No template for kind=${kind}`);

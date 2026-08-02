@@ -37,8 +37,21 @@ import {
   createVessel,
   getVesselById,
 } from "../src/repositories/vessels";
-import { listTrips, listSampleTrips, createTrip, deleteTrip } from "../src/repositories/trips";
+import {
+  listTrips,
+  listSampleTrips,
+  createTrip,
+  deleteTrip,
+  getTrip,
+  updateTripStatus,
+  setTripBoat,
+  updateTripCrew,
+  updateTripProfile,
+  ensureTripInspection,
+} from "../src/repositories/trips";
+import { SampleReadOnlyError } from "../src/repositories/log";
 import { listInspections, listIssues } from "../src/repositories/inspections";
+import { syncQueue } from "../src/db/schema";
 
 // seedIfNeeded örnekleri de kurdu.
 assert.equal(listSampleVessels().length, 3, "3 örnek tekne seed edilmeli");
@@ -87,6 +100,42 @@ assert.ok(
 );
 // Örnek denetim içeriği yalnız hedefli (id ile) erişimde görünür:
 assert.equal(listIssues(SAMPLE_IDS.checkin).length, 2, "örnek check-in 2 gözlem taşımalı");
+
+// --- H1) Örnek sefere GERÇEK-YOL mutasyonu repository'de reddedilir ---------
+// Her koruma yazımdan ÖNCE koşar: sync_queue'ya tek satır bile düşmez.
+const smp = SAMPLE_IDS.tripSerenity;
+const syncRowsBefore = db.select().from(syncQueue).all().length;
+assert.throws(() => updateTripStatus(smp, "completed"), SampleReadOnlyError);
+assert.throws(() => setTripBoat(smp, realVessel.id), SampleReadOnlyError);
+assert.throws(
+  () => updateTripCrew(smp, { skipperName: "Hacker", crewNames: [] }),
+  SampleReadOnlyError
+);
+assert.throws(
+  () => updateTripProfile(smp, DEFAULT_TRIP_PROFILE),
+  SampleReadOnlyError
+);
+assert.throws(() => deleteTrip(smp), SampleReadOnlyError);
+// ensureTripInspection: VAR OLAN örnek denetim salt okunur döner (keşif)...
+const sampleTrip = getTrip(smp)!;
+assert.equal(
+  ensureTripInspection(sampleTrip, "check_in", "sailing"),
+  SAMPLE_IDS.checkin,
+  "var olan örnek denetim salt okunur açılabilir"
+);
+// ...ama örnek sefer için YENİ denetim asla oluşturulamaz:
+assert.throws(
+  () => ensureTripInspection(sampleTrip, "pre_departure", "sailing"),
+  SampleReadOnlyError,
+  "örnek sefere yeni denetim oluşturulamaz"
+);
+assert.equal(
+  db.select().from(syncQueue).all().length,
+  syncRowsBefore,
+  "reddedilen mutasyonlar sync_queue'ya HİÇBİR satır düşürmez"
+);
+assert.equal(getTrip(smp)!.status, "active", "örnek sefer verisi değişmedi");
+assert.equal(getTrip(smp)!.skipperName, "Marco Rossi", "örnek kaptan değişmedi");
 
 // --- 3) Örnek sıfırlama gerçek veriye dokunamaz ----------------------------
 resetSamples(db);

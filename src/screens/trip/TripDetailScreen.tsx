@@ -15,6 +15,7 @@ import {
   ensureTripInspection,
   getTrip,
   getTripModuleStates,
+  listTripInspections,
   setTripBoat,
   TripRow,
   updateTripStatus,
@@ -79,6 +80,13 @@ export default function TripDetailScreen() {
 
   function openChecklist(kind: "check_in" | "check_out" | "pre_departure" | "return_secure") {
     if (!trip) return;
+    // Örnek keşfi SALT OKUNUR (H1): var olan örnek denetim açılır, yeni
+    // denetim asla oluşturulmaz (repository de ayrıca reddeder).
+    if (trip.isSample) {
+      const existing = listTripInspections(trip.id).find((i) => i.kind === kind);
+      if (existing) navigation.navigate("Inspect", { inspectionId: existing.id });
+      return;
+    }
     if (!trip.boatId || !boat) {
       Alert.alert(s.boatMissing, s.chooseBoatFirst);
       setShowBoatPicker(true);
@@ -137,24 +145,32 @@ export default function TripDetailScreen() {
         {trip.isSample && (
           <SampleBanner onCreate={() => navigation.navigate("Tabs", { screen: "VesselTab" })} />
         )}
-        {/* Durum + özet */}
+        {/* Durum + özet — örneklerde durum çipleri SALT GÖSTERİMDİR (H1) */}
         <View style={styles.summaryCard}>
           <View style={styles.chipRow}>
-            {statusOptions.map((o) => (
-              <Pressable
-                key={o.key}
-                onPress={() => {
-                  updateTripStatus(trip.id, o.key);
-                  refresh();
-                }}
-                accessibilityRole="button"
-                style={[styles.chip, trip.status === o.key && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, trip.status === o.key && styles.chipTextActive]}>
-                  {o.label}
+            {trip.isSample ? (
+              <View style={[styles.chip, styles.chipActive]}>
+                <Text style={[styles.chipText, styles.chipTextActive]}>
+                  {statusOptions.find((o) => o.key === trip.status)?.label ?? trip.status}
                 </Text>
-              </Pressable>
-            ))}
+              </View>
+            ) : (
+              statusOptions.map((o) => (
+                <Pressable
+                  key={o.key}
+                  onPress={() => {
+                    updateTripStatus(trip.id, o.key);
+                    refresh();
+                  }}
+                  accessibilityRole="button"
+                  style={[styles.chip, trip.status === o.key && styles.chipActive]}
+                >
+                  <Text style={[styles.chipText, trip.status === o.key && styles.chipTextActive]}>
+                    {o.label}
+                  </Text>
+                </Pressable>
+              ))
+            )}
           </View>
           <View style={styles.metaRow}>
             <Icon name="boat-outline" size={15} color={colors.textSecondary} />
@@ -179,8 +195,8 @@ export default function TripDetailScreen() {
           </View>
         </View>
 
-        {/* Tekne seçici (eksikse) */}
-        {(!boat || showBoatPicker) && (
+        {/* Tekne seçici (eksikse; örneklerde asla — setTripBoat mutasyondur) */}
+        {!trip.isSample && (!boat || showBoatPicker) && (
           <View style={styles.boatPicker}>
             <Text style={styles.fieldLabel}>{s.chooseBoatFirst}</Text>
             <View style={styles.chipRow}>
