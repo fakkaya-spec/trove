@@ -325,6 +325,15 @@ CREATE INDEX idx_media_inspection ON media_assets(inspection_id);
 CREATE INDEX idx_media_log_entry ON media_assets(log_entry_id);
 `,
   },
+  {
+    // TROVE Faz 6 (Underway): gözlem çözümü — "açık gözlemler" izleme
+    // listesi çözüldükçe küçülür. NULL = açık; damga = çözülme anı (UTC ISO).
+    // Geri alınabilir (yeniden açma NULL yazar); soft-delete'ten bağımsız.
+    id: 6,
+    sql: `
+ALTER TABLE log_entries ADD COLUMN resolved_at TEXT;
+`,
+  },
 ];
 
 /** Testlerin sürüm-atlamalı (ör. 4→5) yükseltmeyi kanıtlaması için salt okunur dışa aktarım. */

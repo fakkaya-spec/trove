@@ -55,6 +55,38 @@ export function nextAction(states: TripModuleStates, isCharter: boolean): NextAc
   return "trip_complete";
 }
 
+// --- Underway günü (Faz 6) --------------------------------------------------
+
+export interface TripDayInfo {
+  /** 1..totalDays aralığına kıskaçlı gün */
+  day: number;
+  totalDays: number;
+  /** Dönüş günü geçti (kıskaç öncesi gün > toplam) — sakin bilgi, alarm değil */
+  overdue: boolean;
+}
+
+/**
+ * "Gün X / Y" — yerel takvim günü üstünden (saat dilimi kaymaları gün
+ * hesabını bozmasın diye iki yerel gece yarısının yuvarlanmış farkı).
+ * startAt yok/bozuksa null: UI gün pilini gizler, sahte değer göstermez.
+ */
+export function tripDayOf(
+  startAt: string | null,
+  totalDays: number,
+  todayIso: string
+): TripDayInfo | null {
+  if (!startAt || totalDays < 1) return null;
+  const start = Date.parse(`${startAt.slice(0, 10)}T00:00:00`);
+  const today = Date.parse(`${todayIso.slice(0, 10)}T00:00:00`);
+  if (!Number.isFinite(start) || !Number.isFinite(today)) return null;
+  const raw = Math.round((today - start) / 86400000) + 1;
+  return {
+    day: Math.min(Math.max(raw, 1), totalDays),
+    totalDays,
+    overdue: raw > totalDays,
+  };
+}
+
 export interface TripProgress {
   /** 0-100: tamamlanan modül oranı */
   percent: number;

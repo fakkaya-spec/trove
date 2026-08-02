@@ -338,6 +338,8 @@ export const logEntries = sqliteTable("log_entries", {
   occurredAt: text("occurred_at").notNull(),
   authorName: text("author_name"),
   isSample: integer("is_sample").notNull().default(0),
+  /** Faz 6: NULL = gözlem açık; damga = çözülme anı (geri alınabilir). */
+  resolvedAt: text("resolved_at"),
   ...common,
 });
 

@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, newId, nowIso, stamps } from "../db/client";
 import { logEntries, mediaAssets, syncQueue, trips } from "../db/schema";
@@ -36,6 +36,8 @@ export interface LogEntryRow {
   occurredAt: string;
   authorName: string | null;
   isSample: boolean;
+  /** NULL = açık (Faz 6 gözlem çözümü). */
+  resolvedAt: string | null;
 }
 
 function toRow(r: typeof logEntries.$inferSelect): LogEntryRow {
@@ -51,8 +53,16 @@ function toRow(r: typeof logEntries.$inferSelect): LogEntryRow {
     occurredAt: r.occurredAt,
     authorName: r.authorName,
     isSample: r.isSample === 1,
+    resolvedAt: r.resolvedAt,
   };
 }
+
+/** "Açık gözlem" sayılan türler: dikkat isteyen, çözülebilir kayıtlar. */
+export const OPEN_OBSERVATION_TYPES: readonly LogEntryType[] = [
+  "observation",
+  "incident",
+  "defect",
+];
 
 export interface CreateLogEntryInput {
   tripId: string;
@@ -175,6 +185,50 @@ export function updateLogEntry(
   getDb()
     .update(logEntries)
     .set({ ...patch, updatedAt: nowIso() })
+    .where(eq(logEntries.id, id))
+    .run();
+  enqueueSync("log_entries", id);
+}
+
+/**
+ * Açık gözlemler (Underway izleme listesi): observation/incident/defect
+ * türünde, çözülmemiş GERÇEK kayıtlar; en yeni üstte.
+ */
+export function listOpenObservations(tripId: string): LogEntryRow[] {
+  return getDb()
+    .select()
+    .from(logEntries)
+    .where(
+      and(
+        eq(logEntries.tripId, tripId),
+        inArray(logEntries.type, [...OPEN_OBSERVATION_TYPES]),
+        isNull(logEntries.resolvedAt),
+        isNull(logEntries.deletedAt),
+        eq(logEntries.isSample, 0)
+      )
+    )
+    .orderBy(desc(logEntries.occurredAt))
+    .all()
+    .map(toRow);
+}
+
+/** Gözlemi çözüldü işaretler (yanlış dokunma reopenLogEntry ile telafi edilir). */
+export function resolveLogEntry(id: string): void {
+  assertMutable(id);
+  const now = nowIso();
+  getDb()
+    .update(logEntries)
+    .set({ resolvedAt: now, updatedAt: now })
+    .where(eq(logEntries.id, id))
+    .run();
+  enqueueSync("log_entries", id);
+}
+
+export function reopenLogEntry(id: string): void {
+  assertMutable(id);
+  getDb()
+    .update(logEntries)
+    .set({ resolvedAt: null, updatedAt: nowIso() })
     .where(eq(logEntries.id, id))
     .run();
   enqueueSync("log_entries", id);
