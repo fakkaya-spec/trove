@@ -83,8 +83,10 @@ export default function WelcomeScreen() {
         <View style={{ paddingHorizontal: 16, paddingTop: 24 }}>
           {/* YOUR BOATS */}
           <Text style={styles.overline}>{s.yourBoats.toUpperCase()}</Text>
+          {/* Faz 8: birincil ilk eylem doğrudan aşamalı tekne ekleme formuna
+              gider — araya liste ekranı girmez. */}
           <Pressable
-            onPress={() => navigation.navigate("VesselTab")}
+            onPress={() => navigation.navigate("AddVessel")}
             accessibilityRole="button"
             accessibilityLabel={s.addFirstBoat}
             style={({ pressed }) => [styles.addCard, pressed && { opacity: 0.8 }]}

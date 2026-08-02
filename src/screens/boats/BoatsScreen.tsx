@@ -1,187 +1,176 @@
 import React, { useCallback, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  SafeAreaView,
-  TextInput,
-} from "react-native";
-import { useFocusEffect , useNavigation } from "@react-navigation/native";
-import { createVessel, listVessels, VesselRow } from "../../repositories/vessels";
+import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { listVessels, VesselRow } from "../../repositories/vessels";
 import { isDbReady } from "../../db/state";
-import type { BoatType } from "../../domain/types";
-import { colors, fonts, spacing, radius, touch } from "../../theme";
-import { RopeDivider, Button } from "../../components/ui";
-import { Icon } from "../../components/Icon";
+import { T, TSH, TICON, touch } from "../../theme";
+import { LIcon, type LIconName } from "../../components/LIcon";
+import { SLabel } from "../../components/trove/primitives";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS } from "../../i18n/trip";
 import { boatTypeLabel, INSPECTION_STRINGS } from "../../i18n/inspection";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { VESSEL_STRINGS } from "../../i18n/vessel";
 import type { RootStackParamList } from "../../navigation";
 
-const BOAT_TYPES: BoatType[] = ["sailing", "catamaran", "motor", "rib", "gulet"];
+// Vessel sekmesi — Faz 8 TROVE görünümü (sprint G2). Liste + boş durum +
+// tek net birincil eylem (Tekne ekle → AddVessel aşamalı formu). Ekleme
+// formu buradan çıkarıldı: liste listedir, form formdur. Satır → tekne
+// geçmişi (BoatHistory). Örnek tekneler burada GÖRÜNMEZ (izolasyon:
+// listVessels yalnız gerçek) — keşif karşılama ekranındadır.
+
+type Nav = NativeStackNavigationProp<RootStackParamList>;
+
+const TYPE_ICON: Record<string, LIconName> = {
+  sailing: "sailboat",
+  catamaran: "sailboat",
+  motor: "anchor",
+  rib: "waves",
+  gulet: "sailboat",
+};
 
 export default function BoatsScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<Nav>();
   const { locale } = useLocale();
   const s = TRIP_STRINGS[locale];
   const si = INSPECTION_STRINGS[locale];
+  const v = VESSEL_STRINGS[locale];
   const [boats, setBoats] = useState<VesselRow[]>([]);
-  const [name, setName] = useState("");
-  const [type, setType] = useState<BoatType>("sailing");
-  const [charter, setCharter] = useState(false);
 
   const refresh = useCallback(() => {
     if (isDbReady()) setBoats(listVessels());
   }, []);
   useFocusEffect(refresh);
 
-  function add() {
-    if (!name.trim()) return;
-    createVessel({ name: name.trim(), type, ownershipType: charter ? "chartered" : "owned" });
-    setName("");
-    refresh();
-  }
-
-  function row(v: VesselRow) {
-    return (
-      <Pressable
-        key={v.id}
-        onPress={() => navigation.navigate("BoatHistory", { boatId: v.id })}
-        accessibilityRole="button"
-        accessibilityLabel={`${v.name} — ${s.historyTitle}`}
-        style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
-      >
-        <Icon name="boat-outline" size={22} color={colors.text} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.cardTitle}>{v.name}</Text>
-          <Text style={styles.cardSub}>
-            {boatTypeLabel(si, v.type)}
-            {v.model ? ` · ${v.model}` : ""}
-          </Text>
-        </View>
-        <Icon name="chevron-forward" size={18} color={colors.textSecondary} />
-      </Pressable>
-    );
-  }
-
   const own = boats.filter((b) => b.ownershipType === "owned");
   const chartered = boats.filter((b) => b.ownershipType !== "owned");
 
+  const row = (b: VesselRow) => (
+    <Pressable
+      key={b.id}
+      onPress={() => navigation.navigate("BoatHistory", { boatId: b.id })}
+      accessibilityRole="button"
+      accessibilityLabel={`${b.name} — ${s.historyTitle}`}
+      style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
+    >
+      <View style={styles.cardIcon}>
+        <LIcon name={TYPE_ICON[b.type] ?? "sailboat"} size={TICON.lg} color={T.ink1} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.cardTitle} numberOfLines={1}>
+          {b.name}
+        </Text>
+        <Text style={styles.cardSub} numberOfLines={1}>
+          {boatTypeLabel(si, b.type)}
+          {b.model ? ` · ${b.model}` : ""}
+        </Text>
+      </View>
+      <LIcon name="chevron-right" size={TICON.sm} color={T.ink3} />
+    </Pressable>
+  );
+
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        {/* Hızlı ekleme — teknik detaylar sonradan (progressive disclosure) */}
-        <Text style={styles.fieldLabel}>{s.addBoat}</Text>
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          style={styles.input}
-          placeholder="S/Y Meltemi"
-          placeholderTextColor={colors.textSecondary}
-        />
-        <View style={styles.chipRow}>
-          {BOAT_TYPES.map((b) => (
-            <Pressable
-              key={b}
-              onPress={() => setType(b)}
-              accessibilityRole="button"
-              style={[styles.chip, type === b && styles.chipActive]}
-            >
-              <Text style={[styles.chipText, type === b && styles.chipTextActive]}>
-                {boatTypeLabel(si, b)}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-        <View style={styles.chipRow}>
-          <Pressable
-            onPress={() => setCharter(false)}
-            style={[styles.chip, !charter && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, !charter && styles.chipTextActive]}>{s.ownBoat}</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setCharter(true)}
-            style={[styles.chip, charter && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, charter && styles.chipTextActive]}>
-              {s.charterBoat}
-            </Text>
-          </Pressable>
-        </View>
-        <View style={{ marginTop: spacing.m }}>
-          <Button label={s.addBoat} icon="add" onPress={add} disabled={!name.trim()} />
-        </View>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+        {boats.length === 0 ? (
+          /* Boş durum — öğretici, tek eylem */
+          <View style={styles.empty}>
+            <View style={styles.emptyIcon}>
+              <LIcon name="sailboat" size={TICON.xl} color={T.ink3} />
+            </View>
+            <Text style={styles.emptyTitle}>{v.emptyTitle}</Text>
+            <Text style={styles.emptyBody}>{v.emptyBody}</Text>
+          </View>
+        ) : (
+          <>
+            {own.length > 0 && (
+              <>
+                <SLabel mt={0}>{s.myBoats}</SLabel>
+                {own.map(row)}
+              </>
+            )}
+            {chartered.length > 0 && (
+              <>
+                <SLabel mt={own.length > 0 ? 16 : 0}>{s.charterBoatsUsed}</SLabel>
+                {chartered.map(row)}
+              </>
+            )}
+            <Text style={styles.hint}>{v.historyHint}</Text>
+          </>
+        )}
 
-        {own.length > 0 && (
-          <>
-            <RopeDivider label={s.myBoats.toUpperCase()} />
-            {own.map(row)}
-          </>
-        )}
-        {chartered.length > 0 && (
-          <>
-            <RopeDivider label={s.charterBoatsUsed.toUpperCase()} />
-            {chartered.map(row)}
-          </>
-        )}
+        {/* Tek birincil eylem */}
+        <Pressable
+          onPress={() => navigation.navigate("AddVessel")}
+          accessibilityRole="button"
+          accessibilityLabel={v.addVessel}
+          style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.85 }]}
+        >
+          <LIcon name="plus" size={TICON.md} color="#FFFFFF" />
+          <Text style={styles.addText}>{v.addVessel}</Text>
+        </Pressable>
+        <Text style={styles.addSub}>{v.addVesselSub}</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.m, paddingBottom: spacing.xl },
-  fieldLabel: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    color: colors.textSecondary,
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.control,
-    color: colors.text,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    minHeight: touch.min,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
-  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 },
-  chip: {
-    minHeight: 44,
+  safe: { flex: 1, backgroundColor: T.bg },
+  empty: { alignItems: "center", paddingVertical: 36 },
+  emptyIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: T.surfaceEl,
+    alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: radius.pill,
-    paddingHorizontal: 13,
-    paddingVertical: 9,
+    marginBottom: 14,
   },
-  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { fontFamily: fonts.body, fontSize: 13, color: colors.text },
-  chipTextActive: { color: colors.onPrimary, fontWeight: "600" },
+  emptyTitle: { fontSize: 16, fontWeight: "700", color: T.ink0, marginBottom: 6 },
+  emptyBody: {
+    fontSize: 13,
+    color: T.ink2,
+    textAlign: "center",
+    lineHeight: 19,
+    maxWidth: 260,
+  },
   card: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     minHeight: touch.row,
-    backgroundColor: colors.surface,
+    backgroundColor: T.surface,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.card,
-    padding: spacing.m,
-    marginBottom: spacing.s,
+    borderColor: T.rule,
+    borderRadius: T.r,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 8,
+    ...TSH.sh0,
   },
-  cardTitle: { fontFamily: fonts.body, fontSize: 17, fontWeight: "600", color: colors.text },
-  cardSub: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, marginTop: 2 },
+  cardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: T.surfaceEl,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  cardTitle: { fontSize: 15, fontWeight: "600", color: T.ink0, letterSpacing: -0.2 },
+  cardSub: { fontSize: 12, color: T.ink2, marginTop: 2 },
+  hint: { fontSize: 11, color: T.ink3, marginTop: 4 },
+  addBtn: {
+    backgroundColor: T.blue,
+    borderRadius: T.r,
+    minHeight: touch.min,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 20,
+  },
+  addText: { fontSize: 15, fontWeight: "700", color: "#FFFFFF", letterSpacing: -0.2 },
+  addSub: { fontSize: 11, color: T.ink3, textAlign: "center", marginTop: 8 },
 });

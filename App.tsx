@@ -19,6 +19,7 @@ import ProvisioningScreen from "./src/screens/trip/ProvisioningScreen";
 import HandoverReviewScreen from "./src/screens/trip/HandoverReviewScreen";
 import BoatsScreen from "./src/screens/boats/BoatsScreen";
 import BoatHistoryScreen from "./src/screens/boats/BoatHistoryScreen";
+import AddVesselScreen from "./src/screens/boats/AddVesselScreen";
 import LibraryScreen from "./src/screens/LibraryScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import NewInspectionScreen from "./src/screens/inspection/NewInspectionScreen";
@@ -39,6 +40,7 @@ import { LocaleProvider, useLocale } from "./src/i18n";
 import { INSPECTION_STRINGS } from "./src/i18n/inspection";
 import { TRIP_STRINGS } from "./src/i18n/trip";
 import { PREPARE_STRINGS } from "./src/i18n/prepare";
+import { VESSEL_STRINGS } from "./src/i18n/vessel";
 import TripCrewScreen from "./src/screens/trip/prepare/TripCrewScreen";
 import TripProvisionsScreen from "./src/screens/trip/prepare/TripProvisionsScreen";
 import TripShoppingScreen from "./src/screens/trip/prepare/TripShoppingScreen";
@@ -197,6 +199,7 @@ function Root() {
   const si = INSPECTION_STRINGS[locale];
   const s = TRIP_STRINGS[locale];
   const sp = PREPARE_STRINGS[locale];
+  const sv = VESSEL_STRINGS[locale];
   return (
     <NavigationContainer ref={navigationRef} theme={theme}>
       <StatusBar style="dark" />
@@ -229,6 +232,11 @@ function Root() {
           options={{ title: s.handoverReview }}
         />
         <Stack.Screen name="BoatHistory" component={BoatHistoryScreen} options={{ title: "" }} />
+        <Stack.Screen
+          name="AddVessel"
+          component={AddVesselScreen}
+          options={{ title: sv.addVessel }}
+        />
         <Stack.Screen
           name="NewInspection"
           component={NewInspectionScreen}

@@ -50,12 +50,23 @@ export function listSampleVessels(): VesselRow[] {
   return selectVessels(true);
 }
 
-export function createVessel(input: {
-  name: string;
-  type: BoatType;
-  model?: string;
-  ownershipType?: OwnershipType;
-}): VesselRow {
+export interface VesselDetailsInput {
+  manufacturer?: string;
+  modelYear?: number;
+  lengthM?: number;
+  engineType?: string;
+  registrationNumber?: string;
+  hullIdentificationNumber?: string;
+}
+
+export function createVessel(
+  input: {
+    name: string;
+    type: BoatType;
+    model?: string;
+    ownershipType?: OwnershipType;
+  } & VesselDetailsInput
+): VesselRow {
   const id = newId();
   const ownershipType = input.ownershipType ?? "owned";
   getDb()
@@ -64,8 +75,16 @@ export function createVessel(input: {
       id,
       name: input.name.trim(),
       type: input.type,
-      model: input.model ?? null,
+      model: input.model?.trim() || null,
       ownershipType,
+      // İsteğe bağlı kimlik alanları (AddVessel aşamalı formu) — şema v1'den
+      // beri var; boş bırakılabilir, hiçbir akış zorunlu kılmaz.
+      manufacturer: input.manufacturer?.trim() || null,
+      modelYear: input.modelYear ?? null,
+      lengthM: input.lengthM ?? null,
+      engineType: input.engineType?.trim() || null,
+      registrationNumber: input.registrationNumber?.trim() || null,
+      hullIdentificationNumber: input.hullIdentificationNumber?.trim() || null,
       ...stamps(),
     })
     .run();
@@ -74,7 +93,7 @@ export function createVessel(input: {
     id,
     name: input.name.trim(),
     type: input.type,
-    model: input.model ?? null,
+    model: input.model?.trim() || null,
     ownershipType,
     isSample: false,
   };

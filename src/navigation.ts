@@ -10,6 +10,7 @@ export type RootStackParamList = {
   TripWizard: { ownership?: "own" | "charter" } | undefined;
   /** Teknenin boylamsal durum geçmişi (ürünün uzun vadeli çekirdek değeri) */
   BoatHistory: { boatId: string };
+  AddVessel: undefined;
   TripDetail: { tripId: string };
   Provisioning: { tripId: string };
   HandoverReview: { tripId: string };
