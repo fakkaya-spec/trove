@@ -1,5 +1,14 @@
 # TROVE Screens — Reference
 
+> **Source files (design handoff, Aug 2026):**
+> `src/app/App.full.tsx` — canonical: frozen tokens, primitives and the
+> Premium system data structures (screen bodies omitted by the design
+> session; the full interactive build lives in its Figma Make sandbox).
+> `src/app/App.screens.v0.tsx` — byte-exact copy of the last complete
+> screen export (all 15 core screens, pre-Premium revision). Use it for
+> screen layout reference; where the two disagree, App.full.tsx +
+> `../premium-design-system.md` win.
+
 ## Navigation tabs
 3 tabs: **Trip · Log · Vessel**
 
