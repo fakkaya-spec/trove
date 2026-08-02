@@ -231,13 +231,14 @@ const styles = StyleSheet.create({
     ...TSH.sh0,
   },
   entryCardObs: { borderColor: "rgba(201,106,0,0.20)" },
+  // Tasarım sistemi v1.0: gözlem vurgusu amber (mavi = tamamlanmış işareti).
   keel: {
     position: "absolute",
     left: 0,
     top: 0,
     bottom: 0,
     width: 2,
-    backgroundColor: T.blue,
+    backgroundColor: T.amber,
   },
   entryTitle: { fontSize: 13, fontWeight: "500", color: T.ink0, lineHeight: 18 },
   entryDesc: { fontSize: 12, color: T.ink1, lineHeight: 18, marginTop: 4 },

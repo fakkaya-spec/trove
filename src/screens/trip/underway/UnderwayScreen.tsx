@@ -296,13 +296,15 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     ...TSH.sh0,
   },
+  // Tasarım sistemi v1.0: çözülmemiş gözlem kartının sol çizgisi amber —
+  // mavi KeelLine yalnız tamamlanmış/doğrulanmış öğelerde.
   obsKeel: {
     position: "absolute",
     left: 0,
     top: 0,
     bottom: 0,
     width: 2,
-    backgroundColor: T.blue,
+    backgroundColor: T.amber,
   },
   obsTitle: { fontSize: 13, fontWeight: "500", color: T.ink0, lineHeight: 18, marginBottom: 3 },
   obsMeta: { fontSize: 11, color: T.ink2 },

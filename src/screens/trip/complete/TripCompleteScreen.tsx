@@ -409,13 +409,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     ...TSH.sh0,
   },
+  // Tasarım sistemi v1.0: açık madde kartının sol çizgisi amber.
   obsKeel: {
     position: "absolute",
     left: 0,
     top: 0,
     bottom: 0,
     width: 2,
-    backgroundColor: T.blue,
+    backgroundColor: T.amber,
   },
   obsTitle: { fontSize: 13, fontWeight: "500", color: T.ink0, lineHeight: 18, marginBottom: 3 },
   obsMeta: { fontSize: 11, color: T.ink2 },

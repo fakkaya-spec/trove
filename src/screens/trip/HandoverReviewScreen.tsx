@@ -164,8 +164,10 @@ export default function HandoverReviewScreen() {
             <RopeDivider label={s.metersCompare.toUpperCase()} />
             <View style={styles.meterHead}>
               <Text style={[styles.meterCell, styles.meterHeadText]}></Text>
-              <Text style={[styles.meterCell, styles.meterHeadText]}>{s.checkIn}</Text>
-              <Text style={[styles.meterCell, styles.meterHeadText]}>{s.checkOut}</Text>
+              {/* Tasarım sistemi v1.0 (A-4): sütunlar yalnız renkle değil
+                  yön okuyla da ayrışır (WCAG AA). */}
+              <Text style={[styles.meterCell, styles.meterHeadText]}>{`↑ ${s.checkIn}`}</Text>
+              <Text style={[styles.meterCell, styles.meterHeadText]}>{`↓ ${s.checkOut}`}</Text>
               <Text style={[styles.meterCell, styles.meterHeadText]}>Δ</Text>
             </View>
             {meters.map((m: MeterComparisonRow) => (
@@ -225,11 +227,11 @@ export default function HandoverReviewScreen() {
                 {pair.label ? <Text style={styles.pairLabel}>{pair.label}</Text> : null}
                 <View style={styles.pairImages}>
                   <View style={styles.pairSide}>
-                    <Text style={styles.pairSideLabel}>{s.checkIn}</Text>
+                    <Text style={styles.pairSideLabel}>{`↑ ${s.checkIn}`}</Text>
                     <Image source={{ uri: pair.checkinUri }} style={styles.pairImage} />
                   </View>
                   <View style={styles.pairSide}>
-                    <Text style={styles.pairSideLabel}>{s.checkOut}</Text>
+                    <Text style={styles.pairSideLabel}>{`↓ ${s.checkOut}`}</Text>
                     {pair.checkoutUri ? (
                       <Image source={{ uri: pair.checkoutUri }} style={styles.pairImage} />
                     ) : (
