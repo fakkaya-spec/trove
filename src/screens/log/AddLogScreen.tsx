@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -9,38 +9,97 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
+  Alert,
+  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { T, TSH, TICON, spacing, touch } from "../../theme";
-import { Icon } from "../../components/Icon";
+import { LIcon, type LIconName } from "../../components/LIcon";
+import { currentTrip } from "../../repositories/trips";
+import { addLogMedia, createLogEntry } from "../../repositories/log";
+import { deriveTitle, LogEntryType, LogSeverity } from "../../domain/log";
+import { capturePhoto, resolveMediaUri } from "../../media/photos";
+import { useEntitlement } from "../../entitlement";
+import { useLocale } from "../../i18n";
+import { LOG_STRINGS, typeLabel } from "../../i18n/log";
 import type { RootStackParamList } from "../../navigation";
-import type { LogEntryType, Severity } from "./LogScreen";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
-const TYPES: { key: LogEntryType; label: string; icon: string }[] = [
-  { key: "observation", label: "Observation", icon: "warning-outline" },
-  { key: "note",        label: "Note",        icon: "create-outline"  },
-  { key: "photo",       label: "Photo",       icon: "camera-outline"  },
-];
+// AddLog — gerçek kayıt oluşturur (Faz 5). KİLİTLİ kurallar:
+//  - Metin kaydı HERKESE açık; yalnız foto çekimi entitlement kapısından
+//    (log_photo) geçer. Paywall modal olarak üste açılır; yazılan metin
+//    ekran state'inde KORUNUR — satın alma sonrası aynı akışa dönülür.
+//  - Kayıt yerel-önce yazılır (SQLite + sync kuyruğu); ağ beklenmez.
 
-const SEVERITIES: { key: Severity; label: string; color: string; bg: string }[] = [
-  { key: "minor",    label: "Minor",    color: T.green, bg: T.greenL },
-  { key: "moderate", label: "Moderate", color: T.amber, bg: T.amberL },
-  { key: "serious",  label: "Serious",  color: T.red,   bg: T.redL   },
+const TYPE_OPTIONS: { key: LogEntryType; icon: LIconName }[] = [
+  { key: "observation", icon: "alert-triangle" },
+  { key: "note", icon: "pencil" },
+  { key: "photo", icon: "camera" },
 ];
 
 export default function AddLogScreen() {
   const navigation = useNavigation<Nav>();
+  const { locale } = useLocale();
+  const s = LOG_STRINGS[locale];
+  const { requestAccess } = useEntitlement();
+
   const [type, setType] = useState<LogEntryType>("observation");
-  const [severity, setSeverity] = useState<Severity>("minor");
+  const [severity, setSeverity] = useState<LogSeverity>("minor");
   const [description, setDescription] = useState("");
+  const [place, setPlace] = useState("");
+  const [photoKey, setPhotoKey] = useState<string | null>(null);
+  const savedRef = useRef(false);
+
+  const severityOptions: { key: LogSeverity; label: string; color: string; bg: string }[] = [
+    { key: "minor", label: s.sev_minor, color: T.green, bg: T.greenL },
+    { key: "moderate", label: s.sev_moderate, color: T.amber, bg: T.amberL },
+    { key: "serious", label: s.sev_serious, color: T.red, bg: T.redL },
+  ];
+
+  const dirty = description.trim().length > 0 || photoKey !== null;
+
+  // Taslak koruması: geri/iptal (Android donanım geri dahil) kirli taslakta
+  // önce sorar; kayıt sonrası serbest bırakır.
+  useEffect(() => {
+    const sub = navigation.addListener("beforeRemove", (e) => {
+      if (!dirty || savedRef.current) return;
+      e.preventDefault();
+      Alert.alert(s.discardTitle, s.discardBody, [
+        { text: s.keepEditing, style: "cancel" },
+        {
+          text: s.discardConfirm,
+          style: "destructive",
+          onPress: () => navigation.dispatch(e.data.action),
+        },
+      ]);
+    });
+    return sub;
+  }, [navigation, dirty, s]);
+
+  async function onPhoto() {
+    // KİLİTLİ kapı: foto = Premium (bağlam log_photo). Yetki yoksa paywall
+    // açılır; bu ekran ve yazılmış metin altta aynen durur.
+    if (!(await requestAccess("log_photo"))) return;
+    const key = await capturePhoto();
+    if (key) setPhotoKey(key);
+  }
 
   function handleSave() {
-    // ⚠️ EKSİK — kayıt HENÜZ KALICI DEĞİL (Faz 5): log repository +
-    // sync kuyruğu bağlanana dek bu ekran görsel prototiptir. Foto kutusu da
-    // no-op; gerçek çekim entitlement kapısından (log_photo) geçecek.
+    const trip = currentTrip();
+    if (!trip || !description.trim()) return;
+    const entry = createLogEntry({
+      tripId: trip.id,
+      vesselId: trip.boatId,
+      type,
+      title: deriveTitle(description),
+      description: description.trim(),
+      place: place.trim() || undefined,
+      severity: type === "observation" ? severity : undefined,
+    });
+    if (photoKey) addLogMedia(entry.id, photoKey);
+    savedRef.current = true;
     navigation.goBack();
   }
 
@@ -55,19 +114,23 @@ export default function AddLogScreen() {
             onPress={() => navigation.goBack()}
             style={({ pressed }) => [styles.navBtn, pressed && { opacity: 0.6 }]}
             accessibilityRole="button"
-            accessibilityLabel="Cancel"
+            accessibilityLabel={s.discardTitle}
             hitSlop={8}
           >
-            <Icon name="close" size={TICON.md} color={T.ink1} />
+            <LIcon name="x" size={TICON.md} color={T.ink1} />
           </Pressable>
-          <Text style={styles.headerTitle}>Add to log</Text>
+          <Text style={styles.headerTitle}>{s.addTitle}</Text>
           <Pressable
             onPress={handleSave}
+            disabled={!description.trim()}
             style={({ pressed }) => [styles.navBtn, styles.navBtnRight, pressed && { opacity: 0.6 }]}
             accessibilityRole="button"
-            accessibilityLabel="Save log entry"
+            accessibilityLabel={s.save}
+            accessibilityState={{ disabled: !description.trim() }}
           >
-            <Text style={[styles.saveLabel, !description && { color: T.ink3 }]}>Save</Text>
+            <Text style={[styles.saveLabel, !description.trim() && { color: T.ink3 }]}>
+              {s.addCta}
+            </Text>
           </Pressable>
         </View>
 
@@ -76,10 +139,10 @@ export default function AddLogScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Type picker */}
-          <Text style={styles.sectionLabel}>TYPE</Text>
+          {/* Tür seçici */}
+          <Text style={styles.sectionLabel}>{s.typeLabel.toUpperCase()}</Text>
           <View style={styles.typeRow}>
-            {TYPES.map((t) => {
+            {TYPE_OPTIONS.map((t) => {
               const on = type === t.key;
               return (
                 <Pressable
@@ -88,39 +151,52 @@ export default function AddLogScreen() {
                   style={[styles.typeBtn, on && styles.typeBtnOn]}
                   accessibilityRole="button"
                   accessibilityState={{ selected: on }}
+                  accessibilityLabel={typeLabel(s, t.key)}
                 >
-                  <Icon name={t.icon as any} size={TICON.sm} color={on ? "#FFF" : T.ink2} />
+                  <LIcon name={t.icon} size={TICON.sm} color={on ? "#FFFFFF" : T.ink2} />
                   <Text style={[styles.typeBtnLabel, on && styles.typeBtnLabelOn]}>
-                    {t.label}
+                    {typeLabel(s, t.key)}
                   </Text>
                 </Pressable>
               );
             })}
           </View>
 
-          {/* Camera viewfinder */}
+          {/* Foto — Premium kapılı (log_photo); metin kaydı asla engellenmez */}
           <Pressable
+            onPress={onPhoto}
             style={styles.photoBox}
             accessibilityRole="button"
-            accessibilityLabel="Add photo"
+            accessibilityLabel={photoKey ? s.photoAttached : s.tapToCapture}
           >
-            <Icon name="camera-outline" size={TICON.xl} color="rgba(255,255,255,0.22)" />
-            <Text style={styles.photoHint}>Tap to capture</Text>
-            <View style={styles.photoTimestampWrap}>
-              <Text style={styles.photoTimestamp}>
-                {new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
-              </Text>
-            </View>
+            {photoKey ? (
+              <>
+                <Image
+                  source={{ uri: resolveMediaUri(photoKey) }}
+                  style={StyleSheet.absoluteFill}
+                  resizeMode="cover"
+                />
+                <View style={styles.photoBadge}>
+                  <LIcon name="check" size={10} color="#FFFFFF" />
+                  <Text style={styles.photoBadgeText}>{s.photoAttached}</Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <LIcon name="camera" size={TICON.xl} color="rgba(255,255,255,0.22)" />
+                <Text style={styles.photoHint}>{s.tapToCapture}</Text>
+              </>
+            )}
           </Pressable>
 
-          {/* Description */}
-          <Text style={styles.sectionLabel}>DESCRIPTION</Text>
+          {/* Açıklama */}
+          <Text style={styles.sectionLabel}>{s.descriptionLabel.toUpperCase()}</Text>
           <View style={[styles.card, styles.inputWrap]}>
             <TextInput
               style={styles.input}
               multiline
               numberOfLines={4}
-              placeholder="What happened?"
+              placeholder={s.descriptionPlaceholder}
               placeholderTextColor={T.ink3}
               value={description}
               onChangeText={setDescription}
@@ -128,26 +204,27 @@ export default function AddLogScreen() {
             />
           </View>
 
-          {/* Severity (observations only) */}
+          {/* Önem (yalnız gözlem) */}
           {type === "observation" && (
             <>
-              <Text style={styles.sectionLabel}>SEVERITY</Text>
+              <Text style={styles.sectionLabel}>{s.severityLabel.toUpperCase()}</Text>
               <View style={styles.severityRow}>
-                {SEVERITIES.map((s) => {
-                  const on = severity === s.key;
+                {severityOptions.map((o) => {
+                  const on = severity === o.key;
                   return (
                     <Pressable
-                      key={s.key}
-                      onPress={() => setSeverity(s.key)}
+                      key={o.key}
+                      onPress={() => setSeverity(o.key)}
                       style={[
                         styles.severityBtn,
-                        on && { borderColor: s.color, backgroundColor: s.bg },
+                        on && { borderColor: o.color, backgroundColor: o.bg },
                       ]}
                       accessibilityRole="button"
                       accessibilityState={{ selected: on }}
+                      accessibilityLabel={o.label}
                     >
-                      <Text style={[styles.severityLabel, on && { color: s.color }]}>
-                        {s.label}
+                      <Text style={[styles.severityLabel, on && { color: o.color }]}>
+                        {o.label}
                       </Text>
                     </Pressable>
                   );
@@ -156,25 +233,37 @@ export default function AddLogScreen() {
             </>
           )}
 
-          {/* Location row */}
+          {/* Yer (isteğe bağlı) */}
           <View style={[styles.card, styles.locationRow]}>
-            <Icon name="navigate-outline" size={TICON.sm} color={T.ink2} />
-            <Text style={styles.locationText}>Current location</Text>
+            <LIcon name="map-pin" size={TICON.sm} color={T.ink2} />
+            <TextInput
+              style={styles.locationInput}
+              placeholder={s.placePlaceholder}
+              placeholderTextColor={T.ink3}
+              value={place}
+              onChangeText={setPlace}
+              returnKeyType="done"
+            />
           </View>
 
-          {/* Save */}
+          {/* Kaydet */}
           <Pressable
             onPress={handleSave}
-            disabled={!description}
+            disabled={!description.trim()}
             style={({ pressed }) => [
               styles.primaryBtn,
-              !description && styles.primaryBtnDisabled,
+              !description.trim() && styles.primaryBtnDisabled,
               pressed && { opacity: 0.85 },
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Save log entry"
+            accessibilityLabel={s.save}
+            accessibilityState={{ disabled: !description.trim() }}
           >
-            <Text style={styles.primaryBtnLabel}>Save to logbook</Text>
+            <Text
+              style={[styles.primaryBtnLabel, !description.trim() && { color: T.ink3 }]}
+            >
+              {s.save}
+            </Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -228,7 +317,7 @@ const styles = StyleSheet.create({
   },
   typeBtnOn: { backgroundColor: T.ink0 },
   typeBtnLabel: { fontSize: 12, fontWeight: "600", color: T.ink2 },
-  typeBtnLabelOn: { color: "#FFF" },
+  typeBtnLabelOn: { color: "#FFFFFF" },
   photoBox: {
     height: 160,
     backgroundColor: T.vessel,
@@ -239,12 +328,19 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   photoHint: { fontSize: 12, color: "rgba(255,255,255,0.34)", marginTop: 6 },
-  photoTimestampWrap: { position: "absolute", bottom: 8, right: 12 },
-  photoTimestamp: {
-    fontSize: 9,
-    color: "rgba(255,255,255,0.28)",
-    fontFamily: T.mono,
+  photoBadge: {
+    position: "absolute",
+    bottom: 8,
+    left: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
+  photoBadgeText: { fontSize: 10, fontWeight: "600", color: "#FFFFFF" },
   card: {
     backgroundColor: T.surface,
     borderRadius: T.r2,
@@ -276,10 +372,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    padding: 12,
+    paddingHorizontal: 12,
     marginTop: spacing.m,
+    minHeight: touch.min,
   },
-  locationText: { fontSize: 13, color: T.ink1 },
+  locationInput: { flex: 1, fontSize: 13, color: T.ink0, paddingVertical: 10 },
   primaryBtn: {
     backgroundColor: T.blue,
     borderRadius: T.r,
@@ -290,5 +387,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.l,
   },
   primaryBtnDisabled: { backgroundColor: T.surfaceEl },
-  primaryBtnLabel: { fontSize: 14, fontWeight: "600", color: "#FFF" },
+  primaryBtnLabel: { fontSize: 14, fontWeight: "600", color: "#FFFFFF" },
 });

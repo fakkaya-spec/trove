@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -8,93 +8,154 @@ import {
   SafeAreaView,
   ListRenderItem,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { T, TSH, TICON, spacing, touch, radius } from "../../theme";
-import { Icon, type IconName } from "../../components/Icon";
+import { LIcon, type LIconName } from "../../components/LIcon";
+import { isDbReady } from "../../db/state";
+import { currentTrip, TripRow } from "../../repositories/trips";
+import {
+  listLogEntries,
+  listLogMedia,
+  LogEntryRow,
+  pendingLogSyncIds,
+} from "../../repositories/log";
+import type { LogEntryType } from "../../domain/log";
+import { useLocale } from "../../i18n";
+import { LOG_STRINGS } from "../../i18n/log";
 import type { RootStackParamList } from "../../navigation";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
-export type LogEntryType = "observation" | "note" | "photo" | "check_in";
-export type Severity = "minor" | "moderate" | "serious";
+// Log sekmesi — aktif seferin kronolojik kaydı. Repository-destekli (Faz 5):
+// kayıtlar SQLite'tan gelir, yerel-önce yazılır; senkron durumu KİLİTLİ dille
+// gösterilir (bekleyen iş asla "başarısız" değildir). Görsel yapı onaylı
+// tasarımın zaman çizelgesi düzenidir; yeniden tasarlanmadı.
 
-export interface LogEntry {
-  id: string;
-  type: LogEntryType;
-  title: string;
-  location?: string;
-  /** IBM Plex Mono: machine timestamp */
-  timestamp: string;
-  severity?: Severity;
-  photoUri?: string;
-}
-
-// ⚠️ EKSİK — GÖRSEL PROTOTİP (Faz 5'e kadar işlevsel DEĞİL):
-// kayıtlar sabit yer tutucudur; log_entries migration'ı + repository +
-// sync kuyruğu + örnek izolasyonu + i18n + LIcon geçişi Faz 5'te bağlanacak.
-// Placeholder entries — replaced by log repository (Phase 5)
-const PLACEHOLDER_ENTRIES: LogEntry[] = [
-  { id: "1", type: "observation", title: "Port winch — grinding noise under load", location: "Cockpit", timestamp: "Jun 17 · 10:28", severity: "minor" },
-  { id: "2", type: "note",        title: "Anchored in Lojena bay",                 location: "44.1°N 15.2°E", timestamp: "Jun 17 · 14:00" },
-  { id: "3", type: "observation", title: "Navigation light flickering at speed",   location: "Bow · Port",    timestamp: "Jun 16 · 14:15", severity: "minor" },
-  { id: "4", type: "note",        title: "Fuelled up at Murter marina",            location: "Murter",        timestamp: "Jun 15 · 11:30" },
-  { id: "5", type: "check_in",    title: "Check-in inspection complete",           location: "Serenity",      timestamp: "Jun 15 · 09:42" },
-];
-
-const ENTRY_CFG: Record<LogEntryType, { icon: IconName; color: string; bg: string }> = {
-  observation: { icon: "warning-outline",  color: T.amber, bg: T.amberL    },
-  note:        { icon: "create-outline",   color: T.blue,  bg: T.blueL     },
-  photo:       { icon: "camera-outline",   color: T.ink2,  bg: T.surfaceEl },
-  check_in:    { icon: "checkmark-circle", color: T.green, bg: T.greenL    },
+const ENTRY_CFG: Record<LogEntryType, { icon: LIconName; color: string; bg: string }> = {
+  observation: { icon: "alert-triangle", color: T.amber, bg: T.amberL },
+  note: { icon: "pencil", color: T.blue, bg: T.blueL },
+  photo: { icon: "camera", color: T.ink2, bg: T.surfaceEl },
+  anchorage: { icon: "anchor", color: T.blue, bg: T.blueL },
+  incident: { icon: "zap", color: T.red, bg: T.redL },
+  defect: { icon: "alert-triangle", color: T.red, bg: T.redL },
+  general: { icon: "book-open", color: T.green, bg: T.greenL },
 };
+
+/** ISO → "2026-07-20 · 10:28" (mono makine-zamanı gösterimi). */
+function formatOccurredAt(iso: string): string {
+  return iso.length >= 16 ? `${iso.slice(0, 10)} · ${iso.slice(11, 16)}` : iso;
+}
 
 export default function LogScreen() {
   const navigation = useNavigation<Nav>();
-  const entries = PLACEHOLDER_ENTRIES;
+  const { locale } = useLocale();
+  const s = LOG_STRINGS[locale];
 
-  const renderEntry: ListRenderItem<LogEntry> = ({ item: e, index }) => {
+  const [trip, setTrip] = useState<TripRow | null>(null);
+  const [entries, setEntries] = useState<LogEntryRow[]>([]);
+  const [pending, setPending] = useState<Set<string>>(new Set());
+  const [mediaCounts, setMediaCounts] = useState<Map<string, number>>(new Map());
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isDbReady()) return;
+      const t = currentTrip();
+      setTrip(t);
+      const list = t ? listLogEntries(t.id) : [];
+      setEntries(list);
+      setPending(pendingLogSyncIds());
+      setMediaCounts(new Map(list.map((e) => [e.id, listLogMedia(e.id).length])));
+    }, [])
+  );
+
+  const renderEntry: ListRenderItem<LogEntryRow> = ({ item: e, index }) => {
     const cfg = ENTRY_CFG[e.type];
-    const isObs = e.type === "observation";
+    const highlight = e.type === "observation" || e.type === "incident" || e.type === "defect";
     const isLast = index === entries.length - 1;
+    const expanded = expandedId === e.id;
+    const photos = mediaCounts.get(e.id) ?? 0;
+    const syncText = pending.has(e.id) ? s.waitingSync : s.savedDevice;
 
     return (
       <View style={styles.entryRow}>
         <View style={styles.timelineCol}>
           <View style={[styles.dot, { backgroundColor: cfg.bg }]}>
-            <Icon name={cfg.icon} size={12} color={cfg.color} />
+            <LIcon name={cfg.icon} size={12} color={cfg.color} />
           </View>
           {!isLast && <View style={styles.connector} />}
         </View>
-        <View style={[styles.entryCard, isObs && styles.entryCardObs]}>
-          {isObs && <View style={styles.keel} />}
-          <View style={{ paddingLeft: isObs ? 10 : 0, flex: 1 }}>
-            <Text style={styles.entryTitle} numberOfLines={2}>{e.title}</Text>
+        <Pressable
+          onPress={() => setExpandedId(expanded ? null : e.id)}
+          accessibilityRole="button"
+          accessibilityLabel={e.title}
+          style={({ pressed }) => [
+            styles.entryCard,
+            highlight && styles.entryCardObs,
+            pressed && { opacity: 0.85 },
+          ]}
+        >
+          {highlight && <View style={styles.keel} />}
+          <View style={{ paddingLeft: highlight ? 10 : 0, flex: 1 }}>
+            <Text style={styles.entryTitle} numberOfLines={expanded ? undefined : 2}>
+              {e.title}
+            </Text>
+            {expanded && e.description ? (
+              <Text style={styles.entryDesc}>{e.description}</Text>
+            ) : null}
             <View style={styles.entryMeta}>
-              {e.location ? <Text style={styles.entryLoc}>{e.location}</Text> : <View />}
-              <Text style={styles.entryTime}>{e.timestamp}</Text>
+              {e.place ? (
+                <Text style={styles.entryLoc} numberOfLines={1}>
+                  {e.place}
+                </Text>
+              ) : (
+                <View style={{ flex: 1 }} />
+              )}
+              {photos > 0 && (
+                <View style={styles.mediaBadge}>
+                  <LIcon name="camera" size={9} color={T.ink3} />
+                  <Text style={styles.mediaCount}>{photos}</Text>
+                </View>
+              )}
+              <Text style={styles.entryTime}>{formatOccurredAt(e.occurredAt)}</Text>
             </View>
+            <Text style={styles.syncState}>{syncText}</Text>
           </View>
-        </View>
+        </Pressable>
       </View>
     );
   };
 
+  const tripDates =
+    trip?.startAt && trip?.endAt ? ` · ${trip.startAt} – ${trip.endAt}` : "";
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Logbook</Text>
-          <Text style={styles.headerSub}>Kornati Islands · Jun 15–22</Text>
+        <View style={{ flex: 1, paddingRight: 8 }}>
+          <Text style={styles.headerTitle}>{s.logbook}</Text>
+          {trip ? (
+            <Text style={styles.headerSub} numberOfLines={1}>
+              {trip.name}
+              {tripDates}
+            </Text>
+          ) : null}
         </View>
         <Pressable
           onPress={() => navigation.navigate("AddLog")}
-          style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.8 }]}
+          disabled={!trip}
+          style={({ pressed }) => [
+            styles.addBtn,
+            !trip && { backgroundColor: T.surfaceEl },
+            pressed && { opacity: 0.8 },
+          ]}
           accessibilityRole="button"
-          accessibilityLabel="Add log entry"
+          accessibilityLabel={s.addTitle}
+          accessibilityState={{ disabled: !trip }}
         >
-          <Icon name="add" size={TICON.sm} color="#FFF" />
-          <Text style={styles.addBtnLabel}>Log</Text>
+          <LIcon name="plus" size={TICON.sm} color={trip ? "#FFFFFF" : T.ink3} />
+          <Text style={[styles.addBtnLabel, !trip && { color: T.ink3 }]}>{s.addCta}</Text>
         </Pressable>
       </View>
       <FlatList
@@ -104,12 +165,10 @@ export default function LogScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <View style={styles.emptyIcon}>
-              <Icon name="create-outline" size={28} color={T.ink3} />
+              <LIcon name="book-open" size={28} color={T.ink3} />
             </View>
-            <Text style={styles.emptyTitle}>No log entries yet</Text>
-            <Text style={styles.emptyBody}>
-              Record observations, notes and photos as you go.
-            </Text>
+            <Text style={styles.emptyTitle}>{trip ? s.emptyTitle : s.noTripTitle}</Text>
+            <Text style={styles.emptyBody}>{trip ? s.emptyBody : s.noTripBody}</Text>
           </View>
         }
         contentContainerStyle={[styles.list, entries.length === 0 && styles.listEmpty]}
@@ -143,7 +202,7 @@ const styles = StyleSheet.create({
     minHeight: touch.min,
     justifyContent: "center",
   },
-  addBtnLabel: { fontSize: 12, fontWeight: "600", color: "#FFF" },
+  addBtnLabel: { fontSize: 12, fontWeight: "600", color: "#FFFFFF" },
   list: { padding: spacing.m, paddingBottom: 40 },
   listEmpty: { flex: 1 },
   entryRow: { flexDirection: "row", gap: 12, marginBottom: 6 },
@@ -177,9 +236,19 @@ const styles = StyleSheet.create({
     backgroundColor: T.blue,
   },
   entryTitle: { fontSize: 13, fontWeight: "500", color: T.ink0, lineHeight: 18 },
-  entryMeta: { flexDirection: "row", justifyContent: "space-between", marginTop: 4, gap: 8 },
+  entryDesc: { fontSize: 12, color: T.ink1, lineHeight: 18, marginTop: 4 },
+  entryMeta: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 4,
+    gap: 8,
+  },
   entryLoc: { fontSize: 11, color: T.ink2, flex: 1 },
+  mediaBadge: { flexDirection: "row", alignItems: "center", gap: 3 },
+  mediaCount: { fontSize: 10, color: T.ink3, fontFamily: T.mono },
   entryTime: { fontSize: 10, color: T.ink3, fontFamily: T.mono },
+  syncState: { fontSize: 9, color: T.ink3, marginTop: 3 },
   empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl },
   emptyIcon: {
     width: 56,

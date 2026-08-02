@@ -155,6 +155,20 @@ export function listTrips(): TripRow[] {
     .map(toRow);
 }
 
+/**
+ * Aktif sefer seçimi (TripHome/Log ortak kuralı): arşivlenmemişlerden
+ * önce active, sonra planning, sonra en son güncellenen.
+ */
+export function currentTrip(): TripRow | null {
+  const rows = listTrips().filter((t) => t.status !== "archived");
+  return (
+    rows.find((t) => t.status === "active") ??
+    rows.find((t) => t.status === "planning") ??
+    rows[0] ??
+    null
+  );
+}
+
 /** Yalnız ÖRNEK seferler (karşılama/keşif modu). */
 export function listSampleTrips(): TripRow[] {
   return getDb()
