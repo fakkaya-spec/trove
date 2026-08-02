@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, notLike } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, newId, nowIso, stamps } from "../db/client";
 import {
@@ -119,10 +119,11 @@ export function getInspection(id: string): InspectionRow | null {
 
 export function listInspections(): (InspectionRow & { vesselName?: string })[] {
   const db = getDb();
+  // Örnek denetimler (smp- ID) gerçek listelere karışmaz (izolasyon kuralı).
   const rows = db
     .select()
     .from(inspections)
-    .where(isNull(inspections.deletedAt))
+    .where(and(isNull(inspections.deletedAt), notLike(inspections.id, "smp-%")))
     .orderBy(desc(inspections.updatedAt))
     .all();
   return rows.map((row) => ({

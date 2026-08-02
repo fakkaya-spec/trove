@@ -263,6 +263,18 @@ CREATE TABLE handover_pairs (
 CREATE INDEX idx_pairs_session ON handover_pairs(session_id);
 `,
   },
+  {
+    // TROVE Faz 3: örnek (demo) veri izolasyonu — is_sample bayrağı.
+    // Repository katmanı gerçek sorgularda is_sample=0 filtreler; örnek mod
+    // tersini listeler. Örnekler gerçek kayıtlara ASLA karışmaz (testli).
+    id: 4,
+    sql: `
+ALTER TABLE vessels ADD COLUMN is_sample INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE trips ADD COLUMN is_sample INTEGER NOT NULL DEFAULT 0;
+CREATE INDEX idx_vessels_sample ON vessels(is_sample);
+CREATE INDEX idx_trips_sample ON trips(is_sample);
+`,
+  },
 ];
 
 export function migrate(db: SQLiteDatabase): void {

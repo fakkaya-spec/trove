@@ -43,6 +43,7 @@ export const vessels = sqliteTable("vessels", {
   blackWaterCapacityL: real("black_water_capacity_l"),
   engineCount: integer("engine_count"),
   engineType: text("engine_type"),
+  isSample: integer("is_sample").notNull().default(0),
   refrigeratorAvailable: integer("refrigerator_available").notNull().default(1),
   freezerAvailable: integer("freezer_available").notNull().default(0),
   watermakerAvailable: integer("watermaker_available").notNull().default(0),
@@ -72,6 +73,7 @@ export const trips = sqliteTable("trips", {
   skipperName: text("skipper_name"),
   crewNamesJson: text("crew_names_json").notNull().default("[]"),
   profileJson: text("profile_json").notNull().default("{}"),
+  isSample: integer("is_sample").notNull().default(0),
   ...common,
 });
 

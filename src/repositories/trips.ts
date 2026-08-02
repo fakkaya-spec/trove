@@ -46,6 +46,7 @@ export interface TripRow {
   skipperName: string | null;
   crewNames: string[];
   profile: TripUsageProfile;
+  isSample: boolean;
 }
 
 function parseProfile(json: string): TripUsageProfile {
@@ -82,6 +83,7 @@ function toRow(r: typeof trips.$inferSelect): TripRow {
     skipperName: r.skipperName,
     crewNames: crew,
     profile: parseProfile(r.profileJson),
+    isSample: r.isSample === 1,
   };
 }
 
@@ -141,11 +143,24 @@ export function getTrip(id: string): TripRow | null {
   return r ? toRow(r) : null;
 }
 
+// İZOLASYON KURALI: gerçek listeler örnekleri, örnek listeler gerçekleri
+// ASLA içermez (repository katmanında filtre; tests/samples.test.ts kanıtlar).
 export function listTrips(): TripRow[] {
   return getDb()
     .select()
     .from(trips)
-    .where(isNull(trips.deletedAt))
+    .where(and(isNull(trips.deletedAt), eq(trips.isSample, 0)))
+    .orderBy(desc(trips.updatedAt))
+    .all()
+    .map(toRow);
+}
+
+/** Yalnız ÖRNEK seferler (karşılama/keşif modu). */
+export function listSampleTrips(): TripRow[] {
+  return getDb()
+    .select()
+    .from(trips)
+    .where(and(isNull(trips.deletedAt), eq(trips.isSample, 1)))
     .orderBy(desc(trips.updatedAt))
     .all()
     .map(toRow);

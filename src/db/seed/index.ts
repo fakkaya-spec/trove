@@ -29,6 +29,7 @@ import { VESSELS as EN } from "../../data/checklists.en";
 import { VESSELS as DE } from "../../data/checklists.de";
 import { VESSELS as RU } from "../../data/checklists.ru";
 import { VESSELS as ES } from "../../data/checklists.es";
+import { seedSamples } from "./samples";
 
 // --- Kaynak içerikten 5 dilli madde derleme --------------------------------
 
@@ -729,6 +730,10 @@ export function seedIfNeeded(db: Db): void {
       .values({ id: newId(), displayName: "Skipper", locale: "en", ...stamps() })
       .run();
   }
+
+  // TROVE örnek verileri (Serenity/Aurora/Nomad) — şablon seed'lerinden SONRA
+  // (check-in denetimi mevcut şablona bağlanır). İzolasyon: samples.ts.
+  seedSamples(db);
 }
 
 export const SAILING_CHECKIN_TEMPLATE_NAME = T(
