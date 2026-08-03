@@ -176,6 +176,20 @@ export default function TripChecklistScreen() {
     refresh();
   }
 
+  // Cihaz testi bulgusu F5: 57+ maddeyi tek tek tiklemek bezdiriyor —
+  // bölümdeki İŞARETSİZ maddeler topluca "çalışıyor" yapılır. Bayraklılar
+  // ve zaten işaretliler DOKUNULMAZ; kritikler de kapsam içindedir çünkü
+  // kullanıcı bilinçli olarak "kalanı tamam" demektedir (geri alınabilir).
+  function markSectionRemaining(sectionItems: typeof allItems) {
+    if (readOnly || !data) return;
+    for (const item of sectionItems) {
+      if (statusOf(resultMap, item) === "unchecked") {
+        setItemStatus(data.inspection, item.id, "working");
+      }
+    }
+    refresh();
+  }
+
   function toggleFlag(itemId: string, title: string) {
     if (readOnly || !data) return;
     if (flagged.has(itemId)) {
@@ -288,9 +302,24 @@ export default function TripChecklistScreen() {
           <SampleBanner onCreate={() => navigation.navigate("Tabs", { screen: "VesselTab" })} />
         )}
 
+        {/* İkon rehberi (cihaz testi F7): tek satır, sakin */}
+        {!readOnly && <Text style={styles.iconsHint}>{p.checklistIconsHint}</Text>}
+
         {statusSections.map(({ section, items }) => (
           <View key={section.id} style={{ marginBottom: 16 }}>
-            <Text style={styles.sectionTitle}>{lt(section.title, locale).toUpperCase()}</Text>
+            <View style={styles.sectionHead}>
+              <Text style={styles.sectionTitle}>{lt(section.title, locale).toUpperCase()}</Text>
+              {!readOnly && items.some((i) => statusOf(resultMap, i) === "unchecked") && (
+                <Pressable
+                  onPress={() => markSectionRemaining(items)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${p.markRemaining}: ${lt(section.title, locale)}`}
+                  style={({ pressed }) => [styles.bulkBtn, pressed && { opacity: 0.7 }]}
+                >
+                  <Text style={styles.bulkText}>{p.markRemaining}</Text>
+                </Pressable>
+              )}
+            </View>
             {items.map((item) => {
               const st = statusOf(resultMap, item);
               const on = st !== "unchecked" && st !== "not_applicable";
@@ -430,13 +459,23 @@ const styles = StyleSheet.create({
   },
   scopeLabel: { fontSize: 11, fontWeight: "600", color: T.ink1 },
   scopeAction: { fontSize: 11, color: T.blue },
+  sectionHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 6,
+  },
   sectionTitle: {
+    flexShrink: 1,
     fontSize: 10,
     fontWeight: "700",
     color: T.ink3,
     letterSpacing: 0.5,
-    marginBottom: 6,
   },
+  bulkBtn: { minHeight: 36, justifyContent: "center", paddingHorizontal: 4 },
+  bulkText: { fontSize: 11, fontWeight: "600", color: T.blue },
+  iconsHint: { fontSize: 11, color: T.ink3, marginBottom: 12 },
   itemCard: {
     backgroundColor: T.surface,
     borderRadius: T.r2,

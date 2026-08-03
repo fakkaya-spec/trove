@@ -1,11 +1,12 @@
 import React, { useCallback, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView, Alert } from "react-native";
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { getDb } from "../../db/client";
 import { inspections, issues } from "../../db/schema";
-import { getVesselById, VesselRow } from "../../repositories/vessels";
+import { deleteVessel, getVesselById, VesselRow } from "../../repositories/vessels";
+import { VESSEL_STRINGS } from "../../i18n/vessel";
 import { isDone } from "../../domain/trip";
 import type { InspectionStatus } from "../../domain/types";
 import { colors, fonts, spacing, radius, touch } from "../../theme";
@@ -49,6 +50,7 @@ export default function BoatHistoryScreen() {
   const { locale } = useLocale();
   const s = TRIP_STRINGS[locale];
   const si = INSPECTION_STRINGS[locale];
+  const sv = VESSEL_STRINGS[locale];
 
   const [boat, setBoat] = useState<VesselRow | null>(null);
   const [rows, setRows] = useState<HistoryRow[]>([]);
@@ -138,6 +140,31 @@ export default function BoatHistoryScreen() {
             </Pressable>
           );
         })}
+
+        {/* Tekne silme (cihaz testi F3) — yumuşak silme: sefer/denetim
+            geçmişi korunur; örnek teknelerde görünmez. */}
+        {!boat.isSample && (
+          <Pressable
+            onPress={() =>
+              Alert.alert(sv.deleteVessel, sv.deleteVesselConfirm, [
+                { text: s.cancel, style: "cancel" },
+                {
+                  text: sv.deleteVessel,
+                  style: "destructive",
+                  onPress: () => {
+                    deleteVessel(boat.id);
+                    navigation.goBack();
+                  },
+                },
+              ])
+            }
+            accessibilityRole="button"
+            accessibilityLabel={sv.deleteVessel}
+            style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.8 }]}
+          >
+            <Text style={styles.deleteText}>{sv.deleteVessel}</Text>
+          </Pressable>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -146,6 +173,13 @@ export default function BoatHistoryScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
+  deleteBtn: {
+    minHeight: touch.min,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: spacing.l,
+  },
+  deleteText: { fontFamily: fonts.body, fontSize: 13, fontWeight: "600", color: colors.danger },
   subtitle: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, textAlign: "center" },
   row: {
     flexDirection: "row",

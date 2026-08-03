@@ -106,7 +106,41 @@ export default function TripDetailScreen() {
   function openProvisioning() {
     if (!trip) return;
     generatePlan(trip, locale);
-    navigation.navigate("Provisioning", { tripId: trip.id });
+    // Cihaz testi bulgusu: yeni akış TROVE ikmal ekranına gider (eski
+    // Provisioning'in açıklamasız sepet/küp ikonları kafa karıştırıyordu;
+    // kalem ekleme TROVE alışveriş listesinde zaten var).
+    navigation.navigate("TripProvisions", { tripId: trip.id });
+  }
+
+  // Cihaz testi bulgusu F1: "sıradaki adım" kutusu artık BASILABİLİR —
+  // gösterilen eylemin ekranını açar.
+  function onNextAction() {
+    if (!trip) return;
+    switch (action) {
+      case "start_check_in":
+        openChecklist("check_in");
+        break;
+      case "start_pre_departure":
+      case "continue_pre_departure":
+        openChecklist("pre_departure");
+        break;
+      case "generate_provisions":
+        openProvisioning();
+        break;
+      case "continue_shopping":
+        navigation.navigate("TripShopping", { tripId: trip.id });
+        break;
+      case "review_critical_issues":
+        openChecklist(isCharter ? "check_in" : "pre_departure");
+        break;
+      case "start_return_check":
+      case "continue_return_check":
+        openChecklist("return_secure");
+        break;
+      case "trip_complete":
+        navigation.navigate("TripComplete", { tripId: trip.id });
+        break;
+    }
   }
 
   // Modül durumu: renk + ikon birlikte (yalnız renge güvenilmez).
@@ -236,10 +270,15 @@ export default function TripDetailScreen() {
               </Text>
             </View>
           )}
-          <View style={styles.nextBox}>
+          <Pressable
+            onPress={onNextAction}
+            accessibilityRole="button"
+            accessibilityLabel={s[NA_KEY[action]]}
+            style={({ pressed }) => [styles.nextBox, pressed && { opacity: 0.85 }]}
+          >
             <Text style={styles.nextText}>{s[NA_KEY[action]]}</Text>
             <LIcon name="arrow-right" size={TICON.sm} color="#FFFFFF" />
-          </View>
+          </Pressable>
         </View>
 
         {/* Tekne seçici (eksikse; örneklerde asla — setTripBoat mutasyondur) */}

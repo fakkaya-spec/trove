@@ -229,7 +229,7 @@ const tr: PremiumStrings = {
   cmpInspection: "Denetim",
   cmpInspectionFree: "Temel kontrol maddeleri",
   cmpInspectionPremium: "Kanıt ve karşılaştırma",
-  cmpLogbook: "Jurnal",
+  cmpLogbook: "Defter",
   cmpLogbookFree: "Metin gözlemleri",
   cmpLogbookPremium: "Metin ve foto kanıtı",
   cmpCrew: "Mürettebat",

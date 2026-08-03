@@ -53,6 +53,7 @@ import { Icon, type IconName } from "../../components/Icon";
 import { Tag } from "../../components/ui";
 import { useLocale } from "../../i18n";
 import { INSPECTION_STRINGS, InspectionStrings } from "../../i18n/inspection";
+import { TRIP_STRINGS } from "../../i18n/trip";
 import type { RootStackParamList } from "../../navigation";
 
 type Route = RouteProp<RootStackParamList, "Inspect">;
@@ -116,7 +117,19 @@ export default function InspectScreen() {
 
   useEffect(() => {
     if (template && inspection) {
-      navigation.setOptions({ title: lt(template.name, locale) });
+      // Cihaz testi bulgusu F6: başlık denetim TÜRÜNDEN gelir — şablon adı
+      // ("Yelkenli yola çıkış...") katamaran/motor teknede yelkenli şablonuna
+      // düşüldüğünde yanıltıyordu. Bilinen tür yoksa şablon adına düşer.
+      const st = TRIP_STRINGS[locale];
+      const kindTitle: Record<string, string> = {
+        pre_departure: st.preDeparture,
+        check_in: st.checkIn,
+        check_out: st.checkOut,
+        return_secure: st.returnCheck,
+      };
+      navigation.setOptions({
+        title: kindTitle[inspection.kind] ?? lt(template.name, locale),
+      });
     }
   }, [template, inspection, locale, navigation]);
 

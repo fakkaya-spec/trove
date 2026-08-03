@@ -145,6 +145,99 @@ for (const loc of locales) {
 }
 assert.notEqual(VESSEL_STRINGS.tr.addVessel, VESSEL_STRINGS.en.addVessel, "TR çevirisi gerçek");
 
+// --- 6) Cihaz testi düzeltme turu (F1-F9) -----------------------------------
+import { nightsBetween } from "../src/domain/trip";
+import { deleteVessel } from "../src/repositories/vessels";
+import { SampleReadOnlyError } from "../src/repositories/log";
+
+// F2: gece hesabı saf ve doğru
+assert.equal(nightsBetween("2026-08-20", "2026-08-23"), 3, "20→23 = 3 gece");
+assert.equal(nightsBetween("2026-08-20", "2026-08-20"), 0, "aynı gün = 0");
+assert.equal(nightsBetween("2026-08-23", "2026-08-20"), null, "dönüş < kalkış = geçersiz");
+assert.equal(nightsBetween("20.08.2026", "2026-08-23"), null, "biçim dışı = geçersiz");
+assert.equal(nightsBetween("2026-12-30", "2027-01-02"), 3, "yıl geçişi doğru");
+
+// F2: sihirbaz takvimi kullanır (elle tarih yazımı kalktı)
+const wizard2 = read("src", "screens", "trip", "TripWizardScreen.tsx");
+assert.ok(
+  wizard2.includes("CalendarSheet") && wizard2.includes("nightsBetween"),
+  "sihirbaz takvim seçici + otomatik gece hesabı kullanır"
+);
+
+// F3: tekne silme — gerçek SQLite'ta yumuşak silme + örnek koruması
+const toDelete = createVessel({ name: "Silinecek", type: "rib" });
+assert.ok(listVessels().some((b) => b.id === toDelete.id));
+deleteVessel(toDelete.id);
+assert.ok(!listVessels().some((b) => b.id === toDelete.id), "silinen tekne listeden düşer");
+assert.equal(getVesselById(toDelete.id), null, "silinen tekne kimlikle de dönmez");
+const delRaw = db.select().from(schema.vessels).where(eq(schema.vessels.id, toDelete.id)).all()[0];
+assert.ok(delRaw && delRaw.deletedAt !== null, "satır DB'de kalır (yumuşak silme — veri kaybı yok)");
+db.insert(schema.vessels)
+  .values({
+    id: "smp-test-vessel",
+    name: "Örnek",
+    type: "sailing",
+    ownershipType: "owned",
+    isSample: 1,
+    createdAt: "2026-01-01T00:00:00Z",
+    updatedAt: "2026-01-01T00:00:00Z",
+  })
+  .run();
+assert.throws(
+  () => deleteVessel("smp-test-vessel"),
+  SampleReadOnlyError,
+  "örnek tekne silinemez (izolasyon)"
+);
+
+// F1: sefer detayındaki "sıradaki adım" artık basılabilir
+const detail2 = read("src", "screens", "trip", "TripDetailScreen.tsx");
+assert.ok(
+  /onPress=\{onNextAction\}/.test(detail2) && detail2.includes('case "trip_complete"'),
+  "sıradaki-adım kutusu eylemi açan bir düğmedir"
+);
+assert.ok(
+  detail2.includes('navigate("TripProvisions"'),
+  "sefer detayı TROVE ikmal ekranına yönlenir (eski ikonlu ekran değil)"
+);
+
+// F4: 'Jurnal' Türkçe arayüzden kalktı
+assert.ok(
+  !read("src", "i18n", "trip.ts").includes('"Jurnal"') &&
+    !read("src", "i18n", "premium.ts").includes('"Jurnal"'),
+  "sekme/karşılaştırma adı 'Defter' oldu"
+);
+
+// F5+F7: bölüm toplu onayı + ikon rehberi
+const checklist2 = read("src", "screens", "trip", "prepare", "TripChecklistScreen.tsx");
+assert.ok(
+  checklist2.includes("markSectionRemaining") && checklist2.includes("checklistIconsHint"),
+  "kontrol listesi: kalanı-işaretle + ikon açıklaması"
+);
+
+// F6: denetim başlığı türden gelir (yanıltıcı şablon adı değil)
+assert.ok(
+  /kindTitle\[inspection\.kind\] \?\? lt\(template\.name/.test(
+    read("src", "screens", "inspection", "InspectScreen.tsx")
+  ),
+  "denetim başlığı tür etiketiyle; bilinmeyen türde şablon adına düşer"
+);
+
+// F8: onay alanı kaptan adıyla önceden dolar
+assert.ok(
+  /setSignName\(\(prev\) => prev \|\| t\.skipperName/.test(
+    read("src", "screens", "trip", "complete", "TripCompleteScreen.tsx")
+  ),
+  "kaptan adı onaya önceden doldurulur (yazılmışsa dokunulmaz)"
+);
+
+// Dil seçici: beta'da yalnız tam çevrilmiş diller
+assert.ok(
+  /LOCALES\.filter\(\(l\) => l\.code === "en" \|\| l\.code === "tr"\)/.test(
+    read("src", "screens", "ProfileScreen.tsx")
+  ),
+  "beta dil seçici EN+TR (yarım çeviri sunulmaz); i18n 9 dili korur"
+);
+
 console.log(
-  "firstuse.test.ts: ALL PASS (vessel optional fields persist, routes, TROVE tokens, behavior preservation, i18n parity)"
+  "firstuse.test.ts: ALL PASS (vessel optional fields persist, routes, TROVE tokens, behavior preservation, i18n parity, device-fix round F1-F9)"
 );

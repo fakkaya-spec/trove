@@ -107,3 +107,17 @@ export function tripProgress(states: TripModuleStates, isCharter: boolean): Trip
     modulesDone: done,
   };
 }
+
+/**
+ * İki YYYY-MM-DD tarihi arasındaki gece sayısı (cihaz testi F2 — takvimden
+ * seçilince otomatik hesap). Geçersiz biçim veya dönüş < kalkış → null;
+ * aynı gün → 0. Saf takvim aritmetiği — saat dilimi etkisi yok (UTC gün).
+ */
+export function nightsBetween(startISO: string, endISO: string): number | null {
+  const re = /^\d{4}-\d{2}-\d{2}$/;
+  if (!re.test(startISO) || !re.test(endISO)) return null;
+  const start = Date.parse(`${startISO}T00:00:00Z`);
+  const end = Date.parse(`${endISO}T00:00:00Z`);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return null;
+  return Math.round((end - start) / 86_400_000);
+}

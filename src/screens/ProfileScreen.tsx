@@ -34,8 +34,11 @@ export default function ProfileScreen() {
         </View>
 
         <RopeDivider label={s.language.toUpperCase()} />
+        {/* BETA: yalnız tam çevrilmiş diller gösterilir (cihaz testi bulgusu —
+            yarım çeviri sunmak güven kırar). Çeviriler tamamlandıkça
+            LOCALES'e geri dönülür; i18n altyapısı 9 dili korur. */}
         <View style={styles.langRow}>
-          {LOCALES.map((l) => (
+          {LOCALES.filter((l) => l.code === "en" || l.code === "tr").map((l) => (
             <Pressable
               key={l.code}
               onPress={() => setLocale(l.code)}

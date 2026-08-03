@@ -30,6 +30,8 @@ export interface VesselStrings {
   keepEditing: string;
   discardConfirm: string;
   historyHint: string;
+  deleteVessel: string;
+  deleteVesselConfirm: string;
 }
 
 const en: VesselStrings = {
@@ -60,6 +62,9 @@ const en: VesselStrings = {
   keepEditing: "Keep editing",
   discardConfirm: "Discard",
   historyHint: "Open a vessel to see its trip and inspection history.",
+  deleteVessel: "Delete vessel",
+  deleteVesselConfirm:
+    "The vessel is removed from your lists. Trips and inspections that reference it keep their records.",
 };
 
 const tr: VesselStrings = {
@@ -90,6 +95,9 @@ const tr: VesselStrings = {
   keepEditing: "Düzenlemeye devam",
   discardConfirm: "At",
   historyHint: "Sefer ve denetim geçmişini görmek için bir tekne aç.",
+  deleteVessel: "Tekneyi sil",
+  deleteVesselConfirm:
+    "Tekne listelerinden kaldırılır. Ona bağlı sefer ve denetim kayıtları korunur.",
 };
 
 const de: VesselStrings = { ...en };

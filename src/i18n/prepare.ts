@@ -40,6 +40,12 @@ export interface PrepareStrings {
   // trip_predep / trip_checkin
   sectionWord: string;
   completeChecklistCta: string;
+  /** Bölümdeki işaretsiz maddeleri topluca tamam yapar (cihaz testi F5) */
+  markRemaining: string;
+  /** Bayrak/kamera ikonlarının tek satırlık açıklaması (cihaz testi F7) */
+  checklistIconsHint: string;
+  /** Takvimden tarih temizleme (cihaz testi F2) */
+  clearDate: string;
   continueCheckinCta: string;
   completeCheckinCta: string;
   completedPill: string;
@@ -82,6 +88,9 @@ const en: PrepareStrings = {
   generateShoppingCta: "Generate shopping list →",
   sectionWord: "Section",
   completeChecklistCta: "Complete checklist",
+  markRemaining: "Mark rest OK",
+  checklistIconsHint: "Flag = needs attention · Camera = photo evidence",
+  clearDate: "Clear",
   continueCheckinCta: "Continue to check-in inspection →",
   completeCheckinCta: "Complete check-in →",
   completedPill: "Completed",
@@ -125,6 +134,9 @@ const tr: PrepareStrings = {
   generateShoppingCta: "Alışveriş listesini oluştur →",
   sectionWord: "Bölüm",
   completeChecklistCta: "Kontrol listesini tamamla",
+  markRemaining: "Kalanı tamam işaretle",
+  checklistIconsHint: "Bayrak = dikkat gerektirir · Kamera = foto kanıtı",
+  clearDate: "Temizle",
   continueCheckinCta: "Check-in denetimine geç →",
   completeCheckinCta: "Check-in'i tamamla →",
   completedPill: "Tamamlandı",

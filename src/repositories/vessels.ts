@@ -3,6 +3,7 @@ import { getDb, newId, stamps } from "../db/client";
 import { vessels } from "../db/schema";
 import type { BoatType } from "../domain/types";
 import { enqueueSync } from "./sync";
+import { SampleReadOnlyError } from "./log";
 
 export type OwnershipType = "owned" | "chartered" | "managed" | "temporary";
 
@@ -97,6 +98,29 @@ export function createVessel(
     ownershipType,
     isSample: false,
   };
+}
+
+/**
+ * Tekneyi yumuşak siler (deletedAt) — cihaz testi bulgusu F3. Satırlar ve
+ * tekneye bağlı sefer/denetim geçmişi DB'de kalır; yalnız listelerden ve
+ * getVesselById'den düşer (sefer detayı "tekne eksik" gösterir, veri
+ * kaybolmaz). Örnek tekneler silinemez (izolasyon kuralı).
+ */
+export function deleteVessel(id: string): void {
+  const [row] = getDb()
+    .select({ isSample: vessels.isSample })
+    .from(vessels)
+    .where(eq(vessels.id, id))
+    .limit(1)
+    .all();
+  if (!row) return;
+  if (row.isSample === 1) throw new SampleReadOnlyError(`vessel ${id}`);
+  getDb()
+    .update(vessels)
+    .set({ deletedAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
+    .where(eq(vessels.id, id))
+    .run();
+  enqueueSync("vessels", id);
 }
 
 /** Kimlikle erişim her iki kümeye de çalışır (örnek detayına girilebilir). */

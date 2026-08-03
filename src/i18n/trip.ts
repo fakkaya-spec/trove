@@ -474,7 +474,7 @@ const tr: TripStrings = {
   deleteItemConfirm: "Bu kalem silinsin mi?",
   deleteShort: "Sil",
   tabTrip: "Sefer",
-  tabLog: "Jurnal",
+  tabLog: "Defter",
   tabVessel: "Tekne",
   settings: "Ayarlar",
   welcomeTitle: "Gemiye hoş geldin.",

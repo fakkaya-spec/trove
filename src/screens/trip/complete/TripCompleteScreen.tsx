@@ -80,6 +80,11 @@ export default function TripCompleteScreen() {
     setStates(getTripModuleStates(t));
     setOpen(listOpenItems(t.id));
     setSignoffs(listSignoffs(t.id));
+    // Cihaz testi bulgusu F8: kaptan adı sihirbazda zaten yazıldı — onay
+    // alanına önceden doldurulur (kullanıcı yazmaya başladıysa dokunulmaz).
+    if (t.skipperName) {
+      setSignName((prev) => prev || t.skipperName!);
+    }
     const kind = t.ownershipContext === "charter" ? "check_out" : "return_secure";
     setCheckProgress(tripChecklistProgress(t.id, kind));
   }, [route.params.tripId]);

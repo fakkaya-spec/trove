@@ -61,7 +61,7 @@ const tr: EntitlementStrings = {
   paywallBenefit:
     "Zaman damgalı foto kanıtı ekle, check-in ile check-out'u karşılaştır ve teknenin görsel kaydını tut.",
   ctx_inspection_photo: "Bir denetim maddesinde kameraya dokundun.",
-  ctx_log_photo: "Bir jurnal kaydında kameraya dokundun.",
+  ctx_log_photo: "Bir defter kaydında kameraya dokundun.",
   ctx_handover_pair: "Rehberli foto çiftleri teslim durumunu belgeler.",
   ctx_gallery_import: "Galeriden fotoğraf içe aktarmayı denedin.",
   ctx_report_photo: "Rapora foto kanıtı eklemeyi denedin.",

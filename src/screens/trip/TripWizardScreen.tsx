@@ -27,12 +27,15 @@ import {
   ShopAccess,
   TripType,
 } from "../../domain/types";
+import { nightsBetween } from "../../domain/trip";
+import { CalendarSheet } from "../../components/trove/CalendarSheet";
 import { T, TSH, TICON, touch } from "../../theme";
 import { LIcon } from "../../components/LIcon";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS, TripStrings } from "../../i18n/trip";
 import { boatTypeLabel, INSPECTION_STRINGS } from "../../i18n/inspection";
 import { VESSEL_STRINGS } from "../../i18n/vessel";
+import { PREPARE_STRINGS } from "../../i18n/prepare";
 import type { RootStackParamList } from "../../navigation";
 
 // Sefer sihirbazı — Faz 8 TROVE görünümü (sprint G4). Motor/veri davranışı
@@ -125,6 +128,7 @@ export default function TripWizardScreen() {
   const s = TRIP_STRINGS[locale];
   const si = INSPECTION_STRINGS[locale];
   const sv = VESSEL_STRINGS[locale];
+  const p = PREPARE_STRINGS[locale];
 
   // 1) Tekne (Home hızlı aksiyonları sahiplik ön seçimi geçebilir)
   const [ownership, setOwnership] = useState<OwnershipContext>(
@@ -139,6 +143,14 @@ export default function TripWizardScreen() {
   const [name, setName] = useState("");
   const [startAt, setStartAt] = useState("");
   const [endAt, setEndAt] = useState("");
+  const [pickerFor, setPickerFor] = useState<"start" | "end" | null>(null);
+  const [pickerInit, setPickerInit] = useState("2026-01-01");
+
+  // Takvim, dokunma ANINDA bugünden açılır (render'da tarih hesabı yok).
+  function openPicker(which: "start" | "end") {
+    setPickerInit(new Date().toISOString().slice(0, 10));
+    setPickerFor(which);
+  }
   const [departure, setDeparture] = useState("");
   const [destination, setDestination] = useState("");
   const [tripType, setTripType] = useState<TripType>("weekend");
@@ -176,6 +188,23 @@ export default function TripWizardScreen() {
       setDinners(n);
       setLunches(n + 1);
     }
+  }
+
+  // Takvim seçimi: tarih atanır; iki tarih de doluysa gece sayısı otomatik
+  // hesaplanır (mealsTouched mantığına saygılı — setNights önerileri günceller).
+  function onPickDate(iso: string) {
+    const nextStart = pickerFor === "start" ? iso : startAt;
+    const nextEnd = pickerFor === "end" ? iso : endAt;
+    if (pickerFor === "start") {
+      setStartAt(iso);
+      // Kalkış dönüşün ötesine alındıysa dönüş temizlenir (geçersiz aralık olmaz)
+      if (nextEnd && nightsBetween(iso, nextEnd) === null) setEndAt("");
+    } else if (pickerFor === "end") {
+      setEndAt(iso);
+    }
+    setPickerFor(null);
+    const n = nightsBetween(nextStart, nextEnd);
+    if (n !== null && n > 0) setNights(n);
   }
 
   const dayTrip = tripType === "short_day_trip" || tripType === "full_day_trip";
@@ -352,23 +381,31 @@ export default function TripWizardScreen() {
             placeholderTextColor={T.ink3}
             accessibilityLabel={s.tripName}
           />
+          {/* Tarihler — cihaz testi F2: elle yazım yerine takvim; iki tarih
+              seçilince gece sayısı otomatik hesaplanır. */}
           <View style={styles.row2}>
-            <TextInput
-              value={startAt}
-              onChangeText={setStartAt}
-              style={[styles.input, styles.inputMono, { flex: 1 }]}
-              placeholder={`${s.tripDates}: ${s.dateHint}`}
-              placeholderTextColor={T.ink3}
+            <Pressable
+              onPress={() => openPicker("start")}
+              accessibilityRole="button"
               accessibilityLabel={s.tripDates}
-            />
-            <TextInput
-              value={endAt}
-              onChangeText={setEndAt}
-              style={[styles.input, styles.inputMono, { flex: 1 }]}
-              placeholder={s.dateHint}
-              placeholderTextColor={T.ink3}
+              style={[styles.input, styles.dateField, { flex: 1 }]}
+            >
+              <LIcon name="calendar" size={TICON.sm} color={T.ink2} />
+              <Text style={[styles.dateText, !startAt && { color: T.ink3 }]}>
+                {startAt || s.dateHint}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => openPicker("end")}
+              accessibilityRole="button"
               accessibilityLabel={s.dateHint}
-            />
+              style={[styles.input, styles.dateField, { flex: 1 }]}
+            >
+              <LIcon name="calendar" size={TICON.sm} color={T.ink2} />
+              <Text style={[styles.dateText, !endAt && { color: T.ink3 }]}>
+                {endAt || s.dateHint}
+              </Text>
+            </Pressable>
           </View>
           <View style={styles.row2}>
             <TextInput
@@ -538,6 +575,23 @@ export default function TripWizardScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      <CalendarSheet
+        visible={pickerFor !== null}
+        title={s.tripDates}
+        selectedISO={(pickerFor === "start" ? startAt : endAt) || null}
+        initialISO={pickerInit}
+        minISO={pickerFor === "end" ? startAt || null : null}
+        locale={locale}
+        clearLabel={p.clearDate}
+        onSelect={onPickDate}
+        onClear={() => {
+          if (pickerFor === "start") setStartAt("");
+          else if (pickerFor === "end") setEndAt("");
+          setPickerFor(null);
+        }}
+        onClose={() => setPickerFor(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -580,6 +634,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   inputMono: { fontFamily: T.mono, fontSize: 13 },
+  dateField: { flexDirection: "row", alignItems: "center", gap: 8 },
+  dateText: { fontFamily: T.mono, fontSize: 13, color: T.ink0 },
   row2: { flexDirection: "row", gap: 8 },
   card: {
     backgroundColor: T.surface,
