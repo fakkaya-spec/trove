@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView, Image } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { T, TSH, TICON } from "../../../theme";
@@ -12,6 +12,7 @@ import {
 } from "../../../repositories/trips";
 import { getVesselById } from "../../../repositories/vessels";
 import { getPlanForTrip, planProgress } from "../../../repositories/provisioning";
+import { resolveMediaUri } from "../../../media/photos";
 import { isDone, TripModuleStates } from "../../../domain/trip";
 import type { ShoppingProgress } from "../../../domain/provisioning";
 import { tripChecklistProgress, ChecklistProgress } from "./checklistData";
@@ -158,6 +159,17 @@ export function TripPrepareHub({
           accessibilityLabel={trip.name}
           style={({ pressed }) => [styles.hero, pressed && { opacity: 0.92 }]}
         >
+          {/* Canlılık turu: onaylı referansın foto-hero deseni */}
+          {boat?.photoUri && (
+            <>
+              <Image
+                source={{ uri: resolveMediaUri(boat.photoUri) }}
+                style={styles.heroPhoto}
+                resizeMode="cover"
+              />
+              <View style={styles.heroShade} />
+            </>
+          )}
           <Pill text={statusLabel} type="ghost" />
           <Text style={styles.heroTitle} numberOfLines={2}>
             {trip.destination ?? trip.name}
@@ -237,7 +249,22 @@ export function TripPrepareHub({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: T.bg },
-  hero: { backgroundColor: T.vessel, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16 },
+  hero: {
+    backgroundColor: T.vessel,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 16,
+    overflow: "hidden",
+  },
+  heroPhoto: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  heroShade: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(9,12,24,0.62)",
+  },
   heroTitle: {
     fontSize: 26,
     fontWeight: "700",

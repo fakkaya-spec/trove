@@ -14,6 +14,8 @@ export interface VesselRow {
   model: string | null;
   ownershipType: OwnershipType;
   isSample: boolean;
+  /** Göreli medya anahtarı (media/<id>.jpg) — gösterimde resolveMediaUri. */
+  photoUri: string | null;
 }
 
 // İZOLASYON KURALI (docs/MONETIZATION.md 5 + Faz 3 kararı): gerçek sorgular
@@ -28,6 +30,7 @@ function selectVessels(sample: boolean): VesselRow[] {
       model: vessels.model,
       ownershipType: vessels.ownershipType,
       isSample: vessels.isSample,
+      photoUri: vessels.photoUri,
     })
     .from(vessels)
     .where(and(isNull(vessels.deletedAt), eq(vessels.isSample, sample ? 1 : 0)))
@@ -66,6 +69,8 @@ export function createVessel(
     type: BoatType;
     model?: string;
     ownershipType?: OwnershipType;
+    /** Göreli medya anahtarı (canlılık turu — tekne kimlik fotoğrafı). */
+    photoUri?: string;
   } & VesselDetailsInput
 ): VesselRow {
   const id = newId();
@@ -78,6 +83,7 @@ export function createVessel(
       type: input.type,
       model: input.model?.trim() || null,
       ownershipType,
+      photoUri: input.photoUri ?? null,
       // İsteğe bağlı kimlik alanları (AddVessel aşamalı formu) — şema v1'den
       // beri var; boş bırakılabilir, hiçbir akış zorunlu kılmaz.
       manufacturer: input.manufacturer?.trim() || null,
@@ -97,7 +103,26 @@ export function createVessel(
     model: input.model?.trim() || null,
     ownershipType,
     isSample: false,
+    photoUri: input.photoUri ?? null,
   };
+}
+
+/** Tekne kimlik fotoğrafını ayarlar/değiştirir (örnekler salt okunur). */
+export function setVesselPhoto(id: string, photoKey: string): void {
+  const [row] = getDb()
+    .select({ isSample: vessels.isSample })
+    .from(vessels)
+    .where(eq(vessels.id, id))
+    .limit(1)
+    .all();
+  if (!row) return;
+  if (row.isSample === 1) throw new SampleReadOnlyError(`vessel ${id}`);
+  getDb()
+    .update(vessels)
+    .set({ photoUri: photoKey, updatedAt: new Date().toISOString() })
+    .where(eq(vessels.id, id))
+    .run();
+  enqueueSync("vessels", id);
 }
 
 /**

@@ -32,6 +32,9 @@ export interface VesselStrings {
   historyHint: string;
   deleteVessel: string;
   deleteVesselConfirm: string;
+  photoOptional: string;
+  addPhoto: string;
+  changePhoto: string;
 }
 
 const en: VesselStrings = {
@@ -65,6 +68,9 @@ const en: VesselStrings = {
   deleteVessel: "Delete vessel",
   deleteVesselConfirm:
     "The vessel is removed from your lists. Trips and inspections that reference it keep their records.",
+  photoOptional: "PHOTO (OPTIONAL)",
+  addPhoto: "Add a photo of the boat",
+  changePhoto: "Change photo",
 };
 
 const tr: VesselStrings = {
@@ -98,6 +104,9 @@ const tr: VesselStrings = {
   deleteVessel: "Tekneyi sil",
   deleteVesselConfirm:
     "Tekne listelerinden kaldırılır. Ona bağlı sefer ve denetim kayıtları korunur.",
+  photoOptional: "FOTOĞRAF (İSTEĞE BAĞLI)",
+  addPhoto: "Teknenin bir fotoğrafını ekle",
+  changePhoto: "Fotoğrafı değiştir",
 };
 
 const de: VesselStrings = { ...en };

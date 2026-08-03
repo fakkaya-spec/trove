@@ -1,8 +1,9 @@
 import React, { useCallback, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView, Image } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { listVessels, VesselRow } from "../../repositories/vessels";
+import { resolveMediaUri } from "../../media/photos";
 import { isDbReady } from "../../db/state";
 import { T, TSH, TICON, touch } from "../../theme";
 import { LIcon, type LIconName } from "../../components/LIcon";
@@ -53,9 +54,13 @@ export default function BoatsScreen() {
       accessibilityLabel={`${b.name} — ${s.historyTitle}`}
       style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
     >
-      <View style={styles.cardIcon}>
-        <LIcon name={TYPE_ICON[b.type] ?? "sailboat"} size={TICON.lg} color={T.ink1} />
-      </View>
+      {b.photoUri ? (
+        <Image source={{ uri: resolveMediaUri(b.photoUri) }} style={styles.cardPhoto} />
+      ) : (
+        <View style={styles.cardIcon}>
+          <LIcon name={TYPE_ICON[b.type] ?? "sailboat"} size={TICON.lg} color={T.blue} />
+        </View>
+      )}
       <View style={{ flex: 1 }}>
         <Text style={styles.cardTitle} numberOfLines={1}>
           {b.name}
@@ -153,11 +158,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: T.surfaceEl,
+    backgroundColor: T.blueL,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
+  cardPhoto: { width: 44, height: 44, borderRadius: T.r2, flexShrink: 0 },
   cardTitle: { fontSize: 15, fontWeight: "600", color: T.ink0, letterSpacing: -0.2 },
   cardSub: { fontSize: 12, color: T.ink2, marginTop: 2 },
   hint: { fontSize: 11, color: T.ink3, marginTop: 4 },

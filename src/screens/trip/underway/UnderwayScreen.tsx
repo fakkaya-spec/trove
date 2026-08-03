@@ -1,5 +1,14 @@
 import React, { useCallback, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  SafeAreaView,
+  Alert,
+  Image,
+} from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { T, TSH, TICON } from "../../../theme";
@@ -14,6 +23,7 @@ import {
   resolveLogEntry,
 } from "../../../repositories/log";
 import { tripDayOf, tripDays, TripDayInfo } from "../../../domain/trip";
+import { resolveMediaUri } from "../../../media/photos";
 import { formatOccurredAt } from "../../../domain/log";
 import type { ShoppingProgress } from "../../../domain/provisioning";
 import { useLocale } from "../../../i18n";
@@ -95,6 +105,18 @@ export function UnderwayScreen({ trip }: { trip: TripRow }) {
           accessibilityLabel={trip.name}
           style={({ pressed }) => [styles.hero, pressed && { opacity: 0.92 }]}
         >
+          {/* Canlılık turu: tekne fotoğrafı varsa hero fotoğraf + karartma
+              (onaylı referans deseni); yoksa sakin koyu blok — sahte görsel yok. */}
+          {boat?.photoUri && (
+            <>
+              <Image
+                source={{ uri: resolveMediaUri(boat.photoUri) }}
+                style={styles.heroPhoto}
+                resizeMode="cover"
+              />
+              <View style={styles.heroShade} />
+            </>
+          )}
           <View style={styles.heroTop}>
             {dayInfo ? (
               <Pill text={fmtDayOf(u, dayInfo.day, dayInfo.totalDays)} type="ghost" />
@@ -244,7 +266,22 @@ export function UnderwayScreen({ trip }: { trip: TripRow }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: T.bg },
-  hero: { backgroundColor: T.vessel, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20 },
+  hero: {
+    backgroundColor: T.vessel,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+    overflow: "hidden",
+  },
+  heroPhoto: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  heroShade: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(9,12,24,0.62)",
+  },
   heroTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   overdue: { fontSize: 11, color: T.amber },
   heroTitle: {

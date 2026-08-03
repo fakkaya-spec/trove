@@ -238,6 +238,39 @@ assert.ok(
   "beta dil seçici EN+TR (yarım çeviri sunulmaz); i18n 9 dili korur"
 );
 
+// --- 7) Canlılık turu: tekne fotoğrafı + foto-hero deseni -------------------
+import { setVesselPhoto } from "../src/repositories/vessels";
+
+setVesselPhoto(v2.id, "media/test-photo.jpg");
+assert.equal(
+  getVesselById(v2.id)?.photoUri,
+  "media/test-photo.jpg",
+  "tekne kimlik fotoğrafı kalıcı (göreli anahtar)"
+);
+assert.throws(
+  () => setVesselPhoto("smp-test-vessel", "media/x.jpg"),
+  SampleReadOnlyError,
+  "örnek tekneye foto atanamaz"
+);
+// Hero'lar: foto varsa karartmalı görsel, yoksa sakin koyu blok (sahte görsel yok)
+for (const f of [
+  ["src", "screens", "trip", "underway", "UnderwayScreen.tsx"],
+  ["src", "screens", "trip", "prepare", "TripPrepareHub.tsx"],
+  ["src", "screens", "trip", "complete", "TripCompleteScreen.tsx"],
+]) {
+  const src = read(...f);
+  assert.ok(
+    /boat\?\.photoUri &&[\s\S]{0,300}heroShade/.test(src),
+    `${f.at(-1)}: foto-hero yalnız gerçek tekne fotoğrafıyla (koşullu) çizilir`
+  );
+}
+// Foto kapısı merkezî kalır (AddVessel + BoatHistory çekimleri kapıdan geçer)
+assert.ok(
+  read("src", "screens", "boats", "AddVesselScreen.tsx").includes('requestAccess("gallery_import")') &&
+    read("src", "screens", "boats", "BoatHistoryScreen.tsx").includes('requestAccess("gallery_import")'),
+  "tekne fotoğrafı çekimi merkezî entitlement kapısından geçer"
+);
+
 console.log(
-  "firstuse.test.ts: ALL PASS (vessel optional fields persist, routes, TROVE tokens, behavior preservation, i18n parity, device-fix round F1-F9)"
+  "firstuse.test.ts: ALL PASS (vessel optional fields persist, routes, TROVE tokens, behavior preservation, i18n parity, device-fix round F1-F9, liveliness photo-hero)"
 );

@@ -10,12 +10,15 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { T, TSH, TICON, touch } from "../../theme";
 import { LIcon } from "../../components/LIcon";
 import { createVessel } from "../../repositories/vessels";
+import { capturePhoto, resolveMediaUri } from "../../media/photos";
+import { useEntitlement } from "../../entitlement";
 import type { BoatType } from "../../domain/types";
 import { useLocale } from "../../i18n";
 import { TRIP_STRINGS } from "../../i18n/trip";
@@ -51,10 +54,22 @@ export default function AddVesselScreen() {
   const [engine, setEngine] = useState("");
   const [registration, setRegistration] = useState("");
   const [hin, setHin] = useState("");
+  const [photoKey, setPhotoKey] = useState<string | null>(null);
   const [nameError, setNameError] = useState(false);
   const savedRef = useRef(false);
+  const { requestAccess } = useEntitlement();
+
+  // Canlılık turu: tekne kimlik fotoğrafı — mevcut medya hattı + merkezî
+  // kapı (foto = Premium kuralı; beta'da kapı açık). Bağlam: gallery_import
+  // (kanıt değil, kimlik görseli — kilitli bağlam listesinden en yakını).
+  async function onPhoto() {
+    if (!(await requestAccess("gallery_import"))) return;
+    const key = await capturePhoto();
+    if (key) setPhotoKey(key);
+  }
 
   const dirty =
+    photoKey !== null ||
     name.trim().length > 0 ||
     manufacturer.length > 0 ||
     model.length > 0 ||
@@ -99,6 +114,7 @@ export default function AddVesselScreen() {
       name,
       type,
       ownershipType: charter ? "chartered" : "owned",
+      photoUri: photoKey ?? undefined,
       model: model || undefined,
       manufacturer: manufacturer || undefined,
       modelYear: yearNum,
@@ -203,6 +219,28 @@ export default function AddVesselScreen() {
             })}
           </View>
 
+          {/* İsteğe bağlı fotoğraf — hero'lar ve liste bundan canlanır */}
+          <Text style={styles.sectionLabel}>{v.photoOptional}</Text>
+          <Pressable
+            onPress={() => void onPhoto()}
+            accessibilityRole="button"
+            accessibilityLabel={photoKey ? v.changePhoto : v.addPhoto}
+            style={({ pressed }) => [styles.photoBox, pressed && { opacity: 0.85 }]}
+          >
+            {photoKey ? (
+              <Image
+                source={{ uri: resolveMediaUri(photoKey) }}
+                style={styles.photoImg}
+                resizeMode="cover"
+              />
+            ) : (
+              <>
+                <LIcon name="camera" size={TICON.xl} color="rgba(255,255,255,0.25)" />
+                <Text style={styles.photoHint}>{v.addPhoto}</Text>
+              </>
+            )}
+          </Pressable>
+
           {/* İsteğe bağlı ayrıntılar — katlanır */}
           <Pressable
             onPress={() => setShowDetails((x) => !x)}
@@ -287,6 +325,17 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: T.ink0, borderColor: T.ink0 },
   chipText: { fontSize: 13, color: T.ink1 },
   chipTextOn: { color: "#FFFFFF", fontWeight: "600" },
+  photoBox: {
+    height: 132,
+    borderRadius: T.r,
+    backgroundColor: T.vessel,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    overflow: "hidden",
+  },
+  photoImg: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  photoHint: { fontSize: 12, color: "rgba(255,255,255,0.45)" },
   detailsToggle: {
     flexDirection: "row",
     alignItems: "center",

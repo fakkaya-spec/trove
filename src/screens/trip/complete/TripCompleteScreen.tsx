@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   TextInput,
   Alert,
+  Image,
 } from "react-native";
 import { useFocusEffect, useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -31,6 +32,7 @@ import {
 } from "../../../repositories/completion";
 import { OpenItem, SignoffRole } from "../../../domain/completion";
 import { formatOccurredAt } from "../../../domain/log";
+import { resolveMediaUri } from "../../../media/photos";
 import { tripChecklistProgress } from "../prepare/checklistData";
 import {
   generateTripReport,
@@ -159,6 +161,16 @@ export default function TripCompleteScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
         {/* Koyu hero (native başlık kapalı; geri düğmesi hero'da) */}
         <View style={styles.hero}>
+          {boat?.photoUri && (
+            <>
+              <Image
+                source={{ uri: resolveMediaUri(boat.photoUri) }}
+                style={styles.heroPhoto}
+                resizeMode="cover"
+              />
+              <View style={styles.heroShade} />
+            </>
+          )}
           <View style={styles.heroBack}>
             <BackBtn onPress={() => navigation.goBack()} dark />
           </View>
@@ -356,7 +368,22 @@ export default function TripCompleteScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: T.bg },
-  hero: { backgroundColor: T.vessel, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 20 },
+  hero: {
+    backgroundColor: T.vessel,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 20,
+    overflow: "hidden",
+  },
+  heroPhoto: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  heroShade: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(9,12,24,0.62)",
+  },
   heroBack: { marginLeft: -12, marginBottom: 8 },
   heroTitle: {
     fontSize: 26,

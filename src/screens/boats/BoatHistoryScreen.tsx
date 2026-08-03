@@ -1,12 +1,23 @@
 import React, { useCallback, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  SafeAreaView,
+  Alert,
+  Image,
+} from "react-native";
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { getDb } from "../../db/client";
 import { inspections, issues } from "../../db/schema";
-import { deleteVessel, getVesselById, VesselRow } from "../../repositories/vessels";
+import { deleteVessel, getVesselById, setVesselPhoto, VesselRow } from "../../repositories/vessels";
 import { VESSEL_STRINGS } from "../../i18n/vessel";
+import { capturePhoto, resolveMediaUri } from "../../media/photos";
+import { useEntitlement } from "../../entitlement";
 import { isDone } from "../../domain/trip";
 import type { InspectionStatus } from "../../domain/types";
 import { colors, fonts, spacing, radius, touch } from "../../theme";
@@ -54,6 +65,16 @@ export default function BoatHistoryScreen() {
 
   const [boat, setBoat] = useState<VesselRow | null>(null);
   const [rows, setRows] = useState<HistoryRow[]>([]);
+  const { requestAccess } = useEntitlement();
+
+  async function onPhoto() {
+    if (!boat || boat.isSample) return;
+    if (!(await requestAccess("gallery_import"))) return;
+    const key = await capturePhoto();
+    if (!key) return;
+    setVesselPhoto(boat.id, key);
+    setBoat(getVesselById(boat.id));
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -92,6 +113,33 @@ export default function BoatHistoryScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Canlılık turu: tekne kimlik fotoğrafı — ekle/değiştir */}
+        {!boat.isSample && (
+          <Pressable
+            onPress={() => void onPhoto()}
+            accessibilityRole="button"
+            accessibilityLabel={boat.photoUri ? sv.changePhoto : sv.addPhoto}
+            style={({ pressed }) => [styles.photoHero, pressed && { opacity: 0.9 }]}
+          >
+            {boat.photoUri ? (
+              <>
+                <Image
+                  source={{ uri: resolveMediaUri(boat.photoUri) }}
+                  style={styles.photoImg}
+                  resizeMode="cover"
+                />
+                <View style={styles.photoBadge}>
+                  <Icon name="camera-outline" size={13} color="#FFFFFF" />
+                </View>
+              </>
+            ) : (
+              <>
+                <Icon name="camera-outline" size={22} color="rgba(255,255,255,0.30)" />
+                <Text style={styles.photoHint}>{sv.addPhoto}</Text>
+              </>
+            )}
+          </Pressable>
+        )}
         <Text style={styles.subtitle}>
           {boatTypeLabel(si, boat.type)}
           {boat.model ? ` · ${boat.model}` : ""}
@@ -173,6 +221,26 @@ export default function BoatHistoryScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.m, paddingBottom: spacing.xl },
+  photoHero: {
+    height: 148,
+    borderRadius: radius.card,
+    backgroundColor: "#090C18",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    overflow: "hidden",
+    marginBottom: spacing.s,
+  },
+  photoImg: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  photoBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    borderRadius: 6,
+    padding: 5,
+  },
+  photoHint: { fontFamily: fonts.body, fontSize: 12, color: "rgba(255,255,255,0.45)" },
   deleteBtn: {
     minHeight: touch.min,
     alignItems: "center",
